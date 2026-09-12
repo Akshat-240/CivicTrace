@@ -152,6 +152,94 @@ async def analyze_evidence(
     evidence_id: uuid.UUID,
     db: DbSession,
 ) -> Any:
-    # Ensure evidence belongs to incident, omitted for brevity / handled implicitly or in service
+    # Ensure evidence belongs to incident
     ai_service = AIService(db)
     return await ai_service.process_evidence(evidence_id)
+
+@router.post(
+    "/{incident_id}/assign-jurisdiction",
+    response_model=IncidentDetail,
+    summary="Trigger GIS jurisdiction assignment for an incident",
+)
+async def assign_jurisdiction(
+    incident_id: uuid.UUID,
+    db: DbSession,
+) -> Any:
+    service = IncidentService(db)
+    return await service.assign_jurisdiction(incident_id)
+
+@router.post(
+    "/{incident_id}/prioritize",
+    response_model=Any,
+    summary="Compute final incident priority using evidence aggregation",
+)
+async def compute_priority(
+    incident_id: uuid.UUID,
+    db: DbSession,
+) -> Any:
+    from app.services.priority_service import PriorityService
+    service = PriorityService(db)
+    # Returning the dictionary representing Priority model for simplicity
+    p = await service.compute_priority(incident_id)
+    return {
+        "final_priority": p.final_priority,
+        "explanation": p.explanation,
+        "safety_risk": p.safety_risk,
+        "severity": p.severity,
+        "persistence_score": p.persistence_score
+    }
+
+@router.post(
+    "/{incident_id}/start-sla",
+    response_model=Any,
+    summary="Start SLA clock for a prioritized incident",
+)
+async def start_sla(
+    incident_id: uuid.UUID,
+    db: DbSession,
+) -> Any:
+    from app.services.sla_service import AccountabilityService
+    service = AccountabilityService(db)
+    sla_record = await service.start_sla(incident_id)
+    return {
+        "state": sla_record.state,
+        "started_at": sla_record.started_at,
+        "due_at": sla_record.due_at,
+    }
+
+@router.post(
+    "/{incident_id}/evaluate-sla",
+    response_model=Any,
+    summary="Evaluate and transition SLA state machine",
+)
+async def evaluate_sla(
+    incident_id: uuid.UUID,
+    db: DbSession,
+) -> Any:
+    from app.services.sla_service import AccountabilityService
+    service = AccountabilityService(db)
+    sla_record = await service.evaluate_sla(incident_id)
+    return {
+        "state": sla_record.state,
+        "overdue_at": sla_record.overdue_at,
+        "is_escalation_eligible": sla_record.is_escalation_eligible,
+    }
+
+@router.post(
+    "/{incident_id}/verify-resolution",
+    response_model=Any,
+    summary="Execute evidence-based resolution verification",
+)
+async def verify_resolution(
+    incident_id: uuid.UUID,
+    db: DbSession,
+) -> Any:
+    from app.services.verification_service import VerificationService
+    service = VerificationService(db)
+    record = await service.verify_resolution(incident_id)
+    return {
+        "result": record.result,
+        "explanation": record.explanation,
+        "confidence": record.confidence,
+        "verified_at": record.verified_at,
+    }

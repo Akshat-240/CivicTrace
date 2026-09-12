@@ -29,6 +29,25 @@ from fastapi.exceptions import RequestValidationError
 logger = structlog.get_logger(__name__)
 
 
+import asyncio
+
+async def run_sla_poller_loop():
+    from app.core.database import async_session_maker
+    from app.services.sla_poller import SLAPoller
+    
+    # Run every 5 minutes in production, but let's make it configurable or standard interval.
+    # 5 minutes is 300 seconds.
+    while True:
+        try:
+            async with async_session_maker() as session:
+                poller = SLAPoller(session)
+                summary = await poller.evaluate_all_active_slas()
+                logger.debug("sla_poller_run", summary=summary)
+        except Exception as e:
+            logger.error("sla_poller_fatal_error", error=str(e))
+            
+        await asyncio.sleep(300)
+
 @asynccontextmanager
 async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     """
@@ -52,9 +71,18 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     await check_db_connection()
     logger.info("database_connection_verified")
 
+    # Start the background SLA poller
+    poller_task = asyncio.create_task(run_sla_poller_loop())
+
     yield
 
     # Graceful shutdown: dispose the async engine pool.
+    poller_task.cancel()
+    try:
+        await poller_task
+    except asyncio.CancelledError:
+        pass
+        
     await engine.dispose()
     logger.info("civictrace_api_stopped")
 
@@ -97,8 +125,9 @@ def create_app() -> FastAPI:
     app.include_router(health.router, tags=["system"])
 
     # Domain routers will be added here as features are built out.
-    from app.api.routes import incidents
+    from app.api.routes import incidents, system
     app.include_router(incidents.router, prefix=settings.api_v1_prefix)
+    app.include_router(system.router, prefix=settings.api_v1_prefix)
     # app.include_router(evidence.router,  prefix=settings.api_v1_prefix)
 
     return app

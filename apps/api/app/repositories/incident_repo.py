@@ -52,6 +52,9 @@ class IncidentRepository:
             .options(
                 selectinload(Incident.location),
                 selectinload(Incident.authority),
+                selectinload(Incident.priority),
+                selectinload(Incident.sla),
+                selectinload(Incident.verification),
             )
             .order_by(Incident.created_at.desc())
             .offset(skip)
