@@ -177,6 +177,13 @@ class EventType(str, enum.Enum):
 # ---------------------------------------------------------------------------
 
 
+class UserRole(str, enum.Enum):
+    """User roles for authorization."""
+
+    CITIZEN = "citizen"
+    AUTHORITY = "authority"
+    ADMIN = "admin"
+
 class AssetType(str, enum.Enum):
     """Infrastructure asset associated with an incident."""
 

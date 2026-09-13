@@ -20,6 +20,7 @@ from app.models.enums import (  # noqa: F401
     PriorityLevel,
     SeverityLevel,
     VerificationResult,
+    UserRole,
 )
 from app.models.location import Location  # noqa: F401
 from app.models.authority import Authority  # noqa: F401
@@ -31,6 +32,7 @@ from app.models.priority import Priority  # noqa: F401
 from app.models.sla import SLA  # noqa: F401
 from app.models.verification import VerificationRecord  # noqa: F401
 from app.models.event import IncidentEvent  # noqa: F401
+from app.models.user import User  # noqa: F401
 
 __all__ = [
     # Enums
@@ -44,6 +46,7 @@ __all__ = [
     "PriorityLevel",
     "SeverityLevel",
     "VerificationResult",
+    "UserRole",
     # Models
     "Location",
     "Authority",
@@ -55,4 +58,5 @@ __all__ = [
     "SLA",
     "VerificationRecord",
     "IncidentEvent",
+    "User",
 ]
