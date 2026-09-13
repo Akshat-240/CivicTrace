@@ -31,6 +31,33 @@ const Sidebar = () => {
         <div className="ct-brand-badge">AUTHORITY</div>
       </div>
 
+      {/* Portal Switcher */}
+      <div className="ct-portal-switcher" style={{ padding: '0 16px 12px 16px' }}>
+        <div style={{ display: 'flex', background: 'rgba(255,255,255,0.04)', borderRadius: '6px', padding: '3px', gap: '2px', border: '1px solid rgba(255,255,255,0.06)' }}>
+          <button 
+            type="button" 
+            style={{ flex: 1, background: 'transparent', border: 'none', color: '#94A3B8', fontSize: '11px', fontWeight: 600, padding: '5px 0', borderRadius: '4px', cursor: 'pointer' }}
+            onClick={() => navigate('/admin/dashboard')}
+          >
+            Admin
+          </button>
+          <button 
+            type="button" 
+            style={{ flex: 1, background: '#2563EB', border: 'none', color: '#FFFFFF', fontSize: '11px', fontWeight: 600, padding: '5px 0', borderRadius: '4px', cursor: 'pointer', boxShadow: '0 1px 4px rgba(37, 99, 235, 0.4)' }}
+            onClick={() => navigate('/authority/dashboard')}
+          >
+            Authority
+          </button>
+          <button 
+            type="button" 
+            style={{ flex: 1, background: 'transparent', border: 'none', color: '#94A3B8', fontSize: '11px', fontWeight: 600, padding: '5px 0', borderRadius: '4px', cursor: 'pointer' }}
+            onClick={() => navigate('/citizen/dashboard')}
+          >
+            Citizen
+          </button>
+        </div>
+      </div>
+
       <nav className="ct-sidebar-nav">
         {navItems.map((item) => (
           <NavLink 
