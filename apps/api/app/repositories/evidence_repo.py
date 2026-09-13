@@ -22,7 +22,11 @@ class EvidenceRepository:
         return evidence
 
     async def get_by_id(self, evidence_id: uuid.UUID) -> Evidence | None:
-        stmt = select(Evidence).where(Evidence.id == evidence_id)
+        stmt = (
+            select(Evidence)
+            .where(Evidence.id == evidence_id)
+            .options(selectinload(Evidence.location))
+        )
         result = await self.session.execute(stmt)
         return result.scalars().first()
 
