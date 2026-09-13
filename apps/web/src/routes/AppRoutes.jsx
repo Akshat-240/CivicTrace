@@ -26,6 +26,15 @@ import AdminDepartmentPage from '../pages/admin/AdminDepartmentPage';
 import AdminGovernancePage from '../pages/admin/AdminGovernancePage';
 import AdminSettingsPage from '../pages/admin/AdminSettingsPage';
 
+// Citizen Portal
+import CitizenLayout from '../components/layout/CitizenLayout';
+import CitizenDashboardPage from '../pages/citizen/CitizenDashboardPage';
+import CitizenReportPage from '../pages/citizen/CitizenReportPage';
+import CitizenTrackPage from '../pages/citizen/CitizenTrackPage';
+import CitizenHistoryPage from '../pages/citizen/CitizenHistoryPage';
+import CitizenFeedbackPage from '../pages/citizen/CitizenFeedbackPage';
+import CitizenSettingsPage from '../pages/citizen/CitizenSettingsPage';
+
 const AppRoutes = () => {
   return (
     <Routes>
@@ -56,6 +65,19 @@ const AppRoutes = () => {
         <Route path="departments" element={<AdminDepartmentPage />} />
         <Route path="governance" element={<AdminGovernancePage />} />
         <Route path="settings" element={<AdminSettingsPage />} />
+      </Route>
+
+      {/* Citizen Portal Routes */}
+      <Route path="/citizen" element={<CitizenLayout />}>
+        <Route index element={<Navigate to="dashboard" replace />} />
+        <Route path="dashboard" element={<CitizenDashboardPage />} />
+        <Route path="report" element={<CitizenReportPage />} />
+        <Route path="track" element={<CitizenTrackPage />} />
+        <Route path="track/:id" element={<CitizenTrackPage />} />
+        <Route path="history" element={<CitizenHistoryPage />} />
+        <Route path="feedback" element={<CitizenFeedbackPage />} />
+        <Route path="feedback/:id" element={<CitizenFeedbackPage />} />
+        <Route path="settings" element={<CitizenSettingsPage />} />
       </Route>
 
       {/* Fallback */}

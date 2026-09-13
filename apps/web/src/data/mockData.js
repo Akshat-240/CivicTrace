@@ -473,3 +473,153 @@ export const mockAdminSettings = {
   }
 };
 
+// ==========================================
+// CITIZEN PORTAL MOCK DATA
+// ==========================================
+
+export const mockCitizenStats = {
+  activeReports: 3,
+  inProgress: 1,
+  resolved: 8
+};
+
+export const mockCitizenActiveReports = [
+  {
+    id: "CT-INC-024",
+    title: "Pothole on MG Road",
+    category: "Road Damage",
+    categoryKey: "road",
+    reportedTime: "2 days ago",
+    status: "In Progress",
+    department: "LMC Civil",
+    ward: "Hazratganj"
+  },
+  {
+    id: "CT-INC-019",
+    title: "Streetlight not working",
+    category: "Streetlight",
+    categoryKey: "streetlight",
+    reportedTime: "4 days ago",
+    status: "Awaiting Verification",
+    department: "Electrical Services",
+    ward: "Aliganj"
+  }
+];
+
+export const mockCitizenActivity = [
+  {
+    id: 1,
+    time: "10:18 AM",
+    title: "Report updated",
+    reportId: "CT-INC-024"
+  },
+  {
+    id: 2,
+    time: "09:52 AM",
+    title: "Authority response received",
+    reportId: "CT-INC-024"
+  },
+  {
+    id: 3,
+    time: "Yesterday",
+    title: "Resolution evidence submitted",
+    reportId: "CT-INC-019"
+  },
+  {
+    id: 4,
+    time: "12 Sep",
+    title: "Verification completed",
+    reportId: "CT-INC-011"
+  }
+];
+
+export const mockCitizenTrackingData = {
+  id: "CT-INC-024",
+  title: "Large pothole on MG Road",
+  status: "In Progress",
+  category: "Road Damage",
+  ward: "Hazratganj",
+  timeline: [
+    { label: "Report submitted", timestamp: "12 Sep · 10:32 AM", completed: true },
+    { label: "Location verified", timestamp: "12 Sep · 10:33 AM", completed: true },
+    { label: "Assigned to authority", timestamp: "12 Sep · 10:35 AM", completed: true },
+    { label: "In progress", timestamp: "13 Sep · 09:10 AM", active: true, completed: false },
+    { label: "Resolution evidence", timestamp: "Waiting for authority", completed: false },
+    { label: "Closed", timestamp: "After verification", completed: false }
+  ],
+  authority: {
+    agency: "Lucknow Municipal Corporation",
+    department: "LMC Civil · Roads",
+    status: "Assigned",
+    slaStatus: "Within resolution window"
+  },
+  verification: {
+    comparison: "AI visual comparison",
+    beforeLabel: "Pothole detected",
+    afterLabel: "Repair verified",
+    aiVerified: true,
+    confidence: "96%",
+    message: "No pothole detected in completion photo"
+  }
+};
+
+export const mockCitizenPastIncidents = [
+  {
+    id: "CT-INC-011",
+    title: "Streetlight Failure",
+    location: "Hazratganj",
+    status: "Resolved",
+    date: "Aug 28"
+  },
+  {
+    id: "CT-INC-009",
+    title: "Garbage accumulation",
+    location: "Aliganj",
+    status: "Resolved",
+    date: "Aug 22"
+  },
+  {
+    id: "CT-INC-006",
+    title: "Water leakage",
+    location: "Gomti Nagar",
+    status: "Escalated",
+    date: "Aug 18"
+  },
+  {
+    id: "CT-INC-003",
+    title: "Road damage",
+    location: "Indira Nagar",
+    status: "Resolved",
+    date: "Aug 12"
+  }
+];
+
+export const mockCitizenFeedbackTarget = {
+  id: "CT-INC-019",
+  title: "Streetlight not working",
+  category: "Streetlight",
+  resolvedBy: "Electrical Services",
+  resolvedDate: "12 Sept 2024"
+};
+
+export const mockCitizenSettings = {
+  profile: {
+    name: "Citizen",
+    area: "Lucknow resident"
+  },
+  notifications: {
+    reportUpdates: true,
+    authorityResponses: true,
+    resolutionAlerts: true
+  },
+  location: {
+    permissionsActive: true,
+    defaultArea: "Lucknow · Your area"
+  },
+  privacy: {
+    dataUsage: "Minimal telemetry",
+    evidencePreferences: "Anonymous submission"
+  }
+};
+
+

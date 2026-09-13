@@ -1,0 +1,395 @@
+.citizen-settings-container {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  max-width: 980px;
+  position: relative;
+}
+
+.settings-saved-toast {
+  position: fixed;
+  top: 80px;
+  right: 32px;
+  background: #0F172A;
+  color: #10B981;
+  padding: 10px 18px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  box-shadow: 0 10px 20px -5px rgba(0, 0, 0, 0.2);
+  z-index: 1000;
+}
+
+.settings-section-card {
+  background-color: #FFFFFF;
+  border: 1px solid #E2E8F0;
+  border-radius: 12px;
+  padding: 24px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
+}
+
+/* Profile Card */
+.profile-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.profile-info-left {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.profile-section-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: #64748B;
+}
+
+.profile-user-name {
+  font-size: 20px;
+  font-weight: 700;
+  color: #0F172A;
+  margin: 2px 0 0 0;
+}
+
+.profile-user-area {
+  font-size: 13px;
+  color: #64748B;
+}
+
+.btn-edit-profile {
+  background-color: #2563EB;
+  color: #FFFFFF;
+  border: none;
+  padding: 8px 24px;
+  border-radius: 6px;
+  font-size: 13.5px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.btn-edit-profile:hover {
+  background-color: #1D4ED8;
+}
+
+/* 2-Column Grid */
+.settings-two-col-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+
+.settings-col {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.section-card-title {
+  font-size: 15px;
+  font-weight: 700;
+  color: #0F172A;
+  margin: 0 0 18px 0;
+}
+
+/* Toggles List */
+.settings-toggle-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.setting-toggle-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.toggle-text-col {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.toggle-label {
+  font-size: 13.5px;
+  font-weight: 600;
+  color: #1E293B;
+}
+
+.toggle-desc {
+  font-size: 12px;
+  color: #64748B;
+}
+
+/* Switch Button */
+.switch-btn {
+  width: 40px;
+  height: 22px;
+  background-color: #CBD5E1;
+  border-radius: 11px;
+  border: none;
+  cursor: pointer;
+  position: relative;
+  transition: background-color 0.2s ease;
+  padding: 2px;
+}
+
+.switch-btn.active {
+  background-color: #10B981;
+}
+
+.switch-knob {
+  width: 18px;
+  height: 18px;
+  background-color: #FFFFFF;
+  border-radius: 50%;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+  transition: transform 0.2s ease;
+}
+
+.switch-btn.active .switch-knob {
+  transform: translateX(18px);
+}
+
+/* Links List */
+.settings-links-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.settings-link-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 14px;
+  background-color: #F8FAFC;
+  border-radius: 8px;
+  border: 1px solid #EDF2F7;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.settings-link-row:hover {
+  background-color: #F1F5F9;
+  border-color: #CBD5E1;
+}
+
+.link-text-col {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.link-label {
+  font-size: 13.5px;
+  font-weight: 600;
+  color: #1E293B;
+}
+
+.link-desc {
+  font-size: 12px;
+  color: #64748B;
+}
+
+.link-arrow-icon {
+  color: #94A3B8;
+}
+
+/* Location Card */
+.settings-info-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.setting-info-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.setting-info-row.vertical {
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+}
+
+.info-row-label {
+  font-size: 13.5px;
+  font-weight: 600;
+  color: #1E293B;
+}
+
+.permission-badge.active {
+  background-color: #ECFDF5;
+  color: #059669;
+  font-size: 11.5px;
+  font-weight: 600;
+  padding: 3px 10px;
+  border-radius: 4px;
+}
+
+.info-row-val {
+  font-size: 13px;
+  color: #64748B;
+}
+
+/* Security Card */
+.settings-security-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.security-action-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-bottom: 14px;
+  border-bottom: 1px solid #F1F5F9;
+}
+
+.security-action-row:last-child {
+  padding-bottom: 0;
+  border-bottom: none;
+}
+
+.security-text-col {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.security-label {
+  font-size: 13.5px;
+  font-weight: 600;
+  color: #1E293B;
+}
+
+.security-desc {
+  font-size: 12px;
+  color: #64748B;
+}
+
+.btn-security-action {
+  border: none;
+  font-size: 13px;
+  font-weight: 600;
+  padding: 7px 18px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-security-action.blue {
+  background-color: #2563EB;
+  color: #FFFFFF;
+}
+
+.btn-security-action.blue:hover {
+  background-color: #1D4ED8;
+}
+
+.btn-security-action.red {
+  background-color: #FEE2E2;
+  color: #DC2626;
+}
+
+.btn-security-action.red:hover {
+  background-color: #FECACA;
+}
+
+/* Edit Profile Modal */
+.profile-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(11, 19, 43, 0.4);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 999;
+}
+
+.profile-modal {
+  background: #FFFFFF;
+  border-radius: 12px;
+  width: 100%;
+  max-width: 400px;
+  padding: 24px;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+}
+
+.profile-modal h3 {
+  margin: 0 0 4px 0;
+  font-size: 17px;
+  color: #0F172A;
+}
+
+.profile-modal p {
+  margin: 0 0 16px 0;
+  font-size: 13px;
+  color: #64748B;
+}
+
+.modal-input-wrap {
+  margin-bottom: 20px;
+}
+
+.modal-input-wrap label {
+  display: block;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: #475569;
+  margin-bottom: 6px;
+}
+
+.modal-input-wrap input {
+  width: 100%;
+  padding: 9px 12px;
+  border: 1px solid #CBD5E1;
+  border-radius: 6px;
+  font-size: 14px;
+  outline: none;
+  box-sizing: border-box;
+}
+
+.modal-input-wrap input:focus {
+  border-color: #2563EB;
+}
+
+.modal-actions-wrap {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.modal-cancel-btn {
+  background: #F1F5F9;
+  border: 1px solid #CBD5E1;
+  padding: 8px 16px;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #475569;
+  cursor: pointer;
+}
+
+.modal-save-btn {
+  background: #2563EB;
+  border: none;
+  padding: 8px 18px;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #FFFFFF;
+  cursor: pointer;
+}
