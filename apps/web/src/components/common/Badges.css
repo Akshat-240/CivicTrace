@@ -1,0 +1,49 @@
+/* Priority Pills - Figma Style */
+.ct-priority-pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 3px 12px;
+  border-radius: 9999px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  color: #FFFFFF;
+  text-transform: uppercase;
+}
+
+.ct-pill-critical {
+  background-color: #DC2626;
+}
+
+.ct-pill-high {
+  background-color: #D97706;
+}
+
+.ct-pill-medium {
+  background-color: #16A34A;
+}
+
+.ct-pill-low {
+  background-color: #64748B;
+}
+
+/* Priority Text */
+.ct-priority-text {
+  font-size: 11.5px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+
+.ct-priority-critical { color: #DC2626; }
+.ct-priority-high { color: #D97706; }
+.ct-priority-medium { color: #16A34A; }
+.ct-priority-low { color: #64748B; }
+
+/* Status Text/Badge */
+.ct-status-badge {
+  font-size: 13.5px;
+  color: #0F172A;
+  font-weight: 500;
+}

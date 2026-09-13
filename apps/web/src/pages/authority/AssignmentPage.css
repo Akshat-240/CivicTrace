@@ -1,0 +1,194 @@
+.ct-assignment-page {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.ct-assignment-grid {
+  display: grid;
+  grid-template-columns: 1.8fr 1fr;
+  gap: 24px;
+}
+
+@media (max-width: 1024px) {
+  .ct-assignment-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.ct-unassigned-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.ct-unassigned-row {
+  border: 1px solid #E2E8F0;
+  border-radius: 8px;
+  padding: 18px 22px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  background: #FFFFFF;
+  transition: all 0.15s ease;
+}
+
+.ct-unassigned-row:hover {
+  border-color: #94A3B8;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.03);
+}
+
+.ct-unassigned-id {
+  font-size: 13.5px;
+  font-weight: 600;
+  color: #2563EB;
+  min-width: 105px;
+}
+
+.ct-unassigned-info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex-grow: 1;
+}
+
+.ct-unassigned-title {
+  font-size: 15px;
+  font-weight: 600;
+  color: #0F172A;
+}
+
+.ct-unassigned-priority {
+  display: flex;
+  align-items: center;
+}
+
+.ct-btn-assign {
+  background-color: #2563EB;
+  color: #FFFFFF;
+  border: none;
+  border-radius: 8px;
+  padding: 9px 18px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background-color 0.15s ease;
+}
+
+.ct-btn-assign:hover {
+  background-color: #1D4ED8;
+}
+
+/* Team Load */
+.ct-team-list {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.ct-team-row {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid #F1F5F9;
+}
+
+.ct-team-row:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+.ct-team-name {
+  font-size: 14.5px;
+  font-weight: 600;
+  color: #0F172A;
+}
+
+.ct-team-count {
+  font-size: 13px;
+  font-weight: 600;
+}
+
+/* Success Banner */
+.ct-success-banner {
+  background-color: #F0FDF4;
+  border: 1px solid #86EFAC;
+  color: #166534;
+  padding: 14px 20px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  animation: fadeIn 0.2s ease;
+}
+
+.ct-all-assigned {
+  background: #F8FAFC;
+  border: 1px dashed #CBD5E1;
+  border-radius: 8px;
+  padding: 36px;
+  text-align: center;
+  color: #64748B;
+  font-size: 14px;
+}
+
+/* Assign Modal */
+.ct-assign-modal {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.ct-assign-modal-sub {
+  font-size: 14px;
+  color: #475569;
+  margin: 0;
+}
+
+.ct-officer-options {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 6px;
+}
+
+.ct-officer-card {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 18px;
+  border: 1px solid #E2E8F0;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  background: #FFFFFF;
+}
+
+.ct-officer-card:hover {
+  border-color: #2563EB;
+  background-color: #F8FAFC;
+}
+
+.ct-officer-card.selected {
+  border-color: #2563EB;
+  background-color: #EFF6FF;
+}
+
+.ct-officer-card input {
+  accent-color: #2563EB;
+  cursor: pointer;
+}
+
+.ct-officer-name {
+  font-size: 14.5px;
+  font-weight: 600;
+  color: #0F172A;
+}
+
+.ct-officer-meta {
+  font-size: 12.5px;
+  color: #64748B;
+  margin-top: 2px;
+}
