@@ -52,14 +52,15 @@ class GISService:
         point = func.ST_SetSRID(func.ST_MakePoint(longitude, latitude), 4326)
 
         stmt = (
-            select(Jurisdiction)
+            select(Jurisdiction, func.ST_Area(Jurisdiction.boundary).label("area"))
             .options(selectinload(Jurisdiction.authority))
             .where(func.ST_Contains(Jurisdiction.boundary, point))
+            .order_by(func.ST_Area(Jurisdiction.boundary).asc())
         )
-        
+
         try:
             result = await self.session.execute(stmt)
-            matches = result.scalars().all()
+            matches_with_area = result.all()
         except Exception as e:
             # Handle database/PostGIS failures gracefully
             return JurisdictionResult(
@@ -68,22 +69,38 @@ class GISService:
             )
 
         # 3. Handle Conflicts and No-Matches
-        if len(matches) == 0:
+        if len(matches_with_area) == 0:
             return JurisdictionResult(
                 status=GISStatus.NO_JURISDICTION,
                 explanation="Coordinates do not fall within any known civic boundary."
             )
-            
-        if len(matches) > 1:
-            # Multiple overlapping boundaries found
-            names = ", ".join([m.name for m in matches])
-            return JurisdictionResult(
-                status=GISStatus.JURISDICTION_CONFLICT,
-                explanation=f"Coordinates fall within multiple overlapping boundaries: {names}. Manual review required."
-            )
+
+        if len(matches_with_area) > 1:
+            jurisdictions = [m[0] for m in matches_with_area]
+            authorities = {j.authority_id for j in jurisdictions}
+
+            if len(authorities) > 1:
+                # True authority conflict
+                names = ", ".join([j.name for j in jurisdictions])
+                return JurisdictionResult(
+                    status=GISStatus.JURISDICTION_CONFLICT,
+                    explanation=f"Coordinates fall within multiple overlapping boundaries mapped to different authorities: {names}. Manual review required."
+                )
+
+            # Same authority. Check if it's a Ward-in-Zone hierarchy by comparing areas.
+            # matches_with_area[0] is the smallest.
+            # If the two smallest matches have the exact same boundary area, it's an ambiguity.
+            area_0 = matches_with_area[0][1]
+            area_1 = matches_with_area[1][1]
+            if abs(area_0 - area_1) < 1e-9:
+                names = ", ".join([j.name for j in jurisdictions])
+                return JurisdictionResult(
+                    status=GISStatus.JURISDICTION_CONFLICT,
+                    explanation=f"Coordinates fall within multiple overlapping boundaries of identical size: {names}. Manual review required."
+                )
 
         # 4. Success Match
-        match = matches[0]
+        match = matches_with_area[0][0]
         if not match.authority:
             return JurisdictionResult(
                 status=GISStatus.JURISDICTION_CONFLICT,

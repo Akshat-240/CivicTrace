@@ -25,7 +25,7 @@ import uuid
 from datetime import datetime
 from typing import TYPE_CHECKING, Optional
 
-from sqlalchemy import CheckConstraint, DateTime, ForeignKey, Index, Text
+from sqlalchemy import CheckConstraint, DateTime, ForeignKey, Index, Text, Enum, String
 from sqlalchemy.dialects.postgresql import UUID as PG_UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -61,6 +61,7 @@ class SLA(Base):
     # State
     # ------------------------------------------------------------------
     state: Mapped[AccountabilityState] = mapped_column(
+        Enum(AccountabilityState, native_enum=False, length=30, values_callable=lambda obj: [e.value for e in obj]),
         nullable=False,
         default=AccountabilityState.PENDING,
         index=True,

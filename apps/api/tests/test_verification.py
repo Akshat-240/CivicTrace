@@ -25,7 +25,7 @@ class TestVerificationService:
 
         svc = VerificationService(db_session)
         res = await svc.verify_resolution(inc.id)
-        
+
         assert res.result == VerificationResult.INSUFFICIENT_EVIDENCE
         assert inc.status == IncidentStatus.ACTIVE
 
@@ -34,7 +34,7 @@ class TestVerificationService:
         now = datetime.now(timezone.utc)
         inc = Incident(reference_number="VER-2", status=IncidentStatus.ACTIVE, issue_type="POTHOLE", created_at=now)
         db_session.add(inc)
-        
+
         ev_after = Evidence(
             incident_id=inc.id, evidence_type=EvidenceType.IMAGE, status=EvidenceStatus.PROCESSED,
             is_verification_evidence=True, ai_ambiguity_flag=True
@@ -44,7 +44,7 @@ class TestVerificationService:
 
         svc = VerificationService(db_session)
         res = await svc.verify_resolution(inc.id)
-        
+
         assert res.result == VerificationResult.INSUFFICIENT_EVIDENCE
         assert inc.status == IncidentStatus.ACTIVE
 
@@ -56,10 +56,10 @@ class TestVerificationService:
         inc = Incident(reference_number="VER-3", status=IncidentStatus.ACTIVE, issue_type="POTHOLE", created_at=now)
         db_session.add(inc)
         await db_session.flush()
-        
+
         sla = SLA(incident_id=inc.id, state=AccountabilityState.PENDING, due_at=due, started_at=now)
         db_session.add(sla)
-        
+
         ev_after = Evidence(
             incident_id=inc.id, evidence_type=EvidenceType.IMAGE, status=EvidenceStatus.PROCESSED,
             is_verification_evidence=True, ai_category="POTHOLE", ai_severity_raw="none", ai_ambiguity_flag=False
@@ -69,21 +69,25 @@ class TestVerificationService:
 
         svc = VerificationService(db_session)
         res = await svc.verify_resolution(inc.id)
-        
+
         assert res.result == VerificationResult.FULLY_RESOLVED
         assert inc.status == IncidentStatus.RESOLVED
         assert inc.sla.state == AccountabilityState.RESOLVED
 
     async def test_partially_resolved(self, db_session):
         # Original: HIGH, After: LOW -> PARTIALLY_RESOLVED
+        from app.models.sla import SLA
+        from app.models.enums import AccountabilityState
         now = datetime.now(timezone.utc)
         inc = Incident(reference_number="VER-4", status=IncidentStatus.ACTIVE, issue_type="POTHOLE", created_at=now)
         db_session.add(inc)
         await db_session.flush()
-        
+
         pri = Priority(incident_id=inc.id, severity=SeverityLevel.HIGH)
         db_session.add(pri)
-        
+        sla = SLA(incident_id=inc.id, state=AccountabilityState.PENDING, started_at=now)
+        db_session.add(sla)
+
         ev_after = Evidence(
             incident_id=inc.id, evidence_type=EvidenceType.IMAGE, status=EvidenceStatus.PROCESSED,
             is_verification_evidence=True, ai_category="POTHOLE", ai_severity_raw="low", ai_ambiguity_flag=False
@@ -93,20 +97,25 @@ class TestVerificationService:
 
         svc = VerificationService(db_session)
         res = await svc.verify_resolution(inc.id)
-        
+
         assert res.result == VerificationResult.PARTIALLY_RESOLVED
         assert inc.status == IncidentStatus.ACTIVE
+        assert inc.sla.state == AccountabilityState.PENDING
 
     async def test_unresolved(self, db_session):
         # Original: LOW, After: HIGH -> UNRESOLVED
+        from app.models.sla import SLA
+        from app.models.enums import AccountabilityState
         now = datetime.now(timezone.utc)
         inc = Incident(reference_number="VER-5", status=IncidentStatus.ACTIVE, issue_type="POTHOLE", created_at=now)
         db_session.add(inc)
         await db_session.flush()
-        
+
         pri = Priority(incident_id=inc.id, severity=SeverityLevel.LOW)
         db_session.add(pri)
-        
+        sla = SLA(incident_id=inc.id, state=AccountabilityState.PENDING, started_at=now)
+        db_session.add(sla)
+
         ev_after = Evidence(
             incident_id=inc.id, evidence_type=EvidenceType.IMAGE, status=EvidenceStatus.PROCESSED,
             is_verification_evidence=True, ai_category="POTHOLE", ai_severity_raw="high", ai_ambiguity_flag=False
@@ -116,8 +125,10 @@ class TestVerificationService:
 
         svc = VerificationService(db_session)
         res = await svc.verify_resolution(inc.id)
-        
+
         assert res.result == VerificationResult.UNRESOLVED
+        assert inc.status == IncidentStatus.ACTIVE
+        assert inc.sla.state == AccountabilityState.PENDING
 
     async def test_contradictory_evidence(self, db_session):
         # Two pieces of evidence: One says FULLY_RESOLVED (no pothole), One says UNRESOLVED (high severity pothole).
@@ -126,10 +137,10 @@ class TestVerificationService:
         inc = Incident(reference_number="VER-6", status=IncidentStatus.ACTIVE, issue_type="POTHOLE", created_at=now)
         db_session.add(inc)
         await db_session.flush()
-        
+
         pri = Priority(incident_id=inc.id, severity=SeverityLevel.LOW)
         db_session.add(pri)
-        
+
         ev_after_1 = Evidence(
             incident_id=inc.id, evidence_type=EvidenceType.IMAGE, status=EvidenceStatus.PROCESSED,
             is_verification_evidence=True, ai_category="POTHOLE", ai_severity_raw="none", ai_ambiguity_flag=False
@@ -143,7 +154,7 @@ class TestVerificationService:
 
         svc = VerificationService(db_session)
         res = await svc.verify_resolution(inc.id)
-        
+
         assert res.result == VerificationResult.UNRESOLVED
 
     async def test_repeated_verification(self, db_session):
@@ -152,7 +163,7 @@ class TestVerificationService:
         inc = Incident(reference_number="VER-7", status=IncidentStatus.ACTIVE, issue_type="POTHOLE", created_at=now)
         db_session.add(inc)
         await db_session.flush()
-        
+
         ev_after = Evidence(
             incident_id=inc.id, evidence_type=EvidenceType.IMAGE, status=EvidenceStatus.PROCESSED,
             is_verification_evidence=True, ai_category="POTHOLE", ai_severity_raw="none", ai_ambiguity_flag=False
@@ -163,7 +174,7 @@ class TestVerificationService:
         svc = VerificationService(db_session)
         r1 = await svc.verify_resolution(inc.id)
         r2 = await svc.verify_resolution(inc.id)
-        
+
         assert r1.id == r2.id
         assert r2.result == VerificationResult.FULLY_RESOLVED
 
@@ -173,7 +184,7 @@ class TestVerificationService:
         inc = Incident(reference_number="VER-8", status=IncidentStatus.ACTIVE, issue_type="POTHOLE", created_at=now)
         db_session.add(inc)
         await db_session.flush()
-        
+
         ev_after = Evidence(
             incident_id=inc.id, evidence_type=EvidenceType.IMAGE, status=EvidenceStatus.PROCESSED,
             is_verification_evidence=True, ai_category="SOME_BOGUS_CATEGORY", ai_ambiguity_flag=False
@@ -191,7 +202,7 @@ class TestVerificationService:
         inc = Incident(reference_number="VER-9", status=IncidentStatus.ACTIVE, issue_type="POTHOLE", created_at=now)
         db_session.add(inc)
         await db_session.flush()
-        
+
         ev_after = Evidence(
             incident_id=inc.id, evidence_type=EvidenceType.IMAGE, status=EvidenceStatus.PROCESSED,
             is_verification_evidence=True, ai_category="BIRD", ai_ambiguity_flag=False
@@ -201,5 +212,32 @@ class TestVerificationService:
 
         svc = VerificationService(db_session)
         res = await svc.verify_resolution(inc.id)
-        
+
+        assert res.result == VerificationResult.INSUFFICIENT_EVIDENCE
+
+    async def test_evidence_from_other_incident(self, db_session):
+        from datetime import timezone, datetime
+        from app.models.incident import Incident
+        from app.models.enums import IncidentStatus, EvidenceType, EvidenceStatus, VerificationResult
+        from app.models.evidence import Evidence
+        from app.services.verification_service import VerificationService
+
+        now = datetime.now(timezone.utc)
+        inc1 = Incident(reference_number="VER-10", status=IncidentStatus.ACTIVE, issue_type="POTHOLE", created_at=now)
+        inc2 = Incident(reference_number="VER-11", status=IncidentStatus.ACTIVE, issue_type="POTHOLE", created_at=now)
+        db_session.add_all([inc1, inc2])
+        await db_session.flush()
+
+        # Valid verification evidence, but linked to inc2
+        ev_after = Evidence(
+            incident_id=inc2.id, evidence_type=EvidenceType.IMAGE, status=EvidenceStatus.PROCESSED,
+            is_verification_evidence=True, ai_category="POTHOLE", ai_severity_raw="none", ai_ambiguity_flag=False
+        )
+        db_session.add(ev_after)
+        await db_session.flush()
+
+        svc = VerificationService(db_session)
+        res = await svc.verify_resolution(inc1.id)
+
+        # inc1 has no verification evidence
         assert res.result == VerificationResult.INSUFFICIENT_EVIDENCE

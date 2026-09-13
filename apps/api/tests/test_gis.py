@@ -160,11 +160,8 @@ class TestGISService:
             authority = None
             
         class MockResult:
-            def scalars(self):
-                class MockScalars:
-                    def all(self):
-                        return [MockJurisdiction()]
-                return MockScalars()
+            def all(self):
+                return [(MockJurisdiction(), 1.0)]
 
         class MockSession:
             async def execute(self, stmt):

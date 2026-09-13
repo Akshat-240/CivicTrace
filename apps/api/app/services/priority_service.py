@@ -77,12 +77,12 @@ class PriorityService:
         # 2. Compute Persistence Score
         evidence_count = len(incident.evidence_items)
         days_active = abs((datetime.now(timezone.utc) - incident.created_at).total_seconds()) / 86400.0
-        
+
         persistence_score = min(1.0, (evidence_count * 0.1) + (days_active / 30.0))
 
         # 3. Calculate Final Total Score
         safety_score = 1.0 if safety_detected else 0.0
-        
+
         total_score = (
             (highest_sev_val * self.config.WEIGHT_SEVERITY) +
             (safety_score * self.config.WEIGHT_SAFETY) +
@@ -109,15 +109,21 @@ class PriorityService:
 
         # 6. Upsert Priority Record
         is_update = False
+        priority_level_changed = False
         priority_record = incident.priority
+
         if priority_record:
             is_update = True
+            if priority_record.final_priority != final_priority:
+                priority_level_changed = True
+
             priority_record.severity = highest_severity
             priority_record.safety_risk = safety_detected
             priority_record.persistence_score = persistence_score
             priority_record.final_priority = final_priority
             priority_record.explanation = explanation
         else:
+            priority_level_changed = True
             priority_record = Priority(
                 incident_id=incident.id,
                 severity=highest_severity,
@@ -129,21 +135,22 @@ class PriorityService:
             incident.priority = priority_record
             self.session.add(priority_record)
 
-        # 7. Record Timeline Event
-        event_type = EventType.PRIORITY_UPDATED if is_update else EventType.PRIORITY_COMPUTED
-        event = IncidentEvent(
-            incident_id=incident.id,
-            event_type=event_type,
-            actor="system",
-            summary=explanation,
-            payload={
-                "total_score": total_score,
-                "severity_score": highest_sev_val,
-                "safety_score": safety_score,
-                "persistence_score": persistence_score
-            }
-        )
-        self.session.add(event)
-        
+        # 7. Record Timeline Event ONLY if priority changed (or newly computed)
+        if priority_level_changed:
+            event_type = EventType.PRIORITY_UPDATED if is_update else EventType.PRIORITY_COMPUTED
+            event = IncidentEvent(
+                incident_id=incident.id,
+                event_type=event_type,
+                actor="system",
+                summary=explanation,
+                payload={
+                    "total_score": total_score,
+                    "severity_score": highest_sev_val,
+                    "safety_score": safety_score,
+                    "persistence_score": persistence_score
+                }
+            )
+            self.session.add(event)
+
         await self.session.commit()
         return priority_record

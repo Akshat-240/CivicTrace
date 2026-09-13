@@ -8,6 +8,7 @@
 # ---------------------------------------------------------------------------
 fastapi>=0.115.5
 uvicorn[standard]>=0.32.1
+python-multipart>=0.0.20
 
 # ---------------------------------------------------------------------------
 # Database
@@ -17,6 +18,7 @@ asyncpg>=0.30.0           # Async PostgreSQL driver (runtime)
 psycopg[binary]>=3.2.3    # Sync driver for Alembic migrations only
 alembic>=1.14.0
 geoalchemy2>=0.15.2       # PostGIS geometry type support
+shapely>=2.0.0            # Spatial geometry library used by GeoAlchemy2 & seeder
 
 # ---------------------------------------------------------------------------
 # Configuration & validation

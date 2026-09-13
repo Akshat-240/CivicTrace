@@ -141,9 +141,16 @@ class FusionService:
                 (time_score * self.config.WEIGHT_TIME)
             )
 
-            if total_score >= self.config.MATCH_THRESHOLD and total_score > best_score:
-                best_score = total_score
-                best_candidate = inc
+            if total_score >= self.config.MATCH_THRESHOLD:
+                if total_score > best_score:
+                    best_score = total_score
+                    best_candidate = inc
+                elif total_score == best_score and best_candidate is not None:
+                    # Deterministic tie-breaking: prefer older incident, then lower UUID
+                    if inc.created_at < best_candidate.created_at:
+                        best_candidate = inc
+                    elif inc.created_at == best_candidate.created_at and str(inc.id) < str(best_candidate.id):
+                        best_candidate = inc
 
         if best_candidate:
             return (best_candidate, best_score)
