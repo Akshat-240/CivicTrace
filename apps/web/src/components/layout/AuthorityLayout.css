@@ -1,0 +1,27 @@
+.ct-app-layout {
+  display: flex;
+  min-height: 100vh;
+  width: 100%;
+  background-color: #F8FAFC;
+}
+
+.ct-main-content {
+  flex: 1;
+  margin-left: 250px;
+  min-height: 100vh;
+  background-color: #F8FAFC;
+  box-sizing: border-box;
+}
+
+.ct-content-inner {
+  padding: 36px 48px;
+  max-width: 1400px;
+  margin: 0 auto;
+  box-sizing: border-box;
+}
+
+@media (max-width: 1024px) {
+  .ct-content-inner {
+    padding: 24px 20px;
+  }
+}
