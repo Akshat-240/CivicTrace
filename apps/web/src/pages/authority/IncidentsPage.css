@@ -1,0 +1,141 @@
+.ct-incidents-page {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+/* Top Search Card */
+.ct-search-card {
+  background: #FFFFFF;
+  border: 1px solid #E2E8F0;
+  border-radius: 10px;
+  padding: 24px 28px;
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.02);
+}
+
+.ct-search-label {
+  font-size: 14px;
+  font-weight: 600;
+  color: #0F172A;
+  white-space: nowrap;
+}
+
+.ct-search-form {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-grow: 1;
+}
+
+.ct-search-input {
+  flex-grow: 1;
+  background-color: #F8FAFC;
+  border: 1px solid #E2E8F0;
+  border-radius: 8px;
+  padding: 11px 16px;
+  font-size: 14px;
+  color: #0F172A;
+  outline: none;
+  font-family: inherit;
+  transition: all 0.15s ease;
+}
+
+.ct-search-input:focus {
+  background-color: #FFFFFF;
+  border-color: #2563EB;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+
+.ct-search-input::placeholder {
+  color: #94A3B8;
+}
+
+.ct-btn-search {
+  background-color: #2563EB;
+  color: #FFFFFF;
+  border: none;
+  border-radius: 8px;
+  padding: 11px 24px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+}
+
+.ct-btn-search:hover {
+  background-color: #1D4ED8;
+}
+
+/* Incidents list rows */
+.ct-incidents-container {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.ct-incident-item {
+  background: #FFFFFF;
+  border: 1px solid #E2E8F0;
+  border-radius: 10px;
+  padding: 20px 28px;
+  display: grid;
+  grid-template-columns: 140px 1fr 140px 160px;
+  align-items: center;
+  gap: 20px;
+  cursor: pointer;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.02);
+  transition: all 0.15s ease;
+}
+
+.ct-incident-item:hover {
+  border-color: #94A3B8;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
+}
+
+.ct-incident-id {
+  font-size: 13.5px;
+  font-weight: 600;
+  color: #2563EB;
+}
+
+.ct-incident-info {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.ct-incident-title {
+  font-size: 15px;
+  font-weight: 600;
+  color: #0F172A;
+}
+
+.ct-incident-sub {
+  font-size: 13px;
+  color: #64748B;
+}
+
+.ct-incident-badge {
+  display: flex;
+  justify-content: flex-start;
+}
+
+.ct-incident-status {
+  text-align: right;
+}
+
+.ct-empty-search {
+  background: #FFFFFF;
+  border: 1px solid #E2E8F0;
+  border-radius: 10px;
+  padding: 48px;
+  text-align: center;
+  color: #64748B;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+}
