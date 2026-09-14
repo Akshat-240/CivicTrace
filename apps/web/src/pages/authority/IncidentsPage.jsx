@@ -1,10 +1,11 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { Loader2 } from 'lucide-react';
 import PageHeader from '../../components/layout/PageHeader';
 import PriorityBadge from '../../components/common/PriorityBadge';
 import StatusBadge from '../../components/common/StatusBadge';
 import Modal from '../../components/common/Modal';
-import { mockIncidents } from '../../data/mockData';
+import { getIncidents } from '../../services/api';
 import './IncidentsPage.css';
 
 const IncidentsPage = () => {
@@ -12,9 +13,48 @@ const IncidentsPage = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [activeQuery, setActiveQuery] = useState('');
   const [selectedIncident, setSelectedIncident] = useState(null);
+  
+  const [incidents, setIncidents] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    async function loadData() {
+      try {
+        setLoading(true);
+        const res = await getIncidents(0, 100);
+        const MOCK_AUTHORITY_ID = "61c6d93e-889d-42fc-b6b9-b167ce631d47";
+        const allIncidents = res?.data || [];
+        const myIncidents = allIncidents.filter(inc => inc.authority?.id === MOCK_AUTHORITY_ID);
+        
+        const mapped = myIncidents.map(item => {
+          return {
+            realId: item.id,
+            id: item.reference_number || (item.id ? item.id.substring(0, 8).toUpperCase() : 'UNKNOWN'),
+            title: item.title || item.issue_type?.replace(/_/g, ' ')?.toUpperCase() || 'Incident',
+            category: item.issue_type?.replace(/_/g, ' ')?.toUpperCase() || 'General',
+            zone: item.jurisdiction?.name || 'Unknown Jurisdiction',
+            location: item.location?.address_raw || item.location?.street || 'Unknown Location',
+            subLocation: '',
+            priority: item.priority_level?.toUpperCase() || 'Pending',
+            status: item.status?.replace(/_/g, ' ')?.toUpperCase() || 'OPEN',
+            slaRemaining: item.accountability_state ? item.accountability_state.toUpperCase() : 'Pending',
+            description: 'Description not available in list view. Click for details.',
+            assignedTeam: item.authority?.name || null,
+            reportedAt: item.created_at ? new Date(item.created_at).toLocaleString() : 'Unknown',
+          };
+        });
+        setIncidents(mapped);
+      } catch (err) {
+        console.error(err);
+      } finally {
+        setLoading(false);
+      }
+    }
+    loadData();
+  }, []);
 
   const incidentsToDisplay = useMemo(() => {
-    return mockIncidents.filter((inc) => {
+    return incidents.filter((inc) => {
       const q = activeQuery.toLowerCase();
       if (!q) return true;
       return (
@@ -25,15 +65,38 @@ const IncidentsPage = () => {
         inc.location.toLowerCase().includes(q)
       );
     });
-  }, [activeQuery]);
+  }, [activeQuery, incidents]);
 
   const handleSearch = (e) => {
     e.preventDefault();
     setActiveQuery(searchTerm);
   };
 
+  const handleIncidentClick = async (incident) => {
+    setSelectedIncident({ ...incident, description: 'Loading...', zone: 'Loading...' });
+    try {
+      const detail = await import('../../services/api').then(m => m.getIncident(incident.realId));
+      setSelectedIncident({
+        ...incident,
+        zone: detail.jurisdiction?.name || 'Unknown Jurisdiction',
+        description: detail.description || 'No description provided.',
+        assignedTeam: detail.authority?.name || 'Unassigned',
+      });
+    } catch (e) {
+      console.error("Failed to load incident detail", e);
+      setSelectedIncident({
+        ...incident,
+        description: 'Failed to load details.',
+        zone: 'Not available'
+      });
+    }
+  };
+
   return (
     <div className="ct-incidents-page">
+      <div style={{ padding: '0.5rem 1rem', background: '#e0f2fe', color: '#0284c7', fontSize: '0.875rem', fontWeight: 500, marginBottom: '1rem', borderRadius: '4px', border: '1px solid #bae6fd' }}>
+        DEMO AUTHORITY CONTEXT — NOT AUTHENTICATION (Filtering by hardcoded Lucknow Municipal Corporation ID for Gate 4)
+      </div>
       <PageHeader 
         title="Incidents"
         subtitle="Review and manage incidents routed to your authority."
@@ -58,11 +121,15 @@ const IncidentsPage = () => {
 
       {/* Incidents List Rows */}
       <div className="ct-incidents-container">
-        {incidentsToDisplay.map((incident) => (
+        {loading ? (
+          <div style={{ display: 'flex', justifyContent: 'center', padding: '3rem' }}>
+            <Loader2 className="animate-spin" size={32} />
+          </div>
+        ) : incidentsToDisplay.map((incident) => (
           <div 
             key={incident.id} 
             className="ct-incident-item"
-            onClick={() => setSelectedIncident(incident)}
+            onClick={() => handleIncidentClick(incident)}
           >
             <div className="ct-incident-id">{incident.id}</div>
             

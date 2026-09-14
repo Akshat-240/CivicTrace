@@ -12,8 +12,11 @@ import {
   Check, 
   UploadCloud, 
   MapPin, 
-  CheckCircle2 
+  CheckCircle2,
+  Loader2,
+  AlertTriangle
 } from 'lucide-react';
+import { createIncident } from '../../services/api';
 import './CitizenReportPage.css';
 
 export default function CitizenReportPage() {
@@ -23,6 +26,9 @@ export default function CitizenReportPage() {
   const [description, setDescription] = useState('');
   const [isRecording, setIsRecording] = useState(false);
   const [submittedId, setSubmittedId] = useState(null);
+  const [realId, setRealId] = useState(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState(null);
 
   const categories = [
     { name: 'Road', icon: <Road size={20} />, label: 'Pothole, broken asphalt, road caving' },
@@ -43,13 +49,45 @@ export default function CitizenReportPage() {
     }
   };
 
-  const handleNextStep = (e) => {
+  const handleNextStep = async (e) => {
     e.preventDefault();
     if (currentStep < 4) {
       setCurrentStep(currentStep + 1);
     } else {
-      // Complete submission
-      setSubmittedId('CT-INC-025');
+      // Step 4: Complete submission
+      setIsSubmitting(true);
+      setSubmitError(null);
+      
+      const issueTypeMap = {
+        'Road': 'road_damage',
+        'Garbage': 'illegal_dumping',
+        'Water': 'water_leak',
+        'Drainage': 'sewage_overflow',
+        'Streetlight': 'broken_streetlight',
+        'Electrical': 'other'
+      };
+      
+      const payload = {
+        title: selectedCategory + ' Issue',
+        description: description || 'Large pothole on road causing dangerous vehicle congestion.',
+        issue_type: issueTypeMap[selectedCategory] || 'other',
+        location: {
+          latitude: 26.8467,
+          longitude: 80.9462,
+          address_raw: "MG Road, Near Hazratganj Crossing"
+        }
+      };
+
+      try {
+        const response = await createIncident(payload);
+        setSubmittedId(response.reference_number || response.id);
+        setRealId(response.id);
+      } catch (err) {
+        console.error('Failed to submit incident:', err);
+        setSubmitError('Failed to submit incident. Please check your connection and try again.');
+      } finally {
+        setIsSubmitting(false);
+      }
     }
   };
 
@@ -86,7 +124,7 @@ export default function CitizenReportPage() {
           <div className="success-actions">
             <button 
               className="btn-track-submitted"
-              onClick={() => navigate('/citizen/track')}
+              onClick={() => navigate(`/citizen/track?id=${realId || submittedId}`)}
             >
               Track Report ({submittedId})
             </button>
@@ -103,6 +141,13 @@ export default function CitizenReportPage() {
         <div className="citizen-report-grid">
           {/* Main Form Panel */}
           <div className="citizen-report-form-panel">
+            {submitError && (
+              <div style={{ backgroundColor: '#fee2e2', color: '#b91c1c', padding: '1rem', borderRadius: '8px', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <AlertTriangle size={16} />
+                <span style={{ fontSize: '0.9rem' }}>{submitError}</span>
+              </div>
+            )}
+            
             {currentStep === 1 && (
               <>
                 <div className="report-step-header">
@@ -289,9 +334,11 @@ export default function CitizenReportPage() {
                     type="button" 
                     className="btn-submit-final"
                     onClick={handleNextStep}
+                    disabled={isSubmitting}
+                    style={{ opacity: isSubmitting ? 0.7 : 1, cursor: isSubmitting ? 'not-allowed' : 'pointer' }}
                   >
-                    <Check size={16} />
-                    <span>Submit Incident Report</span>
+                    {isSubmitting ? <Loader2 size={16} className="animate-spin" /> : <Check size={16} />}
+                    <span>{isSubmitting ? 'Submitting...' : 'Submit Incident Report'}</span>
                   </button>
                 </div>
               </>

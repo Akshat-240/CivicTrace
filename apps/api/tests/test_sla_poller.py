@@ -26,9 +26,12 @@ class TestSLAPoller:
             sla_hours_low=100
         )
         db_session.add(auth)
+        from app.models.jurisdiction import Jurisdiction
+        jur = Jurisdiction(id=__import__('uuid').uuid4(), name='J', code='J'+str(__import__('uuid').uuid4())[:8], authority_id=auth.id)
+        db_session.add(jur)
         
         # Incident 1: 50 hours elapsed -> PENDING
-        inc1 = Incident(reference_number="POLL-1", status=IncidentStatus.ACTIVE, authority_id=auth.id)
+        inc1 = Incident(reference_number="POLL-1", status=IncidentStatus.ACTIVE, authority_id=auth.id, jurisdiction_id=jur.id)
         db_session.add(inc1)
         await db_session.flush()
         db_session.add(Priority(incident_id=inc1.id, final_priority=PriorityLevel.LOW))
@@ -38,7 +41,7 @@ class TestSLAPoller:
         ))
 
         # Incident 2: 80 hours elapsed -> DUE
-        inc2 = Incident(reference_number="POLL-2", status=IncidentStatus.ACTIVE, authority_id=auth.id)
+        inc2 = Incident(reference_number="POLL-2", status=IncidentStatus.ACTIVE, authority_id=auth.id, jurisdiction_id=jur.id)
         db_session.add(inc2)
         await db_session.flush()
         db_session.add(Priority(incident_id=inc2.id, final_priority=PriorityLevel.LOW))
@@ -48,7 +51,7 @@ class TestSLAPoller:
         ))
         
         # Incident 3: 101 hours elapsed -> OVERDUE
-        inc3 = Incident(reference_number="POLL-3", status=IncidentStatus.ACTIVE, authority_id=auth.id)
+        inc3 = Incident(reference_number="POLL-3", status=IncidentStatus.ACTIVE, authority_id=auth.id, jurisdiction_id=jur.id)
         db_session.add(inc3)
         await db_session.flush()
         db_session.add(Priority(incident_id=inc3.id, final_priority=PriorityLevel.LOW))
@@ -81,8 +84,11 @@ class TestSLAPoller:
     async def test_escalation_eligibility_and_repeated_execution(self, db_session, base_time):
         auth = Authority(id=uuid.uuid4(), name="Test Auth", short_code="TA", sla_hours_low=10)
         db_session.add(auth)
+        from app.models.jurisdiction import Jurisdiction
+        jur = Jurisdiction(id=__import__('uuid').uuid4(), name='J', code='J'+str(__import__('uuid').uuid4())[:8], authority_id=auth.id)
+        db_session.add(jur)
         
-        inc = Incident(reference_number="POLL-4", status=IncidentStatus.ACTIVE, authority_id=auth.id)
+        inc = Incident(reference_number="POLL-4", status=IncidentStatus.ACTIVE, authority_id=auth.id, jurisdiction_id=jur.id)
         db_session.add(inc)
         await db_session.flush()
         db_session.add(Priority(incident_id=inc.id, final_priority=PriorityLevel.LOW))
@@ -110,9 +116,12 @@ class TestSLAPoller:
     async def test_one_failure_does_not_stop_others(self, db_session, base_time):
         auth = Authority(id=uuid.uuid4(), name="Test Auth", short_code="TA", sla_hours_low=100)
         db_session.add(auth)
+        from app.models.jurisdiction import Jurisdiction
+        jur = Jurisdiction(id=__import__('uuid').uuid4(), name='J', code='J'+str(__import__('uuid').uuid4())[:8], authority_id=auth.id)
+        db_session.add(jur)
         
         # Valid incident
-        inc1 = Incident(reference_number="POLL-5", status=IncidentStatus.ACTIVE, authority_id=auth.id)
+        inc1 = Incident(reference_number="POLL-5", status=IncidentStatus.ACTIVE, authority_id=auth.id, jurisdiction_id=jur.id)
         db_session.add(inc1)
         await db_session.flush()
         db_session.add(Priority(incident_id=inc1.id, final_priority=PriorityLevel.LOW))
@@ -122,12 +131,12 @@ class TestSLAPoller:
         ))
 
         # Corrupt incident (missing SLA, will throw error in evaluate_sla)
-        inc2 = Incident(reference_number="POLL-6", status=IncidentStatus.ACTIVE, authority_id=auth.id)
+        inc2 = Incident(reference_number="POLL-6", status=IncidentStatus.ACTIVE, authority_id=auth.id, jurisdiction_id=jur.id)
         db_session.add(inc2)
         await db_session.flush()
 
         # Valid incident
-        inc3 = Incident(reference_number="POLL-7", status=IncidentStatus.ACTIVE, authority_id=auth.id)
+        inc3 = Incident(reference_number="POLL-7", status=IncidentStatus.ACTIVE, authority_id=auth.id, jurisdiction_id=jur.id)
         db_session.add(inc3)
         await db_session.flush()
         db_session.add(Priority(incident_id=inc3.id, final_priority=PriorityLevel.LOW))
@@ -156,8 +165,11 @@ class TestSLAPoller:
     async def test_timezone_correctness(self, db_session, base_time):
         auth = Authority(id=uuid.uuid4(), name="Test Auth", short_code="TA", sla_hours_low=100)
         db_session.add(auth)
+        from app.models.jurisdiction import Jurisdiction
+        jur = Jurisdiction(id=__import__('uuid').uuid4(), name='J', code='J'+str(__import__('uuid').uuid4())[:8], authority_id=auth.id)
+        db_session.add(jur)
         
-        inc = Incident(reference_number="POLL-8", status=IncidentStatus.ACTIVE, authority_id=auth.id)
+        inc = Incident(reference_number="POLL-8", status=IncidentStatus.ACTIVE, authority_id=auth.id, jurisdiction_id=jur.id)
         db_session.add(inc)
         await db_session.flush()
         db_session.add(Priority(incident_id=inc.id, final_priority=PriorityLevel.LOW))

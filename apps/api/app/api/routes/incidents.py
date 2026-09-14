@@ -243,3 +243,71 @@ async def verify_resolution(
         "confidence": record.confidence,
         "verified_at": record.verified_at,
     }
+
+
+@router.post(
+    "/{incident_id}/submit-resolution",
+    response_model=EvidenceResponse,
+    status_code=status.HTTP_201_CREATED,
+    summary="Submit resolution evidence (ACTIVE -> UNDER_REVIEW)",
+)
+async def submit_resolution(
+    incident_id: uuid.UUID,
+    data: "ResolutionSubmit",
+    db: DbSession,
+) -> Any:
+    """
+    Authority submits resolution evidence for an ACTIVE incident.
+    Moves incident to UNDER_REVIEW. Text evidence only (no binary storage in MVP).
+    """
+    from app.services.verification_service import VerificationService
+    from app.schemas import ResolutionSubmit
+    from app.models.enums import EvidenceType
+    service = VerificationService(db)
+    return await service.submit_resolution(
+        incident_id=incident_id,
+        description=data.description,
+        evidence_type=EvidenceType.TEXT,
+    )
+
+
+@router.post(
+    "/{incident_id}/human-verify",
+    response_model=VerificationResponse,
+    summary="Human reviewer makes a verification decision (UNDER_REVIEW required)",
+)
+async def human_verify(
+    incident_id: uuid.UUID,
+    data: "VerificationSubmit",
+    db: DbSession,
+) -> Any:
+    """
+    Human reviewer explicitly sets a VerificationResult.
+    Only FULLY_RESOLVED transitions incident to RESOLVED.
+    Requires resolution evidence to exist (cannot approve without evidence).
+    """
+    from app.services.verification_service import VerificationService
+    service = VerificationService(db)
+    return await service.human_verify(
+        incident_id=incident_id,
+        result=data.result,
+        explanation=data.explanation,
+        verified_by=data.verified_by,
+    )
+
+
+@router.post(
+    "/{incident_id}/close",
+    response_model=IncidentDetail,
+    summary="Close a RESOLVED incident (backend-guarded)",
+)
+async def close_incident(
+    incident_id: uuid.UUID,
+    db: DbSession,
+) -> Any:
+    """
+    Explicitly closes a RESOLVED incident. Only RESOLVED -> CLOSED is allowed.
+    All other statuses are rejected with 409 Conflict.
+    """
+    service = IncidentService(db)
+    return await service.close_incident(incident_id)

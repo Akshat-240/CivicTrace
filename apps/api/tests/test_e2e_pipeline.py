@@ -230,8 +230,23 @@ class TestE2EPipeline:
         verification = VerificationService(db_session)
         rec = await verification.verify_resolution(inc.id)
         assert rec.result == VerificationResult.FULLY_RESOLVED
-        
+        assert rec.verified_by == 'system'
+
+        # Phase 5: auto-eval does NOT change status. Need human_verify for RESOLVED.
         inc = await db_session.get(Incident, inc.id)
+        assert inc.status != IncidentStatus.RESOLVED  # still ACTIVE after auto-eval
+
+        # Move to UNDER_REVIEW (simulate submit_resolution) and human-verify.
+        inc.status = IncidentStatus.UNDER_REVIEW
+        await db_session.flush()
+        rec2 = await verification.human_verify(
+            inc.id,
+            result=VerificationResult.FULLY_RESOLVED,
+            explanation='E2E pipeline scenario 7 human approval',
+            verified_by='demo-authority-reviewer',
+        )
+        assert rec2.result == VerificationResult.FULLY_RESOLVED
+        await db_session.refresh(inc, ['sla'])
         assert inc.status == IncidentStatus.RESOLVED
 
     async def test_scenario_8_sla_breach(self, db_session):
@@ -425,8 +440,23 @@ class TestE2EPipeline:
         verification = VerificationService(db_session)
         rec = await verification.verify_resolution(inc.id)
         assert rec.result == VerificationResult.FULLY_RESOLVED
-        
+        assert rec.verified_by == 'system'
+
+        # Phase 5: auto-eval does NOT change status. Need human_verify for RESOLVED.
         inc = await db_session.get(Incident, inc.id)
+        assert inc.status != IncidentStatus.RESOLVED  # still ACTIVE after auto-eval
+
+        # Move to UNDER_REVIEW (simulate submit_resolution) and human-verify.
+        inc.status = IncidentStatus.UNDER_REVIEW
+        await db_session.flush()
+        rec2 = await verification.human_verify(
+            inc.id,
+            result=VerificationResult.FULLY_RESOLVED,
+            explanation='E2E pipeline scenario 7 human approval',
+            verified_by='demo-authority-reviewer',
+        )
+        assert rec2.result == VerificationResult.FULLY_RESOLVED
+        await db_session.refresh(inc, ['sla'])
         assert inc.status == IncidentStatus.RESOLVED
 
     async def test_scenario_8_sla_breach(self, db_session):
