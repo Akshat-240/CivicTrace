@@ -3,13 +3,11 @@ Incidents API routes.
 """
 
 import uuid
-from datetime import datetime
-from typing import Any, Optional, Sequence
+from typing import Any, Sequence
 
-from fastapi import APIRouter, Depends, File, Form, Query, UploadFile, status
+from fastapi import APIRouter, Depends, Query, status
 
 from app.api.dependencies import DbSession
-from app.models.enums import EvidenceType
 from app.schemas import (
     EventResponse,
     EvidenceResponse,
@@ -87,41 +85,6 @@ async def add_evidence(
 ) -> Any:
     service = EvidenceService(db)
     return await service.add_evidence(incident_id, data)
-
-
-@router.post(
-    "/{incident_id}/evidence/upload",
-    response_model=EvidenceResponse,
-    status_code=status.HTTP_201_CREATED,
-    summary="Upload evidence media file to incident",
-)
-async def upload_evidence(
-    incident_id: uuid.UUID,
-    db: DbSession,
-    file: UploadFile = File(...),
-    description: Optional[str] = Form(None),
-    occurred_at: Optional[datetime] = Form(None),
-    latitude: Optional[float] = Form(None),
-    longitude: Optional[float] = Form(None),
-    accuracy_meters: Optional[float] = Form(None),
-    address_raw: Optional[str] = Form(None),
-    evidence_type: Optional[EvidenceType] = Form(None),
-) -> Any:
-    service = EvidenceService(db)
-    content = await file.read()
-    return await service.upload_evidence(
-        incident_id=incident_id,
-        file_content=content,
-        filename=file.filename or "evidence_media.bin",
-        content_type=file.content_type or "application/octet-stream",
-        description=description,
-        occurred_at=occurred_at,
-        latitude=latitude,
-        longitude=longitude,
-        accuracy_meters=accuracy_meters,
-        address_raw=address_raw,
-        evidence_type=evidence_type,
-    )
 
 
 @router.get(
@@ -280,3 +243,71 @@ async def verify_resolution(
         "confidence": record.confidence,
         "verified_at": record.verified_at,
     }
+
+
+@router.post(
+    "/{incident_id}/submit-resolution",
+    response_model=EvidenceResponse,
+    status_code=status.HTTP_201_CREATED,
+    summary="Submit resolution evidence (ACTIVE -> UNDER_REVIEW)",
+)
+async def submit_resolution(
+    incident_id: uuid.UUID,
+    data: "ResolutionSubmit",
+    db: DbSession,
+) -> Any:
+    """
+    Authority submits resolution evidence for an ACTIVE incident.
+    Moves incident to UNDER_REVIEW. Text evidence only (no binary storage in MVP).
+    """
+    from app.services.verification_service import VerificationService
+    from app.schemas import ResolutionSubmit
+    from app.models.enums import EvidenceType
+    service = VerificationService(db)
+    return await service.submit_resolution(
+        incident_id=incident_id,
+        description=data.description,
+        evidence_type=EvidenceType.TEXT,
+    )
+
+
+@router.post(
+    "/{incident_id}/human-verify",
+    response_model=VerificationResponse,
+    summary="Human reviewer makes a verification decision (UNDER_REVIEW required)",
+)
+async def human_verify(
+    incident_id: uuid.UUID,
+    data: "VerificationSubmit",
+    db: DbSession,
+) -> Any:
+    """
+    Human reviewer explicitly sets a VerificationResult.
+    Only FULLY_RESOLVED transitions incident to RESOLVED.
+    Requires resolution evidence to exist (cannot approve without evidence).
+    """
+    from app.services.verification_service import VerificationService
+    service = VerificationService(db)
+    return await service.human_verify(
+        incident_id=incident_id,
+        result=data.result,
+        explanation=data.explanation,
+        verified_by=data.verified_by,
+    )
+
+
+@router.post(
+    "/{incident_id}/close",
+    response_model=IncidentDetail,
+    summary="Close a RESOLVED incident (backend-guarded)",
+)
+async def close_incident(
+    incident_id: uuid.UUID,
+    db: DbSession,
+) -> Any:
+    """
+    Explicitly closes a RESOLVED incident. Only RESOLVED -> CLOSED is allowed.
+    All other statuses are rejected with 409 Conflict.
+    """
+    service = IncidentService(db)
+    return await service.close_incident(incident_id)
