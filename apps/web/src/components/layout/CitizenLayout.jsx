@@ -1,18 +1,34 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Outlet, useLocation, useNavigate } from 'react-router-dom';
 import CitizenSidebar from './CitizenSidebar';
 import { MapPin, Plus } from 'lucide-react';
+import { getCurrentUser } from '../../services/api';
 import './CitizenLayout.css';
 
 const CitizenLayout = () => {
   const location = useLocation();
   const navigate = useNavigate();
+  const [profile, setProfile] = useState(null);
+
+  useEffect(() => {
+    async function loadProfile() {
+      try {
+        const user = await getCurrentUser();
+        setProfile(user);
+      } catch (err) {
+        console.error("Failed to load user profile:", err);
+      }
+    }
+    loadProfile();
+  }, []);
 
   const getHeaderInfo = () => {
     const path = location.pathname;
+    const name = profile?.full_name ? profile.full_name.split(' ')[0] : 'Citizen';
+
     if (path.includes('/citizen/dashboard')) {
       return {
-        title: 'Welcome back, Citizen',
+        title: `Welcome back, ${name}`,
         subtitle: 'Stay informed about the civic issues you have reported.',
         showReportBtn: true
       };
@@ -20,7 +36,7 @@ const CitizenLayout = () => {
     if (path.includes('/citizen/report')) {
       return {
         title: 'Report a Civic Issue',
-        subtitle: 'A simple guided flow — CivicTrace handles routing and verification.',
+        subtitle: 'A simple guided flow - CivicTrace handles routing and verification.',
         showReportBtn: false
       };
     }
@@ -60,10 +76,11 @@ const CitizenLayout = () => {
   };
 
   const headerInfo = getHeaderInfo();
+  const cityText = profile?.city || 'Unknown City';
 
   return (
     <div className="ct-citizen-app-container">
-      <CitizenSidebar />
+      <CitizenSidebar profile={profile} />
       <div className="ct-citizen-main-wrapper">
         <header className="ct-citizen-header">
           <div className="ct-citizen-header-left">
@@ -75,17 +92,13 @@ const CitizenLayout = () => {
             <div className="ct-citizen-location-pill">
               <div className="ct-location-title-row">
                 <MapPin size={13} className="ct-loc-pin-icon" />
-                <span className="ct-location-text">Lucknow · Your area</span>
-              </div>
-              <div className="ct-location-status-row">
-                <span className="ct-loc-green-dot"></span>
-                <span className="ct-location-subtext">Location services active</span>
+                <span className="ct-location-text">Registered city: {cityText}</span>
               </div>
             </div>
 
             {headerInfo.showReportBtn && (
-              <button 
-                type="button" 
+              <button
+                type="button"
                 className="ct-header-report-btn"
                 onClick={() => navigate('/citizen/report')}
               >
@@ -97,7 +110,7 @@ const CitizenLayout = () => {
         </header>
 
         <main className="ct-citizen-content">
-          <Outlet />
+          <Outlet context={{ profile }} />
         </main>
       </div>
     </div>

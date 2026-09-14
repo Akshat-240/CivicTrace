@@ -11,7 +11,9 @@ def validate_email(v: str) -> str:
     return v.lower()
 
 class UserCreate(BaseModel):
+    full_name: str
     email: str
+    city: str
     password: str = Field(min_length=6)
     role: UserRole = UserRole.CITIZEN
     authority_id: Optional[uuid.UUID] = None
@@ -23,6 +25,8 @@ class UserCreate(BaseModel):
 class UserResponse(BaseModel):
     id: uuid.UUID
     email: str
+    full_name: Optional[str] = None
+    city: Optional[str] = None
     role: UserRole
     is_active: bool
     authority_id: Optional[uuid.UUID] = None

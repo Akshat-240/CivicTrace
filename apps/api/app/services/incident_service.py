@@ -12,7 +12,6 @@ from app.models.enums import EventType, IncidentStatus
 from app.models.event import IncidentEvent
 from app.models.incident import Incident
 from app.models.location import Location
-# from app.models.priority import Priority
 from app.models.sla import SLA
 from app.models.verification import VerificationRecord
 from app.repositories.event_repo import EventRepository
@@ -107,7 +106,7 @@ class IncidentService:
             raise NotFoundError(f"Incident {incident_id} not found.")
         await self.session.refresh(
             incident,
-            ["location", "jurisdiction", "authority",  "sla", "verification"],
+            ["location", "jurisdiction", "authority", "sla", "verification"],
         )
         return incident
 

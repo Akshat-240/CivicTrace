@@ -41,11 +41,17 @@ async def register(user_in: UserCreate, db: DbSession):
             detail="Email already registered."
         )
         
+    from datetime import datetime, timezone
+
     new_user = User(
+        full_name=user_in.full_name,
         email=normalized_email,
+        city=user_in.city,
         hashed_password=hash_password(user_in.password),
         role=UserRole.CITIZEN,
-        authority_id=None
+        authority_id=None,
+        created_at=datetime.now(timezone.utc),
+        updated_at=datetime.now(timezone.utc)
     )
     db.add(new_user)
     await db.commit()
