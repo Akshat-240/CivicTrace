@@ -36,6 +36,7 @@ import CitizenFeedbackPage from '../pages/citizen/CitizenFeedbackPage';
 import CitizenSettingsPage from '../pages/citizen/CitizenSettingsPage';
 
 // Field Worker Portal
+import FieldWorkerLayout from '../components/layout/FieldWorkerLayout';
 import FieldWorkerDashboardPage from '../pages/field-worker/FieldWorkerDashboardPage';
 import FieldWorkerIncidentPage from '../pages/field-worker/FieldWorkerIncidentPage';
 import FieldWorkerLocationPage from '../pages/field-worker/FieldWorkerLocationPage';
@@ -87,12 +88,15 @@ const AppRoutes = () => {
         <Route path="settings" element={<CitizenSettingsPage />} />
       </Route>
 
-      {/* Field Worker Portal Routes (Standalone pages, no sidebar) */}
-      <Route path="/field-worker/dashboard" element={<FieldWorkerDashboardPage />} />
-      <Route path="/field-worker/tasks/:id" element={<FieldWorkerIncidentPage />} />
-      <Route path="/field-worker/location" element={<FieldWorkerLocationPage />} />
-      <Route path="/field-worker/evidence" element={<FieldWorkerEvidencePage />} />
-      <Route path="/field-worker/review" element={<FieldWorkerReviewPage />} />
+      {/* Field Worker Portal Routes */}
+      <Route path="/field-worker" element={<FieldWorkerLayout />}>
+        <Route index element={<Navigate to="dashboard" replace />} />
+        <Route path="dashboard" element={<FieldWorkerDashboardPage />} />
+        <Route path="tasks/:id" element={<FieldWorkerIncidentPage />} />
+        <Route path="location" element={<FieldWorkerLocationPage />} />
+        <Route path="evidence" element={<FieldWorkerEvidencePage />} />
+        <Route path="review" element={<FieldWorkerReviewPage />} />
+      </Route>
 
       {/* Fallback */}
       <Route path="*" element={<Navigate to="/" replace />} />
