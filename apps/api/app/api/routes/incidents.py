@@ -3,7 +3,7 @@ Incidents API routes.
 """
 
 import uuid
-from typing import Any, Sequence
+from typing import Any, Optional, Sequence
 
 from fastapi import APIRouter, Depends, Query, status
 
@@ -48,9 +48,11 @@ async def list_incidents(
     db: DbSession,
     skip: int = Query(0, ge=0),
     limit: int = Query(20, ge=1, le=100),
+    citizen_id: Optional[str] = Query(None, description="Filter incidents by authenticated citizen ID"),
+    authority_id: Optional[str] = Query(None, description="Filter incidents by assigned authority ID"),
 ) -> Any:
     service = IncidentService(db)
-    incidents, total = await service.list_incidents(skip, limit)
+    incidents, total = await service.list_incidents(skip, limit, citizen_id=citizen_id, authority_id=authority_id)
     return {
         "data": incidents,
         "total": total,
@@ -65,7 +67,7 @@ async def list_incidents(
     summary="Get incident details",
 )
 async def get_incident(
-    incident_id: uuid.UUID,
+    incident_id: str,
     db: DbSession,
 ) -> Any:
     service = IncidentService(db)
@@ -106,7 +108,7 @@ async def list_evidence(
     summary="Get incident timeline events",
 )
 async def get_timeline(
-    incident_id: uuid.UUID,
+    incident_id: str,
     db: DbSession,
 ) -> Any:
     service = IncidentService(db)
@@ -119,7 +121,7 @@ async def get_timeline(
     summary="Get incident SLA & accountability state",
 )
 async def get_accountability(
-    incident_id: uuid.UUID,
+    incident_id: str,
     db: DbSession,
 ) -> Any:
     service = IncidentService(db)
@@ -132,7 +134,7 @@ async def get_accountability(
     summary="Get incident verification result",
 )
 async def get_verification(
-    incident_id: uuid.UUID,
+    incident_id: str,
     db: DbSession,
 ) -> Any:
     service = IncidentService(db)

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
   Road, 
@@ -29,6 +29,31 @@ export default function CitizenReportPage() {
   const [realId, setRealId] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState(null);
+  const [coords, setCoords] = useState({
+    latitude: 26.8528,
+    longitude: 80.9435,
+    address_raw: "Hazratganj, Ward 34, Lucknow",
+    isLiveGps: false,
+  });
+
+  useEffect(() => {
+    if (typeof navigator !== 'undefined' && navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (pos) => {
+          setCoords({
+            latitude: pos.coords.latitude,
+            longitude: pos.coords.longitude,
+            address_raw: `GPS Location (${pos.coords.latitude.toFixed(4)}, ${pos.coords.longitude.toFixed(4)})`,
+            isLiveGps: true,
+          });
+        },
+        (err) => {
+          console.warn('Geolocation unavailable or denied, falling back to Lucknow demo coordinates:', err);
+        },
+        { timeout: 5000, enableHighAccuracy: true }
+      );
+    }
+  }, []);
 
   const categories = [
     { name: 'Road', icon: <Road size={20} />, label: 'Pothole, broken asphalt, road caving' },
@@ -72,9 +97,13 @@ export default function CitizenReportPage() {
         description: description || 'Large pothole on road causing dangerous vehicle congestion.',
         issue_type: issueTypeMap[selectedCategory] || 'other',
         location: {
-          latitude: 26.8467,
-          longitude: 80.9462,
-          address_raw: "MG Road, Near Hazratganj Crossing"
+          latitude: coords.latitude,
+          longitude: coords.longitude,
+          accuracy_meters: 10,
+          address_raw: coords.address_raw,
+        },
+        fusion_metadata: {
+          citizen_id: "citizen_default"
         }
       };
 
@@ -84,7 +113,7 @@ export default function CitizenReportPage() {
         setRealId(response.id);
       } catch (err) {
         console.error('Failed to submit incident:', err);
-        setSubmitError('Failed to submit incident. Please check your connection and try again.');
+        setSubmitError(err.message || 'Failed to submit incident. Please check your connection and try again.');
       } finally {
         setIsSubmitting(false);
       }
@@ -93,23 +122,6 @@ export default function CitizenReportPage() {
 
   return (
     <div className="citizen-report-container">
-      {/* 4-Step Stepper */}
-      <div className="citizen-stepper-bar">
-        {[
-          { num: 1, label: '1 Issue' },
-          { num: 2, label: '2 Evidence' },
-          { num: 3, label: '3 Location' },
-          { num: 4, label: '4 Review' }
-        ].map((s) => (
-          <div 
-            key={s.num}
-            className={`stepper-pill ${currentStep === s.num ? 'active' : currentStep > s.num ? 'completed' : ''}`}
-            onClick={() => setCurrentStep(s.num)}
-          >
-            {s.label}
-          </div>
-        ))}
-      </div>
 
       {submittedId ? (
         /* Submission Success View */
@@ -261,14 +273,19 @@ export default function CitizenReportPage() {
                   <div className="location-pin-header">
                     <MapPin size={20} className="loc-marker-icon" />
                     <div>
-                      <h4 className="loc-addr-title">MG Road, Near Hazratganj Crossing</h4>
-                      <p className="loc-addr-meta">Ward 12 · Zone 1 · Lucknow (Lat: 26.8467, Long: 80.9462)</p>
+                      <h4 className="loc-addr-title">{coords.address_raw}</h4>
+                      <p className="loc-addr-meta">
+                        {coords.isLiveGps ? 'Live GPS Location · Lucknow' : 'Hazratganj · Ward 34 · Lucknow'}{' '}
+                        (Lat: {coords.latitude.toFixed(4)}, Long: {coords.longitude.toFixed(4)})
+                      </p>
                     </div>
                   </div>
 
                   <div className="simulated-map-box">
                     <div className="map-circle-ping"></div>
-                    <span className="map-ping-label">Incident GPS Lock Acquired</span>
+                    <span className="map-ping-label">
+                      {coords.isLiveGps ? 'Live GPS Lock Acquired' : 'Demo Civic Boundary Lock Acquired'}
+                    </span>
                   </div>
                 </div>
 
@@ -310,7 +327,7 @@ export default function CitizenReportPage() {
                   </div>
                   <div className="review-row">
                     <span className="review-key">Location</span>
-                    <span className="review-val">MG Road, Near Hazratganj Crossing · Ward 12</span>
+                    <span className="review-val">{coords.address_raw}</span>
                   </div>
                   <div className="review-row">
                     <span className="review-key">Responsible Department</span>
@@ -377,7 +394,7 @@ export default function CitizenReportPage() {
               <div className="explainer-step-item">
                 <div className="explainer-num-badge">4</div>
                 <div className="explainer-text-col">
-                  <h4 className="explainer-step-heading">Priority & SLA are assigned</h4>
+                  <h4 className="explainer-step-heading">Authority & SLA are assigned</h4>
                   <p className="explainer-step-body">Deterministic rules apply</p>
                 </div>
               </div>

@@ -3,7 +3,7 @@ Incident business logic.
 """
 
 import uuid
-from typing import Sequence
+from typing import Optional, Sequence
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -45,6 +45,9 @@ class IncidentService:
             self.session.add(loc)
             await self.session.flush()
 
+        metadata = dict(data.fusion_metadata or {})
+        metadata.setdefault("citizen_id", "citizen_default")
+
         incident = Incident(
             reference_number=f"INC-{uuid.uuid4().hex[:8].upper()}",
             status=IncidentStatus.DRAFT,
@@ -53,6 +56,7 @@ class IncidentService:
             description=data.description,
             location_id=loc.id if loc else None,
             evidence_count=0,
+            fusion_metadata=metadata,
         )
         await self.incident_repo.create(incident)
 
@@ -97,10 +101,14 @@ class IncidentService:
             sla_service = AccountabilityService(self.session)
             await sla_service.start_sla(incident.id)
 
-    async def get_incident(self, incident_id: uuid.UUID) -> Incident:
+    async def get_incident(self, incident_id: uuid.UUID | str) -> Incident:
         incident = await self.incident_repo.get_by_id(incident_id)
         if not incident:
             raise NotFoundError(f"Incident {incident_id} not found.")
+        await self.session.refresh(
+            incident,
+            ["location", "jurisdiction", "authority", "priority", "sla", "verification"],
+        )
         return incident
 
     async def assign_jurisdiction(self, incident_id: uuid.UUID) -> Incident:
@@ -160,29 +168,29 @@ class IncidentService:
         return await self.get_incident(incident.id)
 
     async def list_incidents(
-        self, skip: int = 0, limit: int = 20
+        self, skip: int = 0, limit: int = 20, citizen_id: Optional[str] = None, authority_id: Optional[str] = None
     ) -> tuple[Sequence[Incident], int]:
-        return await self.incident_repo.list_incidents(skip, limit)
+        return await self.incident_repo.list_incidents(skip, limit, citizen_id=citizen_id, authority_id=authority_id)
 
-    async def get_incident_timeline(self, incident_id: uuid.UUID) -> Sequence[IncidentEvent]:
+    async def get_incident_timeline(self, incident_id: uuid.UUID | str) -> Sequence[IncidentEvent]:
         # Ensure incident exists
-        await self.get_incident(incident_id)
-        return await self.event_repo.get_by_incident(incident_id)
+        incident = await self.get_incident(incident_id)
+        return await self.event_repo.get_by_incident(incident.id)
 
-    async def get_incident_accountability(self, incident_id: uuid.UUID) -> SLA:
+    async def get_incident_accountability(self, incident_id: uuid.UUID | str) -> SLA:
         incident = await self.get_incident(incident_id)
         if not incident.sla:
             raise NotFoundError(f"SLA accountability data not found for Incident {incident_id}.")
         return incident.sla
 
-    async def get_incident_verification(self, incident_id: uuid.UUID) -> VerificationRecord:
+    async def get_incident_verification(self, incident_id: uuid.UUID | str) -> VerificationRecord:
         incident = await self.get_incident(incident_id)
         if not incident.verification:
             raise NotFoundError(f"Verification data not found for Incident {incident_id}.")
         return incident.verification
 
 
-    async def close_incident(self, incident_id: uuid.UUID) -> Incident:
+    async def close_incident(self, incident_id: uuid.UUID | str) -> Incident:
         """
         Closes a RESOLVED incident.
 

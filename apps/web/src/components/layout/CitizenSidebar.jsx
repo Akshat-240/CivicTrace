@@ -6,8 +6,7 @@ import {
   Target, 
   Clock, 
   MessageSquareQuote, 
-  Settings,
-  Layers
+  Settings
 } from 'lucide-react';
 import './CitizenSidebar.css';
 
@@ -33,37 +32,6 @@ const CitizenSidebar = () => {
         </div>
         <div className="ct-citizen-brand-name">CivicTrace</div>
         <div className="ct-citizen-role-badge">CITIZEN</div>
-      </div>
-
-      {/* Portal Switcher */}
-      <div className="ct-portal-switcher">
-        <div className="ct-portal-select-label">
-          <Layers size={13} />
-          <span>PORTAL</span>
-        </div>
-        <div className="ct-portal-pills">
-          <button 
-            type="button" 
-            className="ct-portal-pill" 
-            onClick={() => navigate('/admin/dashboard')}
-          >
-            Admin
-          </button>
-          <button 
-            type="button" 
-            className="ct-portal-pill" 
-            onClick={() => navigate('/authority/dashboard')}
-          >
-            Authority
-          </button>
-          <button 
-            type="button" 
-            className="ct-portal-pill active" 
-            onClick={() => navigate('/citizen/dashboard')}
-          >
-            Citizen
-          </button>
-        </div>
       </div>
 
       {/* Main Navigation */}
