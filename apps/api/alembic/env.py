@@ -25,7 +25,8 @@ import app.models  # noqa: F401 — registers all ORM mappers with Base.metadata
 config = context.config
 
 # Override the sqlalchemy.url with our environment variable.
-sync_url = os.environ.get("DATABASE_URL_SYNC")
+from app.core.config import get_settings
+sync_url = get_settings().database_url_sync
 if sync_url:
     config.set_main_option("sqlalchemy.url", sync_url)
 

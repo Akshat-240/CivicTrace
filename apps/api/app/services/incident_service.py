@@ -65,13 +65,69 @@ class IncidentService:
         )
         await self.event_repo.create(event)
 
-        return incident
+        return await self.get_incident(incident.id)
 
     async def get_incident(self, incident_id: uuid.UUID) -> Incident:
         incident = await self.incident_repo.get_by_id(incident_id)
         if not incident:
             raise NotFoundError(f"Incident {incident_id} not found.")
         return incident
+
+    async def assign_jurisdiction(self, incident_id: uuid.UUID) -> Incident:
+        """
+        Runs the GIS detection for the incident's location and assigns the Jurisdiction and Authority.
+        """
+        from app.services.gis_service import GISService
+        from app.schemas.gis import GISStatus
+
+        incident = await self.get_incident(incident_id)
+        
+        if not incident.location:
+            # Cannot resolve without a location
+            event = IncidentEvent(
+                incident_id=incident.id,
+                event_type=EventType.SYSTEM_NOTE,
+                actor="system",
+                summary="GIS resolution failed: No location attached to incident.",
+            )
+            await self.event_repo.create(event)
+            await self.session.commit()
+            return await self.get_incident(incident.id)
+
+        gis_service = GISService(self.session)
+        result = await gis_service.resolve_jurisdiction(
+            latitude=incident.location.latitude,
+            longitude=incident.location.longitude,
+        )
+
+        if result.status == GISStatus.JURISDICTION_FOUND:
+            incident.jurisdiction_id = result.jurisdiction_id
+            incident.authority_id = result.authority_id
+            
+            # Record events
+            await self.event_repo.create(IncidentEvent(
+                incident_id=incident.id,
+                event_type=EventType.JURISDICTION_ASSIGNED,
+                actor="system",
+                summary=result.explanation,
+            ))
+            await self.event_repo.create(IncidentEvent(
+                incident_id=incident.id,
+                event_type=EventType.AUTHORITY_ASSIGNED,
+                actor="system",
+                summary=f"Authority assigned based on GIS containment.",
+            ))
+        else:
+            # Conflict or invalid
+            await self.event_repo.create(IncidentEvent(
+                incident_id=incident.id,
+                event_type=EventType.SYSTEM_NOTE,
+                actor="system",
+                summary=f"GIS resolution issue ({result.status.value}): {result.explanation}",
+            ))
+
+        await self.session.commit()
+        return await self.get_incident(incident.id)
 
     async def list_incidents(
         self, skip: int = 0, limit: int = 20

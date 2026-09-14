@@ -89,9 +89,5 @@ class Jurisdiction(Base):
     # ------------------------------------------------------------------
     # Indexes
     # ------------------------------------------------------------------
-    __table_args__ = (
-        Index("ix_jurisdictions_authority_id", "authority_id"),
-    )
-
     def __repr__(self) -> str:
         return f"<Jurisdiction id={self.id} code={self.code!r}>"
