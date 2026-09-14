@@ -61,6 +61,10 @@ node_modules/
 dist/
 *.tsbuildinfo
 
+# Chrome profiles
+chrome_profile/
+chrome_profile*/
+
 # =============================================================================
 # Docker
 # =============================================================================
@@ -71,3 +75,8 @@ docker-compose.override.yml
 # =============================================================================
 *.log
 logs/
+
+# Temporary Figma screenshots & verifications
+*.png
+*.webp
+

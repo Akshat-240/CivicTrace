@@ -23,5 +23,6 @@ from app.schemas.incident import (  # noqa: F401
     IncidentDetail,
     IncidentListItem,
     IncidentSubmit,
+    ResolutionSubmit,
 )
 from app.schemas.event import EventResponse  # noqa: F401
