@@ -38,11 +38,6 @@ class AccountabilityService:
 
         stmt = (
             select(Incident)
-            .options(
-                selectinload(Incident.authority),
-                selectinload(Incident.priority),
-                selectinload(Incident.sla),
-            )
             .where(Incident.id == incident_id)
         )
         result = await self.session.execute(stmt)
@@ -50,6 +45,9 @@ class AccountabilityService:
 
         if not incident:
             raise ValueError(f"Incident {incident_id} not found.")
+
+        # Ensure relationships are loaded since it might be in identity map
+        await self.session.refresh(incident, attribute_names=['authority', 'priority', 'sla'])
 
         if not incident.authority:
             raise ValueError("Cannot start SLA: No responsible Authority assigned.")
@@ -108,7 +106,7 @@ class AccountabilityService:
         if incident.status == IncidentStatus.DRAFT:
             incident.status = IncidentStatus.ACTIVE
         
-        await self.session.commit()
+        await self.session.flush()
         return sla_record
 
     async def evaluate_sla(self, incident_id: uuid.UUID, current_time: Optional[datetime] = None) -> SLA:
@@ -169,6 +167,6 @@ class AccountabilityService:
                 payload={"previous_state": old_state.value, "new_state": new_state.value}
             )
             self.session.add(event)
-            await self.session.commit()
+            await self.session.flush()
 
         return sla_record

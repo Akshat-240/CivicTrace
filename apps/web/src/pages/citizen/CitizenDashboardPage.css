@@ -1,0 +1,278 @@
+.citizen-dash-container {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  max-width: 1200px;
+}
+
+/* 3 Stat Cards */
+.citizen-stats-row {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+}
+
+.citizen-stat-card {
+  background-color: #FFFFFF;
+  border: 1px solid #E2E8F0;
+  border-radius: 12px;
+  padding: 24px 28px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
+}
+
+.citizen-stat-value {
+  font-size: 36px;
+  font-weight: 700;
+  color: #0F172A;
+  line-height: 1;
+}
+
+.citizen-stat-label {
+  font-size: 13.5px;
+  font-weight: 500;
+  color: #64748B;
+}
+
+/* 2-Column Grid */
+.citizen-dash-grid {
+  display: grid;
+  grid-template-columns: 1.5fr 1fr;
+  gap: 24px;
+}
+
+.citizen-dash-panel {
+  background-color: #FFFFFF;
+  border: 1px solid #E2E8F0;
+  border-radius: 12px;
+  padding: 24px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
+}
+
+.citizen-panel-header {
+  margin-bottom: 20px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid #F1F5F9;
+}
+
+.citizen-panel-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: #0F172A;
+  margin: 0 0 4px 0;
+}
+
+.citizen-panel-subtitle {
+  font-size: 13px;
+  color: #64748B;
+  margin: 0;
+}
+
+/* Active Reports List */
+.citizen-active-reports-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.citizen-report-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px;
+  background-color: #F8FAFC;
+  border: 1px solid #EDF2F7;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.citizen-report-card:hover {
+  background-color: #F1F5F9;
+  border-color: #CBD5E1;
+  transform: translateY(-1px);
+}
+
+.citizen-report-card-left {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.citizen-status-pill {
+  align-self: flex-start;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 4px;
+}
+
+.citizen-status-pill.amber {
+  background-color: #FEF3C7;
+  color: #D97706;
+}
+
+.citizen-status-pill.blue {
+  background-color: #EFF6FF;
+  color: #2563EB;
+}
+
+.citizen-report-card-title {
+  font-size: 15px;
+  font-weight: 600;
+  color: #0F172A;
+  margin: 0;
+}
+
+.citizen-report-card-meta {
+  font-size: 12.5px;
+  color: #64748B;
+}
+
+.citizen-report-card-right {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.citizen-report-dept {
+  font-size: 13px;
+  color: #475569;
+  font-weight: 500;
+}
+
+.citizen-report-id {
+  font-size: 13px;
+  font-weight: 600;
+  color: #2563EB;
+}
+
+.citizen-arrow-icon {
+  color: #2563EB;
+}
+
+/* Activity Timeline */
+.citizen-activity-timeline {
+  display: flex;
+  flex-direction: column;
+}
+
+.citizen-activity-item {
+  display: flex;
+  gap: 14px;
+  position: relative;
+  padding-bottom: 20px;
+}
+
+.citizen-activity-item:last-child {
+  padding-bottom: 0;
+}
+
+.citizen-activity-dot-col {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.citizen-activity-dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background-color: #2563EB;
+  margin-top: 4px;
+}
+
+.citizen-activity-line {
+  width: 1.5px;
+  flex: 1;
+  background-color: #E2E8F0;
+  margin-top: 4px;
+}
+
+.citizen-activity-item:last-child .citizen-activity-line {
+  display: none;
+}
+
+.citizen-activity-content {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.citizen-activity-time {
+  font-size: 11px;
+  font-weight: 600;
+  color: #64748B;
+}
+
+.citizen-activity-text {
+  font-size: 13.5px;
+  font-weight: 600;
+  color: #0F172A;
+  margin: 0;
+}
+
+.citizen-activity-tag {
+  font-size: 12px;
+  font-weight: 600;
+  color: #2563EB;
+  cursor: pointer;
+  width: fit-content;
+}
+
+.citizen-activity-tag:hover {
+  text-decoration: underline;
+}
+
+/* Bottom CTA Card */
+.citizen-need-report-card {
+  background-color: #FFFFFF;
+  border: 1px solid #E2E8F0;
+  border-radius: 12px;
+  padding: 24px 28px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
+}
+
+.need-report-text {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.need-report-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: #0F172A;
+  margin: 0;
+}
+
+.need-report-desc {
+  font-size: 13.5px;
+  color: #64748B;
+  margin: 0;
+}
+
+.need-report-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background-color: #2563EB;
+  color: #FFFFFF;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 6px;
+  font-size: 13.5px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  white-space: nowrap;
+}
+
+.need-report-btn:hover {
+  background-color: #1D4ED8;
+}
