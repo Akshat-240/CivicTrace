@@ -21,6 +21,14 @@ import './CitizenReportPage.css';
 
 export default function CitizenReportPage() {
   const navigate = useNavigate();
+  const citizenId = localStorage.getItem('ct_user_id');
+
+  useEffect(() => {
+    if (!citizenId) {
+      navigate('/login');
+    }
+  }, [citizenId, navigate]);
+
   const [currentStep, setCurrentStep] = useState(1);
   const [selectedCategory, setSelectedCategory] = useState('Road');
   const [description, setDescription] = useState('');
@@ -30,11 +38,12 @@ export default function CitizenReportPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState(null);
   const [coords, setCoords] = useState({
-    latitude: 26.8528,
-    longitude: 80.9435,
-    address_raw: "Hazratganj, Ward 34, Lucknow",
+    latitude: null,
+    longitude: null,
+    address_raw: "",
     isLiveGps: false,
   });
+  const [locError, setLocError] = useState(null);
 
   useEffect(() => {
     if (typeof navigator !== 'undefined' && navigator.geolocation) {
@@ -46,12 +55,16 @@ export default function CitizenReportPage() {
             address_raw: `GPS Location (${pos.coords.latitude.toFixed(4)}, ${pos.coords.longitude.toFixed(4)})`,
             isLiveGps: true,
           });
+          setLocError(null);
         },
         (err) => {
-          console.warn('Geolocation unavailable or denied, falling back to Lucknow demo coordinates:', err);
+          console.warn('Geolocation unavailable or denied:', err);
+          setLocError('Location access is required to submit a report. Please enable GPS.');
         },
-        { timeout: 5000, enableHighAccuracy: true }
+        { timeout: 10000, enableHighAccuracy: true }
       );
+    } else {
+      setLocError('Geolocation is not supported by your browser.');
     }
   }, []);
 
@@ -68,7 +81,7 @@ export default function CitizenReportPage() {
     setIsRecording(!isRecording);
     if (!isRecording) {
       setTimeout(() => {
-        setDescription(prev => prev ? prev + ' (Deep pothole causing vehicle jam)' : 'Large pothole on road causing dangerous vehicle congestion.');
+        setDescription(prev => prev ? prev + ' (Voice input)' : 'Voice input');
         setIsRecording(false);
       }, 1500);
     }
@@ -94,7 +107,7 @@ export default function CitizenReportPage() {
       
       const payload = {
         title: selectedCategory + ' Issue',
-        description: description || 'Large pothole on road causing dangerous vehicle congestion.',
+        description: description || 'No description provided.',
         issue_type: issueTypeMap[selectedCategory] || 'other',
         location: {
           latitude: coords.latitude,
@@ -103,7 +116,7 @@ export default function CitizenReportPage() {
           address_raw: coords.address_raw,
         },
         fusion_metadata: {
-          citizen_id: "citizen_default"
+          citizen_id: citizenId || "unknown_citizen"
         }
       };
 
@@ -269,25 +282,34 @@ export default function CitizenReportPage() {
                   <p className="report-step-subtitle">Exact location ensures your complaint reaches the correct ward nodal officer.</p>
                 </div>
 
-                <div className="location-confirm-box">
-                  <div className="location-pin-header">
-                    <MapPin size={20} className="loc-marker-icon" />
-                    <div>
-                      <h4 className="loc-addr-title">{coords.address_raw}</h4>
-                      <p className="loc-addr-meta">
-                        {coords.isLiveGps ? 'Live GPS Location · Lucknow' : 'Hazratganj · Ward 34 · Lucknow'}{' '}
-                        (Lat: {coords.latitude.toFixed(4)}, Long: {coords.longitude.toFixed(4)})
-                      </p>
+                  <div className="location-confirm-box">
+                    <div className="location-pin-header">
+                      <MapPin size={20} className="loc-marker-icon" style={{ color: locError ? '#EF4444' : undefined }} />
+                      <div>
+                        {locError ? (
+                          <>
+                            <h4 className="loc-addr-title" style={{ color: '#EF4444' }}>Location Required</h4>
+                            <p className="loc-addr-meta">{locError}</p>
+                          </>
+                        ) : (
+                          <>
+                            <h4 className="loc-addr-title">{coords.address_raw}</h4>
+                            <p className="loc-addr-meta">
+                              {coords.isLiveGps ? 'Live GPS Location' : 'Manual Location'}
+                              {' '}(Lat: {coords.latitude?.toFixed(4)}, Long: {coords.longitude?.toFixed(4)})
+                            </p>
+                          </>
+                        )}
+                      </div>
+                    </div>
+
+                    <div className="simulated-map-box">
+                      {!locError && <div className="map-circle-ping"></div>}
+                      <span className="map-ping-label">
+                        {locError ? 'No GPS Lock' : (coords.isLiveGps ? 'Live GPS Lock Acquired' : 'Location Set')}
+                      </span>
                     </div>
                   </div>
-
-                  <div className="simulated-map-box">
-                    <div className="map-circle-ping"></div>
-                    <span className="map-ping-label">
-                      {coords.isLiveGps ? 'Live GPS Lock Acquired' : 'Demo Civic Boundary Lock Acquired'}
-                    </span>
-                  </div>
-                </div>
 
                 <div className="report-actions-row">
                   <button 
@@ -301,6 +323,8 @@ export default function CitizenReportPage() {
                     type="button" 
                     className="btn-continue-step"
                     onClick={handleNextStep}
+                    disabled={!!locError}
+                    style={locError ? { opacity: 0.5, cursor: 'not-allowed' } : {}}
                   >
                     <span>Review & Submit</span>
                     <ArrowRight size={16} />
@@ -323,7 +347,7 @@ export default function CitizenReportPage() {
                   </div>
                   <div className="review-row">
                     <span className="review-key">Description</span>
-                    <span className="review-val">{description || 'Large pothole on road causing dangerous vehicle congestion.'}</span>
+                    <span className="review-val">{description || 'No description provided.'}</span>
                   </div>
                   <div className="review-row">
                     <span className="review-key">Location</span>
@@ -331,11 +355,11 @@ export default function CitizenReportPage() {
                   </div>
                   <div className="review-row">
                     <span className="review-key">Responsible Department</span>
-                    <span className="review-val">Lucknow Municipal Corporation · Roads Division</span>
+                    <span className="review-val" style={{ fontStyle: 'italic', color: '#6b7280' }}>Pending Triage Assignment</span>
                   </div>
                   <div className="review-row">
                     <span className="review-key">Estimated SLA Target</span>
-                    <span className="review-val highlight">Within 24 Hours</span>
+                    <span className="review-val" style={{ fontStyle: 'italic', color: '#6b7280' }}>Pending SLA Evaluation</span>
                   </div>
                 </div>
 

@@ -15,8 +15,13 @@ export default function CitizenHistoryPage() {
     async function loadIncidents() {
       try {
         setLoading(true);
+        const citizenId = localStorage.getItem('ct_user_id');
+        if (!citizenId) {
+          navigate('/login');
+          return;
+        }
         // Load real backend incidents for authenticated citizen
-        const response = await getIncidents(0, 100, 'citizen_default');
+        const response = await getIncidents(0, 100, citizenId);
         const items = response?.data || [];
         
         // Map backend data to frontend expectations
@@ -40,7 +45,7 @@ export default function CitizenHistoryPage() {
           const locationString = 
             item.location?.address_raw || 
             [item.location?.street, item.location?.suburb, item.location?.city].filter(Boolean).join(', ') ||
-            'Hazratganj, Lucknow';
+            'Location unrecorded';
 
           return {
             id: item.reference_number || (item.id ? item.id.substring(0, 8).toUpperCase() : 'INC-UNKNOWN'),
@@ -60,7 +65,7 @@ export default function CitizenHistoryPage() {
       }
     }
     loadIncidents();
-  }, []);
+  }, [navigate]);
 
   const filteredIncidents = incidents.filter((item) => {
     if (activeFilter === 'All') return true;
@@ -122,7 +127,7 @@ export default function CitizenHistoryPage() {
                 <div className="history-incident-left">
                   <h3 className="history-incident-title">{incident.title}</h3>
                   <span className="history-incident-meta">
-                    {incident.location} · {incident.status} · {incident.date}
+                    {incident.location} • {incident.status} • {incident.date}
                   </span>
                 </div>
 
@@ -133,7 +138,7 @@ export default function CitizenHistoryPage() {
 
                   <div 
                     className="history-action-col"
-                    onClick={() => navigate(`/citizen/track?id=${encodeURIComponent(incident.id)}`)}
+                    onClick={() => navigate(`/citizen/track?id=${encodeURIComponent(incident.realId)}`)}
                   >
                     <span className="history-report-id">{incident.id}</span>
                     <button type="button" className="history-view-link">

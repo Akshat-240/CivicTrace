@@ -1,29 +1,102 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Shield, ArrowRight } from 'lucide-react';
+import { Shield, ArrowRight, Loader2, AlertTriangle } from 'lucide-react';
+import { fetchAPI } from '../../services/api';
 import './LoginPage.css';
+
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL !== undefined ? import.meta.env.VITE_API_BASE_URL : '';
 
 const LoginPage = () => {
   const navigate = useNavigate();
-  const [selectedRole, setSelectedRole] = useState('Admin');
-  const [email, setEmail] = useState('admin@lucknow.gov.in');
-  const [password, setPassword] = useState('••••••••••••');
+  const [selectedRole, setSelectedRole] = useState('Citizen');
+  const [email, setEmail] = useState('citizen@demo.local');
+  const [password, setPassword] = useState('citizen123');
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    const token = localStorage.getItem('ct_auth_token');
+    const role = localStorage.getItem('ct_user_role');
+    if (token && role) {
+      if (role === 'admin') navigate('/admin/dashboard');
+      else if (role === 'authority') navigate('/authority/dashboard');
+      else navigate('/citizen/dashboard');
+    }
+  }, [navigate]);
 
   const handleRoleChange = (role) => {
     setSelectedRole(role);
-    if (role === 'Admin') setEmail('admin@lucknow.gov.in');
-    else if (role === 'Authority') setEmail('officer.roads@lucknow.gov.in');
-    else setEmail('citizen.lucknow@example.in');
+    if (role === 'Admin') {
+      setEmail('admin@demo.local');
+      setPassword('admin123');
+    } else if (role === 'Authority') {
+      setEmail('authority@demo.local');
+      setPassword('authority123');
+    } else {
+      setEmail('citizen@demo.local');
+      setPassword('citizen123');
+    }
   };
 
-  const handleSignIn = (e) => {
+  const parseJwt = (token) => {
+    try {
+      return JSON.parse(atob(token.split('.')[1]));
+    } catch (e) {
+      return null;
+    }
+  };
+
+  const handleSignIn = async (e) => {
     e.preventDefault();
-    if (selectedRole === 'Admin') {
-      navigate('/admin/dashboard');
-    } else if (selectedRole === 'Authority') {
-      navigate('/authority/dashboard');
-    } else {
-      navigate('/citizen/dashboard');
+    setLoading(true);
+    setError(null);
+
+    const formData = new URLSearchParams();
+    formData.append('username', email);
+    formData.append('password', password);
+
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/v1/auth/token`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: formData.toString()
+      });
+
+      if (!response.ok) {
+        let errorMsg = 'Invalid credentials';
+        try {
+          const errData = await response.json();
+          errorMsg = errData.detail || errorMsg;
+        } catch (e) {}
+        throw new Error(errorMsg);
+      }
+
+      const data = await response.json();
+      const token = data.access_token;
+
+      const payload = parseJwt(token);
+      if (!payload) throw new Error('Invalid token received from server');
+
+      const role = payload.role || 'citizen';
+      const userId = payload.sub;
+
+      localStorage.setItem('ct_auth_token', token);
+      localStorage.setItem('ct_user_id', userId);
+      localStorage.setItem('ct_user_role', role);
+
+      if (role === 'admin') {
+        navigate('/admin/dashboard');
+      } else if (role === 'authority') {
+        navigate('/authority/dashboard');
+      } else {
+        navigate('/citizen/dashboard');
+      }
+    } catch (err) {
+      setError(err.message || 'Login failed. Please check your credentials.');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -89,9 +162,16 @@ const LoginPage = () => {
           </div>
 
           <form onSubmit={handleSignIn} className="ct-login-form">
+            {error && (
+              <div style={{ backgroundColor: '#fee2e2', color: '#b91c1c', padding: '0.75rem', borderRadius: '8px', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.85rem' }}>
+                <AlertTriangle size={16} />
+                <span>{error}</span>
+              </div>
+            )}
+
             <div className="ct-form-group">
               <label htmlFor="email" className="ct-form-label">
-                {selectedRole === 'Citizen' ? 'Mobile Number or Email' : 'Email or Employee ID'}
+                {selectedRole === 'Citizen' ? 'Email' : 'Email'}
               </label>
               <input
                 id="email"
@@ -118,16 +198,17 @@ const LoginPage = () => {
               />
             </div>
 
-            <button type="submit" className="ct-login-submit-btn">
-              Sign In
+            <button type="submit" className="ct-login-submit-btn" disabled={loading} style={{ opacity: loading ? 0.7 : 1, cursor: loading ? 'not-allowed' : 'pointer', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '0.5rem' }}>
+              {loading ? <Loader2 size={18} className="animate-spin" /> : null}
+              <span>{loading ? 'Signing In...' : 'Sign In'}</span>
             </button>
 
             <div className="ct-login-divider">
               <span>or</span>
             </div>
 
-            <button 
-              type="button" 
+            <button
+              type="button"
               className="ct-sso-btn"
               onClick={handleSignIn}
             >

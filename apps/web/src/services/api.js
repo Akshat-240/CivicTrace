@@ -3,13 +3,18 @@ const API_BASE_URL = import.meta.env.VITE_API_BASE_URL !== undefined ? import.me
 /**
  * Helper to perform fetch requests and handle JSON / errors centrally.
  */
-async function fetchAPI(endpoint, options = {}) {
+export async function fetchAPI(endpoint, options = {}) {
   const url = `${API_BASE_URL}/api/v1${endpoint}`;
-  
+
   const headers = {
     'Content-Type': 'application/json',
     ...(options.headers || {}),
   };
+
+  const token = localStorage.getItem('ct_auth_token');
+  if (token) {
+    headers['Authorization'] = `Bearer ${token}`;
+  }
 
   const config = {
     ...options,
@@ -18,6 +23,14 @@ async function fetchAPI(endpoint, options = {}) {
 
   try {
     const response = await fetch(url, config);
+    if (response.status === 401) {
+      localStorage.removeItem('ct_auth_token');
+      localStorage.removeItem('ct_user_id');
+      localStorage.removeItem('ct_user_role');
+      window.location.href = '/login';
+      return null;
+    }
+
     if (!response.ok) {
       let errorMessage = response.statusText;
       try {
@@ -34,12 +47,12 @@ async function fetchAPI(endpoint, options = {}) {
       }
       throw new Error(`API Error ${response.status}: ${errorMessage}`);
     }
-    
+
     // Some endpoints might return 204 No Content or empty responses
     if (response.status === 204) {
       return null;
     }
-    
+
     const contentType = response.headers.get('content-type');
     if (contentType && contentType.includes('application/json')) {
       return await response.json();
@@ -149,10 +162,24 @@ export async function addIncidentEvidence(id, data) {
 
 export async function uploadIncidentEvidence(incidentId, formData) {
   const url = `${API_BASE_URL}/api/v1/incidents/${incidentId}/evidence/upload`;
+  const headers = {};
+  const token = localStorage.getItem('ct_auth_token');
+  if (token) headers['Authorization'] = `Bearer ${token}`;
+
   const response = await fetch(url, {
     method: 'POST',
+    headers,
     body: formData,
   });
+
+  if (response.status === 401) {
+    localStorage.removeItem('ct_auth_token');
+    localStorage.removeItem('ct_user_id');
+    localStorage.removeItem('ct_user_role');
+    window.location.href = '/login';
+    return null;
+  }
+
   if (!response.ok) {
     let errorMessage = response.statusText;
     try {
@@ -186,10 +213,23 @@ export async function transcribeSpeech(audioBlob, language = 'en-US') {
   formData.append('language', language);
 
   const url = `${API_BASE_URL}/api/v1/ai/transcribe`;
+  const headers = {};
+  const token = localStorage.getItem('ct_auth_token');
+  if (token) headers['Authorization'] = `Bearer ${token}`;
+
   const response = await fetch(url, {
     method: 'POST',
+    headers,
     body: formData,
   });
+
+  if (response.status === 401) {
+    localStorage.removeItem('ct_auth_token');
+    localStorage.removeItem('ct_user_id');
+    localStorage.removeItem('ct_user_role');
+    window.location.href = '/login';
+    return null;
+  }
 
   if (!response.ok) {
     let errorMessage = response.statusText;
