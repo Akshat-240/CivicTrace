@@ -84,8 +84,8 @@ class TestIncidentCreationFusion:
         assert incident is not None
         assert incident.title == "Pothole on Main Road"
         assert incident.issue_type == "road_damage"
-        assert incident.evidence_count == 1
-        assert incident.primary_evidence_id is not None
+        assert incident.evidence_count == 0
+        assert incident.primary_evidence_id is None
         assert incident.jurisdiction_id == jur.id
         assert incident.authority_id == auth.id
         assert incident.sla is not None

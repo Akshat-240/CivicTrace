@@ -22,6 +22,7 @@ from typing import Any
 
 import structlog
 from fastapi import Request, status
+from fastapi.encoders import jsonable_encoder
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 
@@ -135,9 +136,10 @@ async def validation_exception_handler(
     exc: RequestValidationError,
 ) -> JSONResponse:
     """Translate Pydantic/FastAPI validation errors into the standard envelope."""
+    encoded_errors = jsonable_encoder(exc.errors())
     logger.info(
         "request_validation_error",
-        errors=exc.errors(),
+        errors=encoded_errors,
         path=request.url.path,
         method=request.method,
     )
@@ -147,7 +149,7 @@ async def validation_exception_handler(
             "error": {
                 "code": "VALIDATION_ERROR",
                 "message": "Request validation failed.",
-                "detail": exc.errors(),
+                "detail": encoded_errors,
             }
         },
     )

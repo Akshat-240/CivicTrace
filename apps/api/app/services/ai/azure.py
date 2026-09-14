@@ -81,7 +81,7 @@ class AzureVisionProvider(AIProvider):
         return hasher.hexdigest()
 
     async def analyze_evidence(
-        self, description: Optional[str], media_urls: list[str]
+        self, description: Optional[str], media_urls: list[str], media_content: Optional[bytes] = None
     ) -> AIAnalysisResult:
         """
         Analyze visual evidence using Azure Computer Vision.
@@ -97,23 +97,27 @@ class AzureVisionProvider(AIProvider):
 
         # Media validation
         valid_media_urls = [u for u in media_urls if u and not u.startswith("synthetic://")]
-        if not valid_media_urls:
+        if not valid_media_urls and not media_content:
             # If evidence has only synthetic URIs or no media, Azure cannot process it
             raise AzureOperationalError(
-                "No valid visual media URL provided for Azure Computer Vision analysis."
+                "No valid visual media provided for Azure Computer Vision analysis."
             )
 
-        target_url = valid_media_urls[0]
         api_url = f"{self.endpoint}/vision/v3.2/analyze?visualFeatures=Categories,Description,Objects,Tags"
         headers = {
             "Ocp-Apim-Subscription-Key": self.key,
-            "Content-Type": "application/json",
         }
-        payload = {"url": target_url}
-
+        
         try:
             async with httpx.AsyncClient(timeout=self.timeout) as client:
-                response = await client.post(api_url, headers=headers, json=payload)
+                if media_content:
+                    headers["Content-Type"] = "application/octet-stream"
+                    response = await client.post(api_url, headers=headers, content=media_content)
+                else:
+                    target_url = valid_media_urls[0]
+                    headers["Content-Type"] = "application/json"
+                    payload = {"url": target_url}
+                    response = await client.post(api_url, headers=headers, json=payload)
         except httpx.TimeoutException as exc:
             logger.warning("azure_vision_timeout", extra={"endpoint": self.endpoint})
             raise AzureOperationalError("Azure Computer Vision request timed out.") from exc

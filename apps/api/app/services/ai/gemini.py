@@ -51,7 +51,7 @@ class GeminiAIProvider(AIProvider):
         return hasher.hexdigest()
 
     async def analyze_evidence(
-        self, description: Optional[str], media_urls: list[str]
+        self, description: Optional[str], media_urls: list[str], media_content: Optional[bytes] = None
     ) -> AIAnalysisResult:
         if not self.client:
             from app.core.errors import ServiceUnavailableError

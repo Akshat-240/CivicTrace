@@ -7,7 +7,7 @@ from typing import Any, Optional, Sequence
 
 from fastapi import APIRouter, Depends, Query, status
 
-from app.api.dependencies import DbSession
+from app.api.dependencies import DbSession, get_current_user
 from app.schemas import (
     EventResponse,
     EvidenceResponse,
@@ -34,9 +34,10 @@ router = APIRouter(prefix="/incidents", tags=["incidents"])
 async def create_incident(
     data: IncidentSubmit,
     db: DbSession,
+    current_user = Depends(get_current_user),
 ) -> Any:
     service = IncidentService(db)
-    return await service.create_incident(data)
+    return await service.create_incident(data, citizen_id=current_user.id)
 
 
 @router.get(
@@ -226,26 +227,6 @@ async def assign_jurisdiction(
     service = IncidentService(db)
     return await service.assign_jurisdiction(incident_id)
 
-@router.post(
-    "/{incident_id}/prioritize",
-    response_model=Any,
-    summary="Compute final incident priority using evidence aggregation",
-)
-async def compute_priority(
-    incident_id: uuid.UUID,
-    db: DbSession,
-) -> Any:
-    from app.services.priority_service import PriorityService
-    service = PriorityService(db)
-    # Returning the dictionary representing Priority model for simplicity
-    p = await service.compute_priority(incident_id)
-    return {
-        "final_priority": p.final_priority,
-        "explanation": p.explanation,
-        "safety_risk": p.safety_risk,
-        "severity": p.severity,
-        "persistence_score": p.persistence_score
-    }
 
 @router.post(
     "/{incident_id}/start-sla",
@@ -369,3 +350,14 @@ async def close_incident(
     """
     service = IncidentService(db)
     return await service.close_incident(incident_id)
+@router.get(
+    "/{incident_id}/intelligence-report",
+    response_model=Any,
+    summary="Get the structured CivicTrace Intelligence Report for an incident",
+)
+async def get_intelligence_report(
+    incident_id: uuid.UUID,
+    db: DbSession,
+) -> Any:
+    service = IncidentService(db)
+    return await service.generate_intelligence_report(incident_id)

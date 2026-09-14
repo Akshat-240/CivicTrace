@@ -15,7 +15,7 @@ class AIProvider(ABC):
 
     @abstractmethod
     async def analyze_evidence(
-        self, description: Optional[str], media_urls: list[str]
+        self, description: Optional[str], media_urls: list[str], media_content: Optional[bytes] = None
     ) -> AIAnalysisResult:
         """
         Analyze the given evidence and return a validated structured result.

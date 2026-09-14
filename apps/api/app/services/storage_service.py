@@ -290,6 +290,44 @@ class StorageService:
             logger.error("storage_delete_network_error", storage_key=clean_key)
             raise ServiceUnavailableError("Unable to connect to storage service during delete operation.") from exc
 
+    async def download_object(self, storage_key: str) -> bytes:
+        """
+        Downloads an object from the Supabase Storage bucket.
+        """
+        if not self.base_url or not self.secret_key:
+            raise ServiceUnavailableError("Storage service credentials are not configured.")
+
+        clean_key = storage_key.strip().lstrip("/")
+        download_url = f"{self.base_url}/storage/v1/object/authenticated/{self.bucket}/{clean_key}"
+        headers = self._get_headers()
+
+        try:
+            if self._client:
+                response = await self._client.get(
+                    download_url,
+                    headers=headers,
+                    timeout=30.0,
+                )
+            else:
+                async with httpx.AsyncClient() as client:
+                    response = await client.get(
+                        download_url,
+                        headers=headers,
+                        timeout=30.0,
+                    )
+
+            if response.is_error:
+                self._handle_http_error(response, clean_key)
+
+            return response.content
+
+        except httpx.TimeoutException as exc:
+            logger.error("storage_download_timeout", storage_key=clean_key)
+            raise ServiceUnavailableError("Storage service timed out during download operation.") from exc
+        except httpx.RequestError as exc:
+            logger.error("storage_download_network_error", storage_key=clean_key)
+            raise ServiceUnavailableError("Unable to connect to storage service during download operation.") from exc
+
     def _handle_http_error(self, response: httpx.Response, storage_key: str) -> None:
         status_code = response.status_code
         try:
