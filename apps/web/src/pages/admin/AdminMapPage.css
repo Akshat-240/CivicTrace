@@ -318,7 +318,7 @@
   color: #64748B;
 }
 
-.ct-oversight-priority-box,
+.ct-oversight-sla-box,
 .ct-oversight-jurisdiction-box {
   background-color: #F8FAFC;
   border: 1px solid #F1F5F9;
@@ -337,10 +337,10 @@
   text-transform: uppercase;
 }
 
-.ct-priority-val {
+.ct-sla-val {
   font-size: 0.86rem;
   font-weight: 700;
-  color: #DC2626;
+  color: #2563EB;
 }
 
 .ct-jurisdiction-val {

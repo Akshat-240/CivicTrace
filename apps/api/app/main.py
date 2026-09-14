@@ -32,7 +32,7 @@ logger = structlog.get_logger(__name__)
 import asyncio
 
 async def run_sla_poller_loop():
-    from app.core.database import async_session_maker
+    from app.core.database import AsyncSessionFactory as async_session_maker
     from app.services.sla_poller import SLAPoller
     
     # Run every 5 minutes in production, but let's make it configurable or standard interval.

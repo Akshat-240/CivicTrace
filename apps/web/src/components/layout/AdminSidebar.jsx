@@ -9,7 +9,7 @@ import {
   Building2, 
   ShieldCheck, 
   Settings,
-  Layers
+  LogOut
 } from 'lucide-react';
 import './AdminSidebar.css';
 
@@ -27,7 +27,11 @@ const AdminSidebar = () => {
     { name: 'Review & Governance', path: '/admin/governance', icon: <ShieldCheck size={18} /> },
   ];
 
-  const isSettingsActive = location.pathname.includes('/admin/settings');
+  const handleSignOut = () => {
+    localStorage.removeItem('ct_auth_token');
+    localStorage.removeItem('ct_user_role');
+    navigate('/login');
+  };
 
   return (
     <aside className="ct-admin-sidebar">
@@ -37,37 +41,6 @@ const AdminSidebar = () => {
         </div>
         <div className="ct-admin-brand-name">CivicTrace</div>
         <div className="ct-admin-role-badge">ADMIN</div>
-      </div>
-
-      {/* Portal Switcher Dropdown / Quick bar */}
-      <div className="ct-portal-switcher">
-        <div className="ct-portal-select-label">
-          <Layers size={13} />
-          <span>PORTAL</span>
-        </div>
-        <div className="ct-portal-pills">
-          <button 
-            type="button" 
-            className="ct-portal-pill active" 
-            onClick={() => navigate('/admin/dashboard')}
-          >
-            Admin
-          </button>
-          <button 
-            type="button" 
-            className="ct-portal-pill" 
-            onClick={() => navigate('/authority/dashboard')}
-          >
-            Authority
-          </button>
-          <button 
-            type="button" 
-            className="ct-portal-pill" 
-            onClick={() => navigate('/citizen/dashboard')}
-          >
-            Citizen
-          </button>
-        </div>
       </div>
 
       <nav className="ct-admin-nav">
@@ -84,17 +57,7 @@ const AdminSidebar = () => {
       </nav>
 
       <div className="ct-admin-sidebar-footer">
-        <button 
-          type="button"
-          className={`ct-admin-settings-row ${isSettingsActive ? 'active' : ''}`}
-          onClick={() => navigate('/admin/settings')}
-          title="System Settings"
-        >
-          <Settings size={18} />
-          <span>Settings</span>
-        </button>
-
-        <div className="ct-admin-user-card" onClick={() => navigate('/admin/settings')}>
+        <div className="ct-admin-user-card">
           <div className="ct-admin-avatar">
             <span>AU</span>
           </div>
@@ -102,6 +65,24 @@ const AdminSidebar = () => {
             <span className="ct-admin-user-name">Admin User</span>
             <span className="ct-admin-user-sub">CivicTrace Governance</span>
           </div>
+        </div>
+        <div className="ct-admin-footer-actions">
+          <button 
+            type="button" 
+            className="ct-admin-footer-btn" 
+            onClick={() => navigate('/admin/settings')}
+          >
+            <Settings size={16} />
+            <span>Settings</span>
+          </button>
+          <button 
+            type="button" 
+            className="ct-admin-footer-btn" 
+            onClick={handleSignOut}
+          >
+            <LogOut size={16} />
+            <span>Sign Out</span>
+          </button>
         </div>
       </div>
     </aside>

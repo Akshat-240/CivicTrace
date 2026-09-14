@@ -35,10 +35,9 @@ const DashboardPage = () => {
     async function loadData() {
       try {
         setLoading(true);
-        const res = await getIncidents(0, 100);
-        const allIncidents = res?.data || [];
-const MOCK_AUTHORITY_ID = "61c6d93e-889d-42fc-b6b9-b167ce631d47";
-        const myIncidents = allIncidents.filter(inc => inc.authority?.id === MOCK_AUTHORITY_ID);
+        const MOCK_AUTHORITY_ID = "61c6d93e-889d-42fc-b6b9-b167ce631d47";
+        const res = await getIncidents(0, 100, null, MOCK_AUTHORITY_ID);
+        const myIncidents = res?.data || [];
         const mapped = myIncidents.map(normalizeIncidentListItem);
         setIncidents(mapped);
       } catch (err) {
@@ -250,3 +249,4 @@ const MOCK_AUTHORITY_ID = "61c6d93e-889d-42fc-b6b9-b167ce631d47";
 };
 
 export default DashboardPage;
+

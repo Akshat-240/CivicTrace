@@ -1,4 +1,4 @@
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL !== undefined ? import.meta.env.VITE_API_BASE_URL : '';
 
 /**
  * Helper to perform fetch requests and handle JSON / errors centrally.
@@ -22,8 +22,12 @@ async function fetchAPI(endpoint, options = {}) {
       let errorMessage = response.statusText;
       try {
         const errorData = await response.json();
-        if (errorData.detail) {
+        if (errorData.error?.message) {
+          errorMessage = errorData.error.message;
+        } else if (errorData.detail) {
           errorMessage = typeof errorData.detail === 'string' ? errorData.detail : JSON.stringify(errorData.detail);
+        } else if (errorData.message) {
+          errorMessage = errorData.message;
         }
       } catch (e) {
         // Ignore json parse error if not JSON
@@ -52,8 +56,15 @@ async function fetchAPI(endpoint, options = {}) {
 // Incidents
 // ------------------------------------------------------------------
 
-export async function getIncidents(skip = 0, limit = 20) {
-  return fetchAPI(`/incidents?skip=${skip}&limit=${limit}`);
+export async function getIncidents(skip = 0, limit = 20, citizenId = null, authorityId = null) {
+  let endpoint = `/incidents?skip=${skip}&limit=${limit}`;
+  if (citizenId) {
+    endpoint += `&citizen_id=${encodeURIComponent(citizenId)}`;
+  }
+  if (authorityId) {
+    endpoint += `&authority_id=${encodeURIComponent(authorityId)}`;
+  }
+  return fetchAPI(endpoint);
 }
 
 export async function getIncident(id) {

@@ -198,6 +198,21 @@ class Incident(Base):
         ),
     )
 
+    @property
+    def accountability_state(self) -> Optional[str]:
+        if self.sla:
+            if self.sla.is_escalation_eligible or (self.sla.state and getattr(self.sla.state, "value", str(self.sla.state)) == "escalation_eligible"):
+                return "escalation_eligible"
+            if self.sla.state:
+                return self.sla.state.value if hasattr(self.sla.state, "value") else str(self.sla.state)
+        return None
+
+    @property
+    def priority_level(self) -> Optional[str]:
+        if self.priority and self.priority.final_priority:
+            return self.priority.final_priority.value if hasattr(self.priority.final_priority, "value") else str(self.priority.final_priority)
+        return None
+
     def __repr__(self) -> str:
         return (
             f"<Incident id={self.id} ref={self.reference_number!r} "
