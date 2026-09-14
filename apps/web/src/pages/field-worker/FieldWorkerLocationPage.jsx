@@ -60,6 +60,7 @@ const FieldWorkerLocationPage = () => {
     }, 1200);
   };
 
+  if (!id) return <div style={{padding: '2rem'}}>No task selected. Please select a task from the dashboard.</div>;
   if (loading) return <div style={{padding: '2rem'}}>Loading location details...</div>;
   if (!task) return <div style={{padding: '2rem'}}>Incident not found.</div>;
 
@@ -159,3 +160,4 @@ const FieldWorkerLocationPage = () => {
 };
 
 export default FieldWorkerLocationPage;
+

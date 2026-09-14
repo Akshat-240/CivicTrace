@@ -1,25 +1,39 @@
 import React from 'react';
-import { NavLink, useNavigate } from 'react-router-dom';
+import { NavLink, useNavigate, useLocation } from 'react-router-dom';
 import { 
   ClipboardList, 
   FileText, 
   MapPin, 
   Camera, 
   CheckCircle2,
-  Layers
+  Layers,
+  LogOut
 } from 'lucide-react';
 import './FieldWorkerSidebar.css';
 
 const FieldWorkerSidebar = () => {
   const navigate = useNavigate();
+  const location = useLocation();
+  
+  const searchParams = new URLSearchParams(location.search);
+  let currentId = searchParams.get('id');
+  if (!currentId) {
+    const match = location.pathname.match(/\/tasks\/([^/]+)/);
+    if (match) currentId = match[1];
+  }
 
   const navItems = [
-    { name: 'Assigned Work', path: '/field-worker/dashboard', icon: <ClipboardList size={18} /> },
-    { name: 'Incident Details', path: '/field-worker/tasks/CT-INC-024', icon: <FileText size={18} /> },
-    { name: 'Location & Map', path: '/field-worker/location', icon: <MapPin size={18} /> },
-    { name: 'Evidence & Work Status', path: '/field-worker/evidence', icon: <Camera size={18} /> },
-    { name: 'Review & Submit', path: '/field-worker/review', icon: <CheckCircle2 size={18} /> },
+    { name: 'Assigned Work', path: '/field-worker/dashboard', icon: <ClipboardList size={18} />, requiresId: false },
+    { name: 'Incident Details', path: currentId ? `/field-worker/tasks/${currentId}` : '#', icon: <FileText size={18} />, requiresId: true },
+    { name: 'Location & Map', path: currentId ? `/field-worker/location?id=${currentId}` : '#', icon: <MapPin size={18} />, requiresId: true },
+    { name: 'Evidence & Work Status', path: currentId ? `/field-worker/evidence?id=${currentId}` : '#', icon: <Camera size={18} />, requiresId: true },
+    { name: 'Review & Submit', path: currentId ? `/field-worker/review?id=${currentId}` : '#', icon: <CheckCircle2 size={18} />, requiresId: true },
   ];
+
+  const handleSignOut = () => {
+    localStorage.clear();
+    navigate('/login');
+  };
 
   return (
     <aside className="ct-fw-sidebar">
@@ -77,19 +91,32 @@ const FieldWorkerSidebar = () => {
       {/* Navigation Links */}
       <nav className="ct-fw-nav">
         <ul className="ct-fw-nav-list">
-          {navItems.map((item) => (
-            <li key={item.path} className="ct-fw-nav-item">
-              <NavLink
-                to={item.path}
-                className={({ isActive }) => 
-                  `ct-fw-nav-link ${isActive ? 'active' : ''}`
-                }
-              >
-                <span className="ct-fw-nav-icon">{item.icon}</span>
-                <span className="ct-fw-nav-text">{item.name}</span>
-              </NavLink>
-            </li>
-          ))}
+          {navItems.map((item) => {
+            if (item.requiresId && !currentId) {
+              return (
+                <li key={item.name} className="ct-fw-nav-item">
+                  <div className="ct-fw-nav-link" style={{ opacity: 0.5, cursor: 'not-allowed' }}>
+                    <span className="ct-fw-nav-icon">{item.icon}</span>
+                    <span className="ct-fw-nav-text">{item.name}</span>
+                  </div>
+                </li>
+              );
+            }
+            return (
+              <li key={item.name} className="ct-fw-nav-item">
+                <NavLink
+                  to={item.path}
+                  className={({ isActive }) => 
+                    `ct-fw-nav-link ${isActive && item.path !== '#' ? 'active' : ''}`
+                  }
+                  end={item.name === 'Assigned Work'}
+                >
+                  <span className="ct-fw-nav-icon">{item.icon}</span>
+                  <span className="ct-fw-nav-text">{item.name}</span>
+                </NavLink>
+              </li>
+            );
+          })}
         </ul>
       </nav>
 
@@ -103,6 +130,9 @@ const FieldWorkerSidebar = () => {
             <span className="ct-fw-user-role">Zone 3 • Team B</span>
           </div>
         </div>
+        <button className="ct-fw-profile-action-btn" onClick={handleSignOut} style={{marginTop: '10px', width: '100%', display: 'flex', alignItems: 'center', gap: '8px', background: 'transparent', border: 'none', color: '#94a3b8', cursor: 'pointer', padding: '8px 12px', fontSize: '13px'}}>
+          <LogOut size={14} /> Sign Out
+        </button>
       </div>
     </aside>
   );
