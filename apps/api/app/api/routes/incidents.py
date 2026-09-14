@@ -3,13 +3,11 @@ Incidents API routes.
 """
 
 import uuid
-from datetime import datetime
 from typing import Any, Optional, Sequence
 
-from fastapi import APIRouter, Depends, File, Form, Query, UploadFile, status
+from fastapi import APIRouter, Depends, Query, status
 
 from app.api.dependencies import DbSession
-from app.models.enums import EvidenceType
 from app.schemas import (
     EventResponse,
     EvidenceResponse,
@@ -50,9 +48,11 @@ async def list_incidents(
     db: DbSession,
     skip: int = Query(0, ge=0),
     limit: int = Query(20, ge=1, le=100),
+    citizen_id: Optional[str] = Query(None, description="Filter incidents by authenticated citizen ID"),
+    authority_id: Optional[str] = Query(None, description="Filter incidents by assigned authority ID"),
 ) -> Any:
     service = IncidentService(db)
-    incidents, total = await service.list_incidents(skip, limit)
+    incidents, total = await service.list_incidents(skip, limit, citizen_id=citizen_id, authority_id=authority_id)
     return {
         "data": incidents,
         "total": total,
@@ -67,7 +67,7 @@ async def list_incidents(
     summary="Get incident details",
 )
 async def get_incident(
-    incident_id: uuid.UUID,
+    incident_id: str,
     db: DbSession,
 ) -> Any:
     service = IncidentService(db)
@@ -89,41 +89,6 @@ async def add_evidence(
     return await service.add_evidence(incident_id, data)
 
 
-@router.post(
-    "/{incident_id}/evidence/upload",
-    response_model=EvidenceResponse,
-    status_code=status.HTTP_201_CREATED,
-    summary="Upload evidence media file to incident",
-)
-async def upload_evidence(
-    incident_id: uuid.UUID,
-    db: DbSession,
-    file: UploadFile = File(...),
-    description: Optional[str] = Form(None),
-    occurred_at: Optional[datetime] = Form(None),
-    latitude: Optional[float] = Form(None),
-    longitude: Optional[float] = Form(None),
-    accuracy_meters: Optional[float] = Form(None),
-    address_raw: Optional[str] = Form(None),
-    evidence_type: Optional[EvidenceType] = Form(None),
-) -> Any:
-    service = EvidenceService(db)
-    content = await file.read()
-    return await service.upload_evidence(
-        incident_id=incident_id,
-        file_content=content,
-        filename=file.filename or "evidence_media.bin",
-        content_type=file.content_type or "application/octet-stream",
-        description=description,
-        occurred_at=occurred_at,
-        latitude=latitude,
-        longitude=longitude,
-        accuracy_meters=accuracy_meters,
-        address_raw=address_raw,
-        evidence_type=evidence_type,
-    )
-
-
 @router.get(
     "/{incident_id}/evidence",
     response_model=list[EvidenceResponse],
@@ -143,7 +108,7 @@ async def list_evidence(
     summary="Get incident timeline events",
 )
 async def get_timeline(
-    incident_id: uuid.UUID,
+    incident_id: str,
     db: DbSession,
 ) -> Any:
     service = IncidentService(db)
@@ -156,7 +121,7 @@ async def get_timeline(
     summary="Get incident SLA & accountability state",
 )
 async def get_accountability(
-    incident_id: uuid.UUID,
+    incident_id: str,
     db: DbSession,
 ) -> Any:
     service = IncidentService(db)
@@ -169,7 +134,7 @@ async def get_accountability(
     summary="Get incident verification result",
 )
 async def get_verification(
-    incident_id: uuid.UUID,
+    incident_id: str,
     db: DbSession,
 ) -> Any:
     service = IncidentService(db)
@@ -189,10 +154,7 @@ async def analyze_evidence(
     evidence_id: uuid.UUID,
     db: DbSession,
 ) -> Any:
-    # Ensure incident exists
-    incident_service = IncidentService(db)
-    await incident_service.get_incident(incident_id)
-
+    # Ensure evidence belongs to incident
     ai_service = AIService(db)
     return await ai_service.process_evidence(evidence_id)
 
@@ -209,9 +171,30 @@ async def assign_jurisdiction(
     return await service.assign_jurisdiction(incident_id)
 
 @router.post(
+    "/{incident_id}/prioritize",
+    response_model=Any,
+    summary="Compute final incident priority using evidence aggregation",
+)
+async def compute_priority(
+    incident_id: uuid.UUID,
+    db: DbSession,
+) -> Any:
+    from app.services.priority_service import PriorityService
+    service = PriorityService(db)
+    # Returning the dictionary representing Priority model for simplicity
+    p = await service.compute_priority(incident_id)
+    return {
+        "final_priority": p.final_priority,
+        "explanation": p.explanation,
+        "safety_risk": p.safety_risk,
+        "severity": p.severity,
+        "persistence_score": p.persistence_score
+    }
+
+@router.post(
     "/{incident_id}/start-sla",
     response_model=Any,
-    summary="Start SLA clock for an assigned incident",
+    summary="Start SLA clock for a prioritized incident",
 )
 async def start_sla(
     incident_id: uuid.UUID,

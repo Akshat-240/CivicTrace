@@ -93,6 +93,7 @@ class IncidentSubmit(CivicBaseModel):
     description: Optional[str] = None
     issue_type: Optional[IssueType] = None
     location: Optional[LocationCreate] = None
+    fusion_metadata: Optional[dict[str, Any]] = None
 
 
 class ResolutionSubmit(CivicBaseModel):

@@ -324,14 +324,14 @@ export const mockIncidentDetailCT1842 = {
 };
 
 export const mockAdminMapPins = [
-  { id: "#CT-1842", issue: "Pothole", location: "Faizabad Road • Ward 12", priority: "Critical", status: "ACTIVE", tag: "HIGH • SLA AT RISK • RESOLUTION CHECK PENDING", x: 62, y: 44 },
-  { id: "#CT-1839", issue: "Garbage Overflow", location: "Aliganj • Ward 8", priority: "Critical", status: "BREACHED", tag: "CRITICAL • SLA OVERDUE", x: 28, y: 35 },
-  { id: "#CT-1831", issue: "Streetlight Dark", location: "Indira Nagar • Ward 6", priority: "Medium", status: "ASSIGNED", tag: "MEDIUM • ON TRACK", x: 74, y: 32 },
-  { id: "#CT-1827", issue: "Water Leakage", location: "Gomti Nagar • Ward 14", priority: "High", status: "IN PROGRESS", tag: "HIGH • 11h REMAINING", x: 50, y: 72 },
-  { id: "#CT-1819", issue: "Fallen Tree", location: "Hazratganj • Ward 3", priority: "Resolved", status: "RESOLVED", tag: "RESOLVED • EVIDENCE VERIFIED", x: 40, y: 55 },
-  { id: "#CT-1812", issue: "Drainage Blockage", location: "Mahanagar • Ward 10", priority: "High", status: "IN PROGRESS", tag: "HIGH • 18h REMAINING", x: 80, y: 60 },
-  { id: "#CT-1805", issue: "Solid Waste", location: "Jankipuram • Ward 15", priority: "Low", status: "OPEN", tag: "LOW • 32h REMAINING", x: 22, y: 65 },
-  { id: "#CT-1798", issue: "Public Safety", location: "Alambagh • Ward 18", priority: "Medium", status: "ASSIGNED", tag: "MEDIUM • 28h REMAINING", x: 88, y: 42 }
+  { id: "#CT-1842", rawId: "CT-1842", issue: "Pothole", category: "Road Damage", department: "Roads Department", location: "Faizabad Road • Ward 12", status: "ACTIVE", slaState: "At Risk", tag: "SLA AT RISK • RESOLUTION CHECK PENDING", x: 62, y: 44 },
+  { id: "#CT-1839", rawId: "CT-1839", issue: "Garbage Overflow", category: "Sanitation", department: "Sanitation Department", location: "Aliganj • Ward 8", status: "BREACHED", slaState: "Breached", tag: "SLA OVERDUE", x: 28, y: 35 },
+  { id: "#CT-1831", rawId: "CT-1831", issue: "Streetlight Dark", category: "Streetlight", department: "Electricity Board", location: "Indira Nagar • Ward 6", status: "ASSIGNED", slaState: "On Track", tag: "ON TRACK", x: 74, y: 32 },
+  { id: "#CT-1827", rawId: "CT-1827", issue: "Water Leakage", category: "Water Supply", department: "Water Supply Department", location: "Gomti Nagar • Ward 14", status: "IN PROGRESS", slaState: "On Track", tag: "11h REMAINING", x: 50, y: 72 },
+  { id: "#CT-1819", rawId: "CT-1819", issue: "Fallen Tree", category: "Road Damage", department: "Roads Department", location: "Hazratganj • Ward 3", status: "RESOLVED", slaState: "Resolved", tag: "RESOLVED • EVIDENCE VERIFIED", x: 40, y: 55 },
+  { id: "#CT-1812", rawId: "CT-1812", issue: "Drainage Blockage", category: "Sanitation", department: "Sanitation Department", location: "Mahanagar • Ward 10", status: "IN PROGRESS", slaState: "At Risk", tag: "18h REMAINING", x: 80, y: 60 },
+  { id: "#CT-1805", rawId: "CT-1805", issue: "Solid Waste", category: "Sanitation", department: "Sanitation Department", location: "Jankipuram • Ward 15", status: "OPEN", slaState: "On Track", tag: "32h REMAINING", x: 22, y: 65 },
+  { id: "#CT-1798", rawId: "CT-1798", issue: "Public Safety", category: "Electrical", department: "Electricity Board", location: "Alambagh • Ward 18", status: "ASSIGNED", slaState: "On Track", tag: "28h REMAINING", x: 88, y: 42 }
 ];
 
 export const mockAdminAnalytics = {

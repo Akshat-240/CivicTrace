@@ -165,30 +165,6 @@
   gap: 10px;
 }
 
-.ct-admin-settings-row {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  width: 100%;
-  padding: 9px 12px;
-  background: transparent;
-  border: 1px solid transparent;
-  border-radius: 8px;
-  color: #94A3B8;
-  font-size: 0.85rem;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.15s ease;
-  text-align: left;
-}
-
-.ct-admin-settings-row:hover,
-.ct-admin-settings-row.active {
-  color: #FFFFFF;
-  background-color: rgba(255, 255, 255, 0.08);
-  border-color: rgba(255, 255, 255, 0.12);
-}
-
 .ct-admin-user-card {
   display: flex;
   align-items: center;
@@ -197,13 +173,7 @@
   background: rgba(255, 255, 255, 0.04);
   border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 10px;
-  cursor: pointer;
   transition: all 0.15s ease;
-}
-
-.ct-admin-user-card:hover {
-  background: rgba(255, 255, 255, 0.08);
-  border-color: rgba(255, 255, 255, 0.15);
 }
 
 .ct-admin-avatar {
@@ -241,4 +211,35 @@
   white-space: nowrap;
   text-overflow: ellipsis;
   overflow: hidden;
+}
+
+.ct-admin-footer-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.ct-admin-footer-btn {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: transparent;
+  border: none;
+  color: #94A3B8;
+  padding: 8px 12px;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  width: 100%;
+  text-align: left;
+}
+
+.ct-admin-footer-btn:hover {
+  background: rgba(255, 255, 255, 0.05);
+  color: #FFFFFF;
 }

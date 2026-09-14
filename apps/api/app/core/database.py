@@ -68,6 +68,7 @@ AsyncSessionFactory: async_sessionmaker[AsyncSession] = async_sessionmaker(
     autoflush=False,
     autocommit=False,
 )
+async_session_maker = AsyncSessionFactory
 
 
 # ---------------------------------------------------------------------------
