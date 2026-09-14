@@ -185,6 +185,10 @@ class Incident(Base):
         Index("ix_incidents_jurisdiction_status", "jurisdiction_id", "status"),
         Index("ix_incidents_authority_status", "authority_id", "status"),
         CheckConstraint(
+            "(jurisdiction_id IS NULL AND authority_id IS NULL) OR (jurisdiction_id IS NOT NULL)",
+            name="ck_incidents_jurisdiction_authority_invariant",
+        ),
+        CheckConstraint(
             "ai_confidence IS NULL OR (ai_confidence >= 0.0 AND ai_confidence <= 1.0)",
             name="ck_incidents_ai_confidence_range",
         ),

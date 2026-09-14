@@ -71,6 +71,21 @@ class TestVerificationService:
         res = await svc.verify_resolution(inc.id)
         
         assert res.result == VerificationResult.FULLY_RESOLVED
+        assert res.verified_by == 'system'
+        assert inc.status == IncidentStatus.ACTIVE
+
+        inc.status = IncidentStatus.UNDER_REVIEW
+        await db_session.flush()
+        r2 = await svc.human_verify(
+            inc.id,
+            result=VerificationResult.FULLY_RESOLVED,
+            explanation='Test human decision',
+            verified_by='demo-authority-reviewer',
+        )
+        assert r2.result == VerificationResult.FULLY_RESOLVED
+        assert r2.verified_by == 'demo-authority-reviewer'
+        assert r2.confidence == 1.0
+        await db_session.refresh(inc, ['sla'])
         assert inc.status == IncidentStatus.RESOLVED
         assert inc.sla.state == AccountabilityState.RESOLVED
 

@@ -145,5 +145,5 @@ class PriorityService:
         )
         self.session.add(event)
         
-        await self.session.commit()
+        await self.session.flush()
         return priority_record
