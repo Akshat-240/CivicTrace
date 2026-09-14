@@ -5,37 +5,6 @@
   max-width: 1100px;
 }
 
-/* Stepper Bar */
-.citizen-stepper-bar {
-  display: flex;
-  gap: 12px;
-}
-
-.stepper-pill {
-  padding: 8px 18px;
-  border-radius: 20px;
-  background-color: #FFFFFF;
-  border: 1px solid #E2E8F0;
-  font-size: 13px;
-  font-weight: 600;
-  color: #64748B;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-
-.stepper-pill.active {
-  background-color: #2563EB;
-  color: #FFFFFF;
-  border-color: #2563EB;
-  box-shadow: 0 2px 6px rgba(37, 99, 235, 0.3);
-}
-
-.stepper-pill.completed {
-  background-color: #EFF6FF;
-  color: #2563EB;
-  border-color: #BFDBFE;
-}
-
 /* Grid */
 .citizen-report-grid {
   display: grid;
