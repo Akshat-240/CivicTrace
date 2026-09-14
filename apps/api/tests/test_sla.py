@@ -75,9 +75,12 @@ class TestAccountabilityService:
         # 8. missing priority
         auth = Authority(id=uuid.uuid4(), name="Test Authority", short_code="TA", sla_hours_low=168)
         db_session.add(auth)
+        from app.models.jurisdiction import Jurisdiction
+        jur = Jurisdiction(id=uuid.uuid4(), name="Test Jur", code="TJ_PRIO", authority_id=auth.id)
+        db_session.add(jur)
         inc = Incident(
             reference_number="INC-SLA-PRIO", status=IncidentStatus.ACTIVE, issue_type="POTHOLE",
-            created_at=base_time, authority_id=auth.id
+            created_at=base_time, authority_id=auth.id, jurisdiction_id=jur.id
         )
         db_session.add(inc)
         await db_session.flush()
