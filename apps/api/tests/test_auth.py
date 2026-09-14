@@ -44,7 +44,7 @@ async def test_jwt_creation_and_decode():
 @pytest.mark.asyncio
 async def test_citizen_registration_success(async_client: AsyncClient, db_session: AsyncSession):
     resp = await async_client.post("/api/v1/auth/register", json={
-        "email": "citizen@example.com",
+        "full_name": "Test", "city": "Test", "email": "citizen@example.com",
         "password": "password123"
     })
     assert resp.status_code == 201
@@ -61,14 +61,14 @@ async def test_citizen_registration_success(async_client: AsyncClient, db_sessio
 
 @pytest.mark.asyncio
 async def test_duplicate_email_rejected(async_client: AsyncClient):
-    await async_client.post("/api/v1/auth/register", json={"email": "dup@example.com", "password": "password123"})
-    resp = await async_client.post("/api/v1/auth/register", json={"email": "dup@example.com", "password": "password123"})
+    await async_client.post("/api/v1/auth/register", json={"full_name": "Test", "city": "Test", "email": "dup@example.com", "password": "password123"})
+    resp = await async_client.post("/api/v1/auth/register", json={"full_name": "Test", "city": "Test", "email": "dup@example.com", "password": "password123"})
     assert resp.status_code == 400
 
 @pytest.mark.asyncio
 async def test_public_registration_cannot_create_admin(async_client: AsyncClient):
     resp = await async_client.post("/api/v1/auth/register", json={
-        "email": "admin@example.com",
+        "full_name": "Test", "city": "Test", "email": "admin@example.com",
         "password": "password123",
         "role": "admin"
     })
@@ -77,7 +77,7 @@ async def test_public_registration_cannot_create_admin(async_client: AsyncClient
 @pytest.mark.asyncio
 async def test_public_registration_cannot_create_authority(async_client: AsyncClient):
     resp = await async_client.post("/api/v1/auth/register", json={
-        "email": "auth@example.com",
+        "full_name": "Test", "city": "Test", "email": "auth@example.com",
         "password": "password123",
         "role": "authority"
     })
@@ -85,7 +85,7 @@ async def test_public_registration_cannot_create_authority(async_client: AsyncCl
 
 @pytest.mark.asyncio
 async def test_login_success(async_client: AsyncClient):
-    await async_client.post("/api/v1/auth/register", json={"email": "login@example.com", "password": "password"})
+    await async_client.post("/api/v1/auth/register", json={"full_name": "Test", "city": "Test", "email": "login@example.com", "password": "password"})
     resp = await async_client.post("/api/v1/auth/token", data={
         "username": "login@example.com",
         "password": "password"
@@ -95,7 +95,7 @@ async def test_login_success(async_client: AsyncClient):
 
 @pytest.mark.asyncio
 async def test_login_wrong_credentials(async_client: AsyncClient):
-    await async_client.post("/api/v1/auth/register", json={"email": "login2@example.com", "password": "password"})
+    await async_client.post("/api/v1/auth/register", json={"full_name": "Test", "city": "Test", "email": "login2@example.com", "password": "password"})
     resp = await async_client.post("/api/v1/auth/token", data={
         "username": "login2@example.com",
         "password": "wrongpassword"
@@ -110,7 +110,7 @@ async def test_login_wrong_credentials(async_client: AsyncClient):
 
 @pytest.mark.asyncio
 async def test_inactive_user_cannot_login(async_client: AsyncClient, db_session: AsyncSession):
-    resp = await async_client.post("/api/v1/auth/register", json={"email": "inactive@example.com", "password": "password"})
+    resp = await async_client.post("/api/v1/auth/register", json={"full_name": "Test", "city": "Test", "email": "inactive@example.com", "password": "password"})
     user_id = resp.json()["id"]
 
     # manually deactivate
@@ -132,7 +132,7 @@ async def test_auth_me_requires_auth(async_client: AsyncClient):
 
 @pytest.mark.asyncio
 async def test_auth_me_returns_profile(async_client: AsyncClient):
-    await async_client.post("/api/v1/auth/register", json={"email": "me@example.com", "password": "password"})
+    await async_client.post("/api/v1/auth/register", json={"full_name": "Test", "city": "Test", "email": "me@example.com", "password": "password"})
     token_resp = await async_client.post("/api/v1/auth/token", data={"username": "me@example.com", "password": "password"})
     token = token_resp.json()["access_token"]
 
@@ -154,7 +154,7 @@ async def test_nonexistent_user_returns_401(async_client: AsyncClient):
 
 @pytest.mark.asyncio
 async def test_inactive_auth_me_returns_401(async_client: AsyncClient, db_session: AsyncSession):
-    await async_client.post("/api/v1/auth/register", json={"email": "inactive_me@example.com", "password": "password"})
+    await async_client.post("/api/v1/auth/register", json={"full_name": "Test", "city": "Test", "email": "inactive_me@example.com", "password": "password"})
     token_resp = await async_client.post("/api/v1/auth/token", data={"username": "inactive_me@example.com", "password": "password"})
     token = token_resp.json()["access_token"]
 
@@ -169,7 +169,7 @@ async def test_inactive_auth_me_returns_401(async_client: AsyncClient, db_sessio
 
 @pytest.mark.asyncio
 async def test_stale_jwt_role_overridden_by_db(async_client: AsyncClient, db_session: AsyncSession):
-    await async_client.post("/api/v1/auth/register", json={"email": "stale@example.com", "password": "password"})
+    await async_client.post("/api/v1/auth/register", json={"full_name": "Test", "city": "Test", "email": "stale@example.com", "password": "password"})
     token_resp = await async_client.post("/api/v1/auth/token", data={"username": "stale@example.com", "password": "password"})
     token = token_resp.json()["access_token"]
 
@@ -191,7 +191,7 @@ async def test_stale_jwt_role_overridden_by_db(async_client: AsyncClient, db_ses
 @pytest.mark.asyncio
 async def test_public_registration_cannot_assign_authority(async_client: AsyncClient, valid_authority):
     resp = await async_client.post("/api/v1/auth/register", json={
-        "email": "hacker@example.com",
+        "full_name": "Test", "city": "Test", "email": "hacker@example.com",
         "password": "password123",
         "authority_id": str(valid_authority.id)
     })
@@ -282,7 +282,7 @@ async def test_public_registration_admin_with_authority_id_rejected(async_client
     resp = await async_client.post(
         "/api/v1/auth/register",
         json={
-            "email": "hax0r@example.com",
+            "full_name": "Test", "city": "Test", "email": "hax0r@example.com",
             "password": "password123",
             "role": "admin",
             "authority_id": str(valid_authority.id)

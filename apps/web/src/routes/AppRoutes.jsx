@@ -5,6 +5,7 @@ import ProtectedRoute from '../components/ProtectedRoute';
 // Public Pages
 import LandingPage from '../pages/public/LandingPage';
 import LoginPage from '../pages/public/LoginPage';
+import RegisterPage from '../pages/public/RegisterPage';
 
 // Authority Portal
 import AuthorityLayout from '../components/layout/AuthorityLayout';
@@ -42,6 +43,7 @@ const AppRoutes = () => {
       {/* Public Routes */}
       <Route path="/" element={<LandingPage />} />
       <Route path="/login" element={<LoginPage />} />
+      <Route path="/register" element={<RegisterPage />} />
 
       {/* Authority Portal Routes */}
       <Route path="/authority" element={

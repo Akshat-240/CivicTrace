@@ -20,12 +20,15 @@ class User(Base):
 
     email: Mapped[str] = mapped_column(String(320), nullable=False, unique=True, index=True)
     hashed_password: Mapped[str] = mapped_column(String(1024), nullable=False)
-    
+
+    full_name: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
+    city: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
+
     role: Mapped[UserRole] = mapped_column(
         SQLEnum(UserRole, name='userrole', native_enum=False, length=30),
         nullable=False
     )
-    
+
     is_active: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)
 
     authority_id: Mapped[Optional[uuid.UUID]] = mapped_column(

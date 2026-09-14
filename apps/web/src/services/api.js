@@ -65,6 +65,23 @@ export async function fetchAPI(endpoint, options = {}) {
   }
 }
 
+export async function registerCitizen(data) {
+  return fetchAPI('/auth/register', {
+    method: 'POST',
+    body: JSON.stringify({
+      full_name: data.full_name,
+      city: data.city,
+      email: data.email,
+      password: data.password,
+      role: 'citizen'
+    }),
+  });
+}
+
+export async function getCurrentUser() {
+  return fetchAPI('/auth/me');
+}
+
 // ------------------------------------------------------------------
 // Incidents
 // ------------------------------------------------------------------

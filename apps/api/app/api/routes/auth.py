@@ -44,7 +44,9 @@ async def register(user_in: UserCreate, db: DbSession):
     from datetime import datetime, timezone
 
     new_user = User(
+        full_name=user_in.full_name,
         email=normalized_email,
+        city=user_in.city,
         hashed_password=hash_password(user_in.password),
         role=UserRole.CITIZEN,
         authority_id=None,
