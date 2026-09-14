@@ -52,9 +52,8 @@ const VerificationPage = () => {
   async function fetchPending() {
     try {
       setLoading(true);
-      const res = await getIncidents(0, 100);
-      const all = res?.data || [];
-      const mine = all.filter((inc) => inc.authority?.id === MOCK_AUTHORITY_ID);
+      const res = await getIncidents(0, 100, null, MOCK_AUTHORITY_ID);
+      const mine = res?.data || [];
       // Show incidents that are ACTIVE or UNDER_REVIEW or RESOLVED (for closure)
       const candidates = mine.filter(
         (inc) => !["closed", "draft", "invalid"].includes(inc.status?.toLowerCase())

@@ -47,6 +47,26 @@ class TestIncidentsAPI:
         assert data["total"] >= 1
         assert "reference_number" in data["data"][0]
 
+    async def test_list_incidents_by_citizen_id(self, async_client: AsyncClient):
+        # Create incident for specific citizen
+        unique_citizen = f"citizen_test_{uuid.uuid4().hex[:6]}"
+        res = await async_client.post(
+            "/api/v1/incidents",
+            json={
+                "title": "Citizen Specific Incident",
+                "issue_type": "pothole",
+                "fusion_metadata": {"citizen_id": unique_citizen}
+            },
+        )
+        assert res.status_code == 201
+
+        # Query with that citizen_id
+        res_filter = await async_client.get(f"/api/v1/incidents?citizen_id={unique_citizen}")
+        assert res_filter.status_code == 200
+        data = res_filter.json()
+        assert data["total"] == 1
+        assert data["data"][0]["title"] == "Citizen Specific Incident"
+
     async def test_get_incident(self, async_client: AsyncClient):
         # Create an incident
         create_res = await async_client.post(
@@ -60,6 +80,21 @@ class TestIncidentsAPI:
         assert response.status_code == 200
         assert response.json()["id"] == inc_id
         assert response.json()["title"] == "Test Incident 2"
+
+    async def test_get_incident_by_reference_number(self, async_client: AsyncClient):
+        # Create an incident
+        create_res = await async_client.post(
+            "/api/v1/incidents",
+            json={"title": "Test Ref Incident", "issue_type": "pothole"},
+        )
+        ref_num = create_res.json()["reference_number"]
+        inc_id = create_res.json()["id"]
+
+        # Fetch it by reference number
+        response = await async_client.get(f"/api/v1/incidents/{ref_num}")
+        assert response.status_code == 200
+        assert response.json()["id"] == inc_id
+        assert response.json()["reference_number"] == ref_num
 
     async def test_get_incident_not_found(self, async_client: AsyncClient):
         fake_id = str(uuid.uuid4())

@@ -9,8 +9,7 @@ by get_settings() to avoid repeated env reads.
 from functools import lru_cache
 from typing import Literal
 
-from pydantic import AliasChoices, AnyUrl, Field, field_validator
-from pathlib import Path
+from pydantic import AnyUrl, Field, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -25,7 +24,7 @@ class Settings(BaseSettings):
     """
 
     model_config = SettingsConfigDict(
-        env_file=str(Path(__file__).resolve().parent.parent.parent / ".env"),
+        env_file=".env",
         env_file_encoding="utf-8",
         case_sensitive=False,
         extra="ignore",
@@ -45,8 +44,15 @@ class Settings(BaseSettings):
     api_v1_prefix: str = "/api/v1"
 
     # Comma-separated in env vars; list in code.
-    allowed_origins: list[str] | str = Field(
-        default=["http://localhost:3000", "http://localhost:5173"]
+    allowed_origins: list[str] = Field(
+        default=[
+            "http://localhost:3000",
+            "http://127.0.0.1:3000",
+            "http://localhost:5173",
+            "http://127.0.0.1:5173",
+            "http://localhost:8000",
+            "http://127.0.0.1:8000",
+        ]
     )
 
     @field_validator("allowed_origins", mode="before")
@@ -81,83 +87,10 @@ class Settings(BaseSettings):
     db_pool_timeout: int = 30
 
     # ------------------------------------------------------------------
-    # AI Providers & Configuration
+    # AI (Gemini)
     # ------------------------------------------------------------------
-    ai_primary_provider: str = Field(
-        default="azure",
-        validation_alias=AliasChoices("ai_primary_provider", "ai_provider"),
-    )
-    ai_fallback_provider: str = Field(
-        default="gemini",
-        validation_alias=AliasChoices("ai_fallback_provider"),
-    )
-
-    # Azure Computer Vision (Primary Visual)
-    azure_ai_vision_endpoint: str = Field(
-        default="",
-        validation_alias=AliasChoices("azure_ai_vision_endpoint", "azure_vision_endpoint"),
-    )
-    azure_ai_vision_key: str = Field(
-        default="",
-        validation_alias=AliasChoices("azure_ai_vision_key", "azure_vision_key"),
-    )
-
-    # Azure AI Language (Citizen Problem Briefing Perception)
-    azure_ai_language_endpoint: str = Field(
-        default="",
-        validation_alias=AliasChoices("azure_ai_language_endpoint", "azure_language_endpoint"),
-    )
-    azure_ai_language_key: str = Field(
-        default="",
-        validation_alias=AliasChoices("azure_ai_language_key", "azure_language_key"),
-    )
-
-    # Azure AI Speech (Speech-to-Text for Citizen Voice Briefing)
-    azure_ai_speech_key: str = Field(
-        default="",
-        validation_alias=AliasChoices("azure_ai_speech_key", "azure_speech_key"),
-    )
-    azure_ai_speech_region: str = Field(
-        default="eastus",
-        validation_alias=AliasChoices("azure_ai_speech_region", "azure_speech_region"),
-    )
-
-    # Gemini (Fallback)
     gemini_api_key: str = Field(default="")
     gemini_model: str = Field(default="gemini-1.5-flash")
-
-    @property
-    def azure_vision_configured(self) -> bool:
-        return bool(self.azure_ai_vision_endpoint and self.azure_ai_vision_key)
-
-    @property
-    def azure_language_configured(self) -> bool:
-        return bool(self.azure_ai_language_endpoint and self.azure_ai_language_key)
-
-    @property
-    def azure_speech_configured(self) -> bool:
-        return bool(self.azure_ai_speech_key and self.azure_ai_speech_region)
-
-    # ------------------------------------------------------------------
-    # Storage (Supabase)
-    # ------------------------------------------------------------------
-    supabase_url: str = Field(default="")
-    supabase_secret_key: str = Field(
-        default="",
-        validation_alias=AliasChoices("supabase_secret_key", "supabase_key"),
-    )
-    supabase_storage_bucket: str = Field(
-        default="evidence",
-        validation_alias=AliasChoices("supabase_storage_bucket", "storage_bucket"),
-    )
-
-    @property
-    def supabase_key(self) -> str:
-        return self.supabase_secret_key
-
-    @property
-    def storage_bucket(self) -> str:
-        return self.supabase_storage_bucket
 
     # ------------------------------------------------------------------
     # Derived helpers
