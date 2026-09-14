@@ -80,3 +80,6 @@ logs/
 *.png
 *.webp
 
+
+.env.example
+
