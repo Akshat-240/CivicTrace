@@ -23,7 +23,7 @@ from app.models import (
     IncidentEvent,
     Jurisdiction,
     Location,
-    Priority,
+    SLARule,
     SLA,
     VerificationRecord,
 )
@@ -35,7 +35,6 @@ from app.models.enums import (
     EventType,
     IncidentStatus,
     IssueType,
-    PriorityLevel,
     SeverityLevel,
     VerificationResult,
 )
@@ -57,7 +56,7 @@ class TestModelImports:
         assert Incident.__tablename__ == "incidents"
         assert Evidence.__tablename__ == "evidence"
         assert Asset.__tablename__ == "assets"
-        assert Priority.__tablename__ == "priorities"
+        assert SLARule.__tablename__ == "sla_rules"
         assert SLA.__tablename__ == "slas"
         assert VerificationRecord.__tablename__ == "verification_records"
         assert IncidentEvent.__tablename__ == "incident_events"
@@ -66,7 +65,7 @@ class TestModelImports:
         """Every model must have the id / created_at / updated_at columns from Base."""
         for model in (
             Location, Authority, Jurisdiction, Incident, Evidence,
-            Asset, Priority, SLA, VerificationRecord, IncidentEvent,
+            Asset, SLARule, SLA, VerificationRecord, IncidentEvent,
         ):
             cols = {c.name for c in model.__table__.columns}
             assert "id" in cols, f"{model.__name__} missing 'id'"
@@ -105,13 +104,9 @@ class TestEnums:
 
     def test_verification_result_values(self):
         assert VerificationResult.FULLY_RESOLVED == "fully_resolved"
-        assert VerificationResult.PARTIALLY_RESOLVED == "partially_resolved"
-        assert VerificationResult.UNRESOLVED == "unresolved"
-        assert VerificationResult.INSUFFICIENT_EVIDENCE == "insufficient_evidence"
-
-    def test_priority_levels_complete(self):
-        levels = {PriorityLevel.LOW, PriorityLevel.MEDIUM, PriorityLevel.HIGH, PriorityLevel.CRITICAL}
-        assert len(levels) == 4
+        assert VerificationResult.NOT_RESOLVED == "not_resolved"
+        assert VerificationResult.NO_EVIDENCE == "no_evidence"
+        assert VerificationResult.HUMAN_REVIEW == "human_review"
 
     def test_event_type_count(self):
         """Verify all expected event types exist."""
@@ -175,12 +170,9 @@ class TestTableStructure:
         assert "boundary" in cols
         assert "authority_id" in cols
 
-    def test_priority_is_unique_per_incident(self):
-        """Priority.incident_id must have a unique constraint (enforces 1-to-1)."""
-        priority_cols = {
-            c.name: c for c in Priority.__table__.columns
-        }
-        assert priority_cols["incident_id"].unique
+    def test_sla_rule_has_columns(self):
+        cols = {c.name for c in SLARule.__table__.columns}
+        assert {"authority_id", "issue_type", "resolution_hours", "escalation_grace_hours", "is_active"}.issubset(cols)
 
     def test_sla_is_unique_per_incident(self):
         """SLA.incident_id must have a unique constraint (enforces 1-to-1)."""
@@ -239,6 +231,6 @@ class TestSchemas:
 
     def test_verification_submit_requires_result(self):
         from pydantic import ValidationError
-        from app.schemas.priority import VerificationSubmit
+        from app.schemas.verification import VerificationSubmit
         with pytest.raises(ValidationError):
             VerificationSubmit()  # result is required

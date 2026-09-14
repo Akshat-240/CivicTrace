@@ -63,6 +63,7 @@ const CitizenSidebar = () => {
           >
             Citizen
           </button>
+<<<<<<< HEAD
           <button 
             type="button" 
             className="ct-portal-pill" 
@@ -70,6 +71,8 @@ const CitizenSidebar = () => {
           >
             Worker
           </button>
+=======
+>>>>>>> main
         </div>
       </div>
 

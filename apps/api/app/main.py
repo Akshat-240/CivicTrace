@@ -125,9 +125,11 @@ def create_app() -> FastAPI:
     app.include_router(health.router, tags=["system"])
 
     # Domain routers will be added here as features are built out.
-    from app.api.routes import incidents, system
+    from app.api.routes import incidents, system, auth, ai
     app.include_router(incidents.router, prefix=settings.api_v1_prefix)
     app.include_router(system.router, prefix=settings.api_v1_prefix)
+    app.include_router(auth.router, prefix=settings.api_v1_prefix)
+    app.include_router(ai.router, prefix=settings.api_v1_prefix)
     # app.include_router(evidence.router,  prefix=settings.api_v1_prefix)
 
     return app

@@ -23,6 +23,8 @@ from app.core.database import Base
 if TYPE_CHECKING:
     from app.models.jurisdiction import Jurisdiction
     from app.models.incident import Incident
+    from app.models.user import User
+    from app.models.sla_rule import SLARule
 
 
 class Authority(Base):
@@ -72,6 +74,12 @@ class Authority(Base):
     )
     incidents: Mapped[list["Incident"]] = relationship(
         "Incident", back_populates="authority"
+    )
+    users: Mapped[list["User"]] = relationship(
+        "User", back_populates="authority"
+    )
+    sla_rules: Mapped[list["SLARule"]] = relationship(
+        "SLARule", back_populates="authority", cascade="all, delete-orphan"
     )
 
     def __repr__(self) -> str:
