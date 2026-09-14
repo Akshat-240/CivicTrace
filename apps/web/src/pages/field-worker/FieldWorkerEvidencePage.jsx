@@ -56,6 +56,7 @@ const FieldWorkerEvidencePage = () => {
     navigate(`/field-worker/review?id=${id}`);
   };
 
+  if (!id) return <div style={{padding: '2rem'}}>No task selected. Please select a task from the dashboard.</div>;
   if (loading) return <div style={{padding: '2rem'}}>Loading...</div>;
   if (!task) return <div style={{padding: '2rem'}}>Incident not found.</div>;
 
@@ -151,3 +152,4 @@ const FieldWorkerEvidencePage = () => {
 };
 
 export default FieldWorkerEvidencePage;
+
