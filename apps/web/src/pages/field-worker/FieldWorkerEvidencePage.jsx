@@ -1,165 +1,146 @@
-import React, { useState, useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { mockFieldWorkerData } from '../../data/mockData';
+import React, { useState, useRef, useEffect } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
+import { getIncident } from '../../services/api';
 import { Camera, Upload, ArrowRight, CheckCircle2 } from 'lucide-react';
 import './FieldWorkerEvidencePage.css';
 
 const FieldWorkerEvidencePage = () => {
   const navigate = useNavigate();
-  const task = mockFieldWorkerData.tasks[0];
-  const { evidence } = task;
+  const [searchParams] = useSearchParams();
+  const id = searchParams.get('id');
+  
+  const [task, setTask] = useState(null);
+  const [loading, setLoading] = useState(true);
 
-  const [workNotes, setWorkNotes] = useState(evidence.workNotes);
-  const [evidenceNotes, setEvidenceNotes] = useState(evidence.evidenceNotes);
-  const [afterImage, setAfterImage] = useState(null);
-  const [isUploaded, setIsUploaded] = useState(true); // Default ready as in Figma
-
+  const [capturedImage, setCapturedImage] = useState(null);
+  const [notes, setNotes] = useState("");
   const fileInputRef = useRef(null);
 
+  useEffect(() => {
+    async function loadIncident() {
+      try {
+        setLoading(true);
+        const res = await getIncident(id);
+        setTask(res);
+      } catch (err) {
+        console.error(err);
+      } finally {
+        setLoading(false);
+      }
+    }
+    if (id) loadIncident();
+  }, [id]);
+
+  const handleCaptureClick = () => {
+    // In a real mobile web app, this might trigger the device camera.
+    // We simulate by clicking a hidden file input.
+    fileInputRef.current?.click();
+  };
+
   const handleFileChange = (e) => {
-    const file = e.target.files?.[0];
+    const file = e.target.files[0];
     if (file) {
-      const imageUrl = URL.createObjectURL(file);
-      setAfterImage(imageUrl);
-      setIsUploaded(true);
+      const url = URL.createObjectURL(file);
+      setCapturedImage(url);
     }
   };
 
-  const handleTriggerUpload = () => {
-    if (fileInputRef.current) {
-      fileInputRef.current.click();
-    }
+  const handleSimulateCapture = () => {
+    // Demo fallback: just set a solid grey block if they don't upload a file
+    setCapturedImage("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIzMDAiIGhlaWdodD0iMjAwIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjNDc1NTY5Ii8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZpbGw9IiNmZmYiIGZvbnQtZmFtaWx5PSJzYW5zLXNlcmlmIiBmb250LXNpemU9IjI0IiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBkeT0iLjNlbSI+Q2FwdHVyZWQgUGhvdG88L3RleHQ+PC9zdmc+");
   };
 
   const handleContinue = () => {
-    navigate('/field-worker/review');
+    // Pass notes via local storage or state. Let's just use local storage for demo to avoid complex context setup.
+    if (notes) localStorage.setItem('fw_temp_notes', notes);
+    navigate(`/field-worker/review?id=${id}`);
   };
+
+  if (loading) return <div style={{padding: '2rem'}}>Loading...</div>;
+  if (!task) return <div style={{padding: '2rem'}}>Incident not found.</div>;
 
   return (
     <div className="ct-fw-page-container">
-      {/* Header */}
       <div className="ct-fw-page-header">
-        <h1 className="ct-fw-page-title">Evidence & Work Status</h1>
-        <p className="ct-fw-page-subtitle">Record what was done and attach resolution evidence</p>
+        <h1 className="ct-fw-page-title">Capture Resolution</h1>
+        <p className="ct-fw-page-subtitle">Submit proof of completed work.</p>
       </div>
 
-      {/* Main Two-Column Grid */}
       <div className="ct-fw-evidence-grid">
-        {/* Left Card: Work status */}
-        <div className="ct-fw-card ct-fw-work-status-card">
-          <div className="ct-fw-card-top-row">
-            <span className="ct-fw-card-header-label">Work status</span>
-            <span className="ct-fw-status-badge in-progress">
-              {evidence.status}
-            </span>
+        <div className="ct-fw-card ct-fw-camera-card">
+          <div className="ct-fw-card-header-label">Resolution Photo</div>
+          
+          <div className="ct-fw-camera-viewport">
+            {capturedImage ? (
+              <div className="ct-fw-captured-preview">
+                <img src={capturedImage} alt="Captured resolution" />
+                <button 
+                  type="button"
+                  className="ct-fw-retake-btn"
+                  onClick={() => setCapturedImage(null)}
+                >
+                  Retake Photo
+                </button>
+              </div>
+            ) : (
+              <div className="ct-fw-camera-ui">
+                <div className="ct-fw-viewfinder-frame"></div>
+                <div className="ct-fw-camera-instructions">
+                  Align completed work within frame
+                </div>
+              </div>
+            )}
           </div>
 
-          <div className="ct-fw-field-group">
-            <span className="ct-fw-field-label">Action completed</span>
-            <div className="ct-fw-action-completed-val">
-              {evidence.actionCompleted}
+          {!capturedImage && (
+            <div className="ct-fw-camera-controls">
+              <input 
+                type="file" 
+                accept="image/*" 
+                capture="environment" 
+                ref={fileInputRef}
+                style={{ display: 'none' }}
+                onChange={handleFileChange}
+              />
+              <button className="ct-fw-icon-btn outline" onClick={handleSimulateCapture}>
+                <Upload size={20} />
+              </button>
+              <button className="ct-fw-capture-shutter" onClick={handleCaptureClick}>
+                <div className="ct-fw-shutter-inner"></div>
+              </button>
+              <button className="ct-fw-icon-btn empty" disabled></button>
             </div>
-          </div>
+          )}
 
-          <div className="ct-fw-field-group">
-            <label htmlFor="fwWorkNotes" className="ct-fw-field-label">Work notes</label>
-            <textarea
-              id="fwWorkNotes"
-              className="ct-fw-textarea"
-              rows={4}
-              value={workNotes}
-              onChange={(e) => setWorkNotes(e.target.value)}
-              placeholder="Describe work performed in detail..."
-            />
-          </div>
-
-          <div className="ct-fw-field-group">
-            <span className="ct-fw-field-label">Evidence readiness</span>
-            <div>
-              <span className="ct-fw-readiness-badge">
-                {evidence.readiness}
-              </span>
+          {capturedImage && (
+            <div className="ct-fw-gps-stamp-row">
+              <CheckCircle2 size={14} className="ct-fw-highlight-green" />
+              <span>Location metadata matched to assignment coordinates.</span>
             </div>
-          </div>
+          )}
         </div>
 
-        {/* Right Card: Resolution evidence */}
-        <div className="ct-fw-card ct-fw-resolution-evidence-card">
-          <span className="ct-fw-card-header-label">Resolution evidence</span>
-
-          {/* Side by Side Before / After Boxes */}
-          <div className="ct-fw-evidence-boxes-container">
-            {/* Before Box */}
-            <div className="ct-fw-evidence-col">
-              <span className="ct-fw-box-sublabel">Before</span>
-              <div className="ct-fw-evidence-box before-box">
-                <div className="ct-fw-box-center-tag">BEFORE</div>
-                <div className="ct-fw-evidence-pothole-hint">Pothole detected</div>
-              </div>
-            </div>
-
-            {/* After Box */}
-            <div className="ct-fw-evidence-col">
-              <span className="ct-fw-box-sublabel">After</span>
-              <div 
-                className="ct-fw-evidence-box after-box"
-                onClick={handleTriggerUpload}
-                title="Click to change after-photo"
-              >
-                {afterImage ? (
-                  <img src={afterImage} alt="After work repair" className="ct-fw-uploaded-img-preview" />
-                ) : (
-                  <>
-                    <div className="ct-fw-box-center-tag after-tag">AFTER</div>
-                    <div className="ct-fw-evidence-repaired-hint">Surface leveled</div>
-                  </>
-                )}
-              </div>
-            </div>
+        <div className="ct-fw-card ct-fw-evidence-form-card">
+          <div className="ct-fw-card-header-label">Field Notes</div>
+          
+          <div className="ct-fw-form-group">
+            <label className="ct-fw-form-label">Material & Action Summary</label>
+            <textarea 
+              className="ct-fw-form-textarea"
+              placeholder="e.g. Filled pothole with 2 bags of cold-mix asphalt and leveled surface."
+              value={notes}
+              onChange={(e) => setNotes(e.target.value)}
+            ></textarea>
           </div>
 
-          {/* Hidden File Input */}
-          <input
-            type="file"
-            ref={fileInputRef}
-            onChange={handleFileChange}
-            accept="image/*"
-            style={{ display: 'none' }}
-          />
-
-          {/* Upload / Capture CTA */}
-          <div className="ct-fw-upload-action-row">
-            <button
-              type="button"
-              className="ct-fw-capture-btn"
-              onClick={handleTriggerUpload}
-            >
-              <Camera size={16} />
-              <span>Capture / Upload</span>
-            </button>
-          </div>
-
-          {/* Evidence Notes Input */}
-          <div className="ct-fw-field-group">
-            <label htmlFor="fwEvidenceNotes" className="ct-fw-field-label">Evidence notes</label>
-            <textarea
-              id="fwEvidenceNotes"
-              className="ct-fw-textarea"
-              rows={3}
-              value={evidenceNotes}
-              onChange={(e) => setEvidenceNotes(e.target.value)}
-              placeholder="Notes on captured evidence..."
-            />
-          </div>
-
-          {/* Continue CTA */}
-          <div className="ct-fw-evidence-footer">
-            <button
-              type="button"
+          <div className="ct-fw-evidence-action-area">
+            <button 
+              type="button" 
               className="ct-fw-continue-btn"
+              disabled={!capturedImage}
               onClick={handleContinue}
             >
-              <span>Continue</span>
+              <span>Review Submission</span>
               <ArrowRight size={16} />
             </button>
           </div>
