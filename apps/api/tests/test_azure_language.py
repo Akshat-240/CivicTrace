@@ -19,7 +19,7 @@ from app.services.ai.normalization import normalize_language_perception
 class TestAzureLanguageProvider:
     async def test_empty_or_whitespace_text_skipped(self):
         provider = AzureLanguageProvider(endpoint="https://mock.cognitiveservices.azure.com", key="mock-key")
-        
+
         res1 = await provider.analyze_text(None)
         assert res1.status == "skipped"
         assert "No written briefing" in res1.summary

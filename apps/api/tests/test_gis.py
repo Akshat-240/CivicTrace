@@ -18,11 +18,11 @@ def mock_db_data(db_session):
     Creates test boundaries.
     """
     import asyncio
-    
+
     async def _setup():
         # Clean up existing to prevent conflicts
         # (Assuming the fixture resets db or we do it here, but db_session usually is clean per test if transactional)
-        
+
         # 1. Standard valid authority and jurisdiction
         auth = Authority(
             id=uuid.uuid4(),
@@ -30,12 +30,12 @@ def mock_db_data(db_session):
             short_code="TCC",
         )
         db_session.add(auth)
-        
+
         # A simple square polygon from 0,0 to 10,10
         # PostGIS expects WKT with Longitude (X) Latitude (Y).
         # We'll make it 10 10, 10 -10, -10 -10, -10 10, 10 10
         poly_wkt = "MULTIPOLYGON(((-10 -10, -10 10, 10 10, 10 -10, -10 -10)))"
-        
+
         jur = Jurisdiction(
             id=uuid.uuid4(),
             name="Test Ward 1",
@@ -44,11 +44,11 @@ def mock_db_data(db_session):
             boundary=WKTElement(poly_wkt, srid=4326)
         )
         db_session.add(jur)
-        
+
         # 2. Jurisdiction with NO authority (Missing authority)
         # We must create an authority because of FK constraints, but we could mock a corrupted DB?
-        # Actually FK ensures authority exists, but the query tests relation load. 
-        # For the sake of test 7 (Missing authority), if the FK is RESTRICT, it's impossible to have NO authority 
+        # Actually FK ensures authority exists, but the query tests relation load.
+        # For the sake of test 7 (Missing authority), if the FK is RESTRICT, it's impossible to have NO authority
         # in the database cleanly unless we mock the result. We'll skip standard DB creation for that and mock it.
 
         # 3. Overlapping jurisdiction
@@ -64,8 +64,8 @@ def mock_db_data(db_session):
 
         await db_session.flush()
         return {"auth": auth, "jur1": jur, "jur2": jur2}
-    
-    # We can't await in a sync fixture cleanly without asyncio.run, 
+
+    # We can't await in a sync fixture cleanly without asyncio.run,
     # so we'll just have tests call it or make the fixture async
     pass
 
@@ -96,11 +96,11 @@ class TestGISService:
         # 10. Explanation
         # 11. SRID correctness
         # 12. Latitude/longitude ordering (X=Lng, Y=Lat)
-        
+
         auth = Authority(name="City A", short_code="CA")
         db_session.add(auth)
         await db_session.flush()
-        
+
         jur = Jurisdiction(
             name="Ward A",
             code="WA",
@@ -109,11 +109,11 @@ class TestGISService:
         )
         db_session.add(jur)
         await db_session.flush()
-        
+
         service = GISService(db_session)
         # Lat=5, Lng=5 -> Inside
         res = await service.resolve_jurisdiction(latitude=5.0, longitude=5.0)
-        
+
         assert res.status == GISStatus.JURISDICTION_FOUND
         assert res.jurisdiction_id == jur.id
         assert res.authority_id == auth.id
@@ -131,7 +131,7 @@ class TestGISService:
         auth = Authority(name="City B", short_code="CB")
         db_session.add(auth)
         await db_session.flush()
-        
+
         jur1 = Jurisdiction(
             name="Overlap 1", code="O1", authority_id=auth.id,
             boundary=WKTElement("MULTIPOLYGON(((0 0, 0 10, 10 10, 10 0, 0 0)))", srid=4326)
@@ -150,7 +150,7 @@ class TestGISService:
 
     async def test_missing_authority(self, db_session):
         # 7. Missing authority
-        # This is tough to hit naturally because of DB foreign keys, 
+        # This is tough to hit naturally because of DB foreign keys,
         # but we can simulate a broken result if authority relationship was somehow empty
         # We will mock the DB execute result for this specific test
         class MockJurisdiction:
@@ -158,7 +158,7 @@ class TestGISService:
             name = "Broken Ward"
             authority_id = None
             authority = None
-            
+
         class MockResult:
             def all(self):
                 return [(MockJurisdiction(), 1.0)]

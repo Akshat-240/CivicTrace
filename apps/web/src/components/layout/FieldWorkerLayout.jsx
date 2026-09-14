@@ -1,11 +1,11 @@
 import React from 'react';
 import { Outlet, NavLink, useNavigate, useLocation } from 'react-router-dom';
 import FieldWorkerSidebar from './FieldWorkerSidebar';
-import { 
-  ClipboardList, 
-  FileText, 
-  MapPin, 
-  Camera, 
+import {
+  ClipboardList,
+  FileText,
+  MapPin,
+  Camera,
   CheckCircle2,
   Layers
 } from 'lucide-react';
@@ -38,8 +38,8 @@ const FieldWorkerLayout = () => {
 
         {/* Mobile quick portal switcher */}
         <div className="ct-fw-mobile-portal-switch">
-          <select 
-            value="worker" 
+          <select
+            value="worker"
             onChange={(e) => {
               const val = e.target.value;
               if (val === 'admin') navigate('/admin/dashboard');
@@ -67,7 +67,7 @@ const FieldWorkerLayout = () => {
           <NavLink
             key={item.path}
             to={item.path}
-            className={({ isActive }) => 
+            className={({ isActive }) =>
               `ct-fw-mobile-nav-item ${isActive ? 'active' : ''}`
             }
           >

@@ -88,16 +88,16 @@ async def get_current_worker(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Requires field worker role"
         )
-        
+
     stmt = select(WorkerProfile).where(WorkerProfile.user_id == current_user.id)
     result = await db.execute(stmt)
     worker_profile = result.scalar_one_or_none()
-    
+
     if worker_profile is None:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Worker profile not found"
         )
-        
+
     return worker_profile
 

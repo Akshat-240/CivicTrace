@@ -18,7 +18,7 @@ class TestGate4Hardening:
         # We need the authority and jurisdiction in the DB
         from app.models.jurisdiction import Jurisdiction
         from geoalchemy2.elements import WKTElement
-        
+
         # Check if LMC already exists from seed, or create dummy
         auth = Authority(
             name="Lucknow Municipal Corporation",
@@ -46,11 +46,11 @@ class TestGate4Hardening:
             location=LocationCreate(latitude=26.84424505286832, longitude=80.88863117449993, accuracy_meters=10)
         )
         incident = await service.create_incident(data)
-        
+
         # process workflow
         await service.process_incident_workflow(incident.id)
         await db_session.refresh(incident, ["jurisdiction", "authority", "sla"])
-        
+
         assert incident.jurisdiction is not None
         assert incident.authority is not None
         assert incident.authority.name == "Lucknow Municipal Corporation"
@@ -101,7 +101,7 @@ class TestGate4Hardening:
         incident = await service.create_incident(data)
         await service.process_incident_workflow(incident.id)
         await db_session.refresh(incident, ["jurisdiction", "authority", "sla"])
-        
+
         gis_service = GISService(db_session)
         result = await gis_service.resolve_jurisdiction(
             latitude=incident.location.latitude,
@@ -140,7 +140,7 @@ class TestGate4Hardening:
         incident = await service.create_incident(data)
         await service.process_incident_workflow(incident.id)
         await db_session.refresh(incident, ["jurisdiction", "authority", "sla"])
-        
+
         serialized = IncidentDetail.model_validate(incident)
         assert serialized.authority is not None
         assert serialized.authority.name == "Lucknow Municipal Corporation"
@@ -153,7 +153,7 @@ class TestGate4Hardening:
         incident2 = await service.create_incident(data2)
         await service.process_incident_workflow(incident2.id)
         await db_session.refresh(incident2, ["jurisdiction", "authority", "sla"])
-        
+
         serialized2 = IncidentDetail.model_validate(incident2)
         assert serialized2.authority is None
 

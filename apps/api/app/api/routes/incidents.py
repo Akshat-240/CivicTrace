@@ -3,11 +3,13 @@ Incidents API routes.
 """
 
 import uuid
-from typing import Any, Optional, Sequence
+from typing import Any, Optional, Sequence, Annotated
 
-from fastapi import APIRouter, Depends, Query, status
+from fastapi import APIRouter, Depends, Query, status, HTTPException
 
 from app.api.dependencies import DbSession, get_current_user
+from pydantic import BaseModel
+from app.models.user import User
 from app.schemas import (
     EventResponse,
     EvidenceResponse,
@@ -16,8 +18,10 @@ from app.schemas import (
     IncidentListItem,
     IncidentSubmit,
     PaginatedResponse,
+    ResolutionSubmit,
     SLAResponse,
     VerificationResponse,
+    VerificationSubmit,
 )
 from app.services.evidence_service import EvidenceService
 from app.services.incident_service import IncidentService
@@ -113,7 +117,7 @@ async def upload_evidence(
     from app.core.errors import ValidationError
     if not content:
         raise ValidationError("File content is empty")
-        
+
     try:
         return await service.upload_evidence(
             incident_id=incident_id,
@@ -292,7 +296,7 @@ async def verify_resolution(
 )
 async def submit_resolution(
     incident_id: uuid.UUID,
-    data: "ResolutionSubmit",
+    data: ResolutionSubmit,
     db: DbSession,
 ) -> Any:
     """
@@ -300,7 +304,6 @@ async def submit_resolution(
     Moves incident to UNDER_REVIEW. Text evidence only (no binary storage in MVP).
     """
     from app.services.verification_service import VerificationService
-    from app.schemas import ResolutionSubmit
     from app.models.enums import EvidenceType
     service = VerificationService(db)
     return await service.submit_resolution(
@@ -317,7 +320,7 @@ async def submit_resolution(
 )
 async def human_verify(
     incident_id: uuid.UUID,
-    data: "VerificationSubmit",
+    data: VerificationSubmit,
     db: DbSession,
 ) -> Any:
     """
@@ -361,3 +364,58 @@ async def get_intelligence_report(
 ) -> Any:
     service = IncidentService(db)
     return await service.generate_intelligence_report(incident_id)
+
+class AssignWorkerRequest(BaseModel):
+    worker_id: str
+
+@router.post("/{incident_id}/assign-worker", summary="Assign a field worker to an incident")
+async def assign_worker(
+    incident_id: uuid.UUID,
+    payload: AssignWorkerRequest,
+    db: DbSession,
+    current_user: Annotated[User, Depends(get_current_user)]
+):
+    from app.models.enums import UserRole, IncidentStatus, WorkerTaskStatus
+
+    if current_user.role != UserRole.AUTHORITY:
+        raise HTTPException(status_code=403, detail="Only authorities can assign workers")
+
+    auth_id = current_user.authority_id
+    if not auth_id:
+        raise HTTPException(status_code=403, detail="User has no associated authority")
+
+    from app.models.incident import Incident
+    from app.models.worker_profile import WorkerProfile
+    from sqlalchemy import select
+
+    # Verify incident
+    stmt = select(Incident).where(Incident.id == incident_id)
+    result = await db.execute(stmt)
+    incident = result.scalar_one_or_none()
+
+    if not incident:
+        raise HTTPException(status_code=404, detail="Incident not found")
+
+    if str(incident.authority_id) != str(auth_id):
+        raise HTTPException(status_code=403, detail="Incident does not belong to your authority")
+
+    # Verify worker
+    stmt = select(WorkerProfile).where(WorkerProfile.id == payload.worker_id)
+    result = await db.execute(stmt)
+    worker = result.scalar_one_or_none()
+
+    if not worker:
+        raise HTTPException(status_code=404, detail="Worker not found")
+
+    if str(worker.authority_id) != str(auth_id):
+        raise HTTPException(status_code=403, detail="Worker does not belong to your authority")
+
+    incident.assigned_worker_id = worker.id
+
+    # Also update statuses
+    if incident.status == IncidentStatus.DRAFT.value:
+        incident.status = IncidentStatus.ACTIVE.value
+    incident.worker_status = WorkerTaskStatus.ASSIGNED.value
+
+    await db.commit()
+    return {"message": "Worker assigned successfully"}

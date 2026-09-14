@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { useNavigate, useOutletContext } from 'react-router-dom';
-import { 
+import {
   ChevronRight,
-  CheckCircle 
+  CheckCircle
 } from 'lucide-react';
 import './CitizenSettingsPage.css';
 
@@ -70,7 +70,7 @@ export default function CitizenSettingsPage() {
                   <span className="toggle-label">Report updates</span>
                   <span className="toggle-desc">Receive status changes</span>
                 </div>
-                <button 
+                <button
                   type="button"
                   className={`switch-btn ${settings.notifications.reportUpdates ? 'active' : ''}`}
                   onClick={() => toggleNotification('reportUpdates')}
@@ -85,7 +85,7 @@ export default function CitizenSettingsPage() {
                   <span className="toggle-label">Authority responses</span>
                   <span className="toggle-desc">Get notified when action is taken</span>
                 </div>
-                <button 
+                <button
                   type="button"
                   className={`switch-btn ${settings.notifications.authorityResponses ? 'active' : ''}`}
                   onClick={() => toggleNotification('authorityResponses')}
@@ -100,7 +100,7 @@ export default function CitizenSettingsPage() {
                   <span className="toggle-label">Resolution alerts</span>
                   <span className="toggle-desc">Know when verification is complete</span>
                 </div>
-                <button 
+                <button
                   type="button"
                   className={`switch-btn ${settings.notifications.resolutionAlerts ? 'active' : ''}`}
                   onClick={() => toggleNotification('resolutionAlerts')}
@@ -117,7 +117,7 @@ export default function CitizenSettingsPage() {
             <h3 className="section-card-title">Privacy & Data</h3>
 
             <div className="settings-links-list">
-              <div 
+              <div
                 className="settings-link-row"
                 onClick={() => alert("Your data is used only for civic issue verification and resolution tracking.")}
               >
@@ -128,7 +128,7 @@ export default function CitizenSettingsPage() {
                 <ChevronRight size={18} className="link-arrow-icon" />
               </div>
 
-              <div 
+              <div
                 className="settings-link-row"
                 onClick={() => alert("Evidence photo metadata is encrypted and anonymized per municipal guidelines.")}
               >
@@ -166,8 +166,8 @@ export default function CitizenSettingsPage() {
                   <span className="security-label">Change password</span>
                   <span className="security-desc">Update your account password</span>
                 </div>
-                <button 
-                  type="button" 
+                <button
+                  type="button"
                   className="btn-security-action blue"
                   onClick={() => alert("Password reset link sent to your registered mobile number.")}
                 >
@@ -180,8 +180,8 @@ export default function CitizenSettingsPage() {
                   <span className="security-label">Sign out</span>
                   <span className="security-desc">End your current CivicTrace session</span>
                 </div>
-                <button 
-                  type="button" 
+                <button
+                  type="button"
                   className="btn-security-action red"
                   onClick={() => {
                     localStorage.removeItem('ct_user_id');

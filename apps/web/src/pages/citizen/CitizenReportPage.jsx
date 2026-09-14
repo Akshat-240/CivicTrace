@@ -216,7 +216,7 @@ export default function CitizenReportPage() {
             throw new Error("AI analysis failed. Please retry.");
           }
         }
-        
+
         // Generate structured intelligence report
         try {
           const report = await getIntelligenceReport(currentIncidentId);
@@ -250,7 +250,7 @@ export default function CitizenReportPage() {
           <p className="success-subtitle">
             Your complaint has been assigned incident ID <strong className="id-highlight">{submittedId}</strong> and routed to the municipal triage engine.
           </p>
-          
+
           {isSubmitting && !aiResult && evidenceFile && (
             <div style={{margin: '20px 0', padding: '15px', background: '#f8f9fa', borderRadius: '8px', textAlign: 'center'}}>
               <Loader2 className="spinning" size={24} style={{marginBottom: '10px', color: '#0d6efd'}} />
@@ -272,7 +272,7 @@ export default function CitizenReportPage() {
                 <h3 style={{margin: 0, fontSize: '1.1rem', color: '#0f172a', fontWeight: '600'}}>CivicTrace Intelligence</h3>
                 <span style={{fontSize: '0.75rem', background: '#dbeafe', color: '#1e40af', padding: '2px 8px', borderRadius: '12px', fontWeight: '500'}}>AI + GIS Enhanced</span>
               </div>
-              
+
               <div style={{padding: '20px'}}>
                 {/* AI EVIDENCE ASSESSMENT */}
                 <div style={{marginBottom: '24px'}}>
@@ -282,7 +282,7 @@ export default function CitizenReportPage() {
                        <img src={evidencePreview} alt="Evidence" style={{width: '100%', maxHeight: '160px', objectFit: 'cover', borderRadius: '6px', border: '1px solid #e2e8f0'}} />
                      </div>
                   )}
-                  
+
                   <div style={{display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '12px'}}>
                     <div>
                       <span style={{color: '#64748b', fontSize: '0.8rem', display: 'block'}}>Issue</span>
@@ -305,21 +305,21 @@ export default function CitizenReportPage() {
                       <div style={{fontWeight: '500', color: '#334155', fontSize: '0.95rem'}}>{intelligence.evidence_quality || 'N/A'}</div>
                     </div>
                   </div>
-                  
+
                   {intelligence.visual_finding && (
                     <div style={{marginBottom: '12px'}}>
                       <span style={{color: '#64748b', fontSize: '0.8rem', display: 'block'}}>Visual Finding</span>
                       <p style={{margin: '2px 0 0 0', fontSize: '0.95rem', color: '#334155'}}>{intelligence.visual_finding}</p>
                     </div>
                   )}
-                  
+
                   {intelligence.safety_risk && (
                     <div style={{background: '#fee2e2', color: '#991b1b', padding: '8px 12px', borderRadius: '6px', fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '8px', marginTop: '8px'}}>
                       <AlertTriangle size={14} />
                       <span><strong>Safety Risk:</strong> Potential road-user or public hazard detected.</span>
                     </div>
                   )}
-                  
+
                   {intelligence.ambiguity_flag && (
                     <div style={{background: '#fef3c7', color: '#92400e', padding: '8px 12px', borderRadius: '6px', fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '8px', marginTop: '8px'}}>
                       <AlertTriangle size={14} />
@@ -386,7 +386,7 @@ export default function CitizenReportPage() {
                   <h4 style={{fontSize: '0.85rem', textTransform: 'uppercase', color: '#1e40af', letterSpacing: '0.05em', margin: '0 0 8px 0'}}>CivicTrace Assessment</h4>
                   <p style={{margin: '0', fontSize: '0.95rem', color: '#334155', lineHeight: '1.5'}}>{intelligence.civictrace_summary}</p>
                 </div>
-                
+
                 <div style={{marginTop: '16px', fontSize: '0.75rem', color: '#94a3b8', fontStyle: 'italic', textAlign: 'center'}}>
                   AI perception is advisory. Final responsibility and administrative decisions are determined by CivicTrace rules and authorized workflows.
                 </div>
@@ -491,9 +491,9 @@ export default function CitizenReportPage() {
                 </div>
 
                 <div className="evidence-upload-zone" style={{position: 'relative'}}>
-                  <input 
-                    type="file" 
-                    accept="image/jpeg, image/png, image/webp" 
+                  <input
+                    type="file"
+                    accept="image/jpeg, image/png, image/webp"
                     onChange={handleFileChange}
                     style={{position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', opacity: 0, cursor: 'pointer'}}
                   />

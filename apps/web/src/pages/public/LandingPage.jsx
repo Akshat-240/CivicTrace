@@ -19,15 +19,15 @@ const LandingPage = () => {
           <a href="#home" className="ct-nav-anchor active">Home</a>
           <a href="#about" className="ct-nav-anchor">About</a>
           <a href="#impact" className="ct-nav-anchor">Impact</a>
-          <button 
-            type="button" 
+          <button
+            type="button"
             className="ct-nav-anchor-btn"
             onClick={() => navigate('/citizen/dashboard')}
           >
             For Citizens
           </button>
-          <button 
-            type="button" 
+          <button
+            type="button"
             className="ct-nav-anchor-btn"
             onClick={() => navigate('/authority/dashboard')}
           >
@@ -36,8 +36,8 @@ const LandingPage = () => {
         </nav>
 
         <div className="ct-landing-nav-actions">
-          <button 
-            type="button" 
+          <button
+            type="button"
             className="ct-landing-login-btn"
             onClick={() => navigate('/login')}
           >
@@ -76,8 +76,8 @@ const LandingPage = () => {
           </p>
 
           <div className="ct-hero-actions">
-            <button 
-              type="button" 
+            <button
+              type="button"
               className="ct-hero-btn-primary"
               onClick={() => navigate('/admin/dashboard')}
             >
@@ -85,8 +85,8 @@ const LandingPage = () => {
               <ArrowRight size={18} />
             </button>
 
-            <button 
-              type="button" 
+            <button
+              type="button"
               className="ct-hero-btn-secondary"
               onClick={() => navigate('/authority/dashboard')}
             >

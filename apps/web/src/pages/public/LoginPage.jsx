@@ -18,9 +18,15 @@ const LoginPage = () => {
     const token = localStorage.getItem('ct_auth_token');
     const role = localStorage.getItem('ct_user_role');
     if (token && role) {
-      if (role === 'admin') navigate('/admin/dashboard');
-      else if (role === 'authority') navigate('/authority/dashboard');
-      else navigate('/citizen/dashboard');
+      if (role === 'admin') {
+        navigate('/admin/dashboard');
+      } else if (role === 'authority') {
+        navigate('/authority/dashboard');
+      } else if (role === 'field_worker') {
+        navigate('/field-worker/dashboard');
+      } else {
+        navigate('/citizen/dashboard');
+      }
     }
   }, [navigate]);
 
@@ -32,6 +38,9 @@ const LoginPage = () => {
     } else if (role === 'Authority') {
       setEmail('authority@demo.local');
       setPassword('authority123');
+    } else if (role === 'Field Worker') {
+      setEmail('worker@demo.local');
+      setPassword('worker123');
     } else {
       setEmail('citizen@demo.local');
       setPassword('citizen123');
@@ -79,7 +88,7 @@ const LoginPage = () => {
       const payload = parseJwt(token);
       if (!payload) throw new Error('Invalid token received from server');
 
-      const role = payload.role || 'citizen';
+      const role = (payload.role || 'citizen').toLowerCase();
       const userId = payload.sub;
 
       localStorage.setItem('ct_auth_token', token);
@@ -90,6 +99,8 @@ const LoginPage = () => {
         navigate('/admin/dashboard');
       } else if (role === 'authority') {
         navigate('/authority/dashboard');
+      } else if (role === 'field_worker') {
+        navigate('/field-worker/dashboard');
       } else {
         navigate('/citizen/dashboard');
       }
@@ -217,9 +228,23 @@ const LoginPage = () => {
             </button>
           </form>
 
-          <div className="ct-login-footer-hint">
-            New here? <a href="#" onClick={(e) => { e.preventDefault(); navigate('/register'); }}>Create a citizen account</a>
-          </div>
+          {selectedRole === 'Authority' ? (
+            <div className="ct-login-footer-hint">
+              New here? <a href="#" onClick={(e) => { e.preventDefault(); navigate('/register?role=authority'); }}>Create an authority account</a>
+            </div>
+          ) : selectedRole === 'Field Worker' ? (
+            <div className="ct-login-footer-hint">
+              New here? <a href="#" onClick={(e) => { e.preventDefault(); navigate('/register?role=field_worker'); }}>Create a field worker account</a>
+            </div>
+          ) : selectedRole === 'Citizen' ? (
+            <div className="ct-login-footer-hint">
+              New here? <a href="#" onClick={(e) => { e.preventDefault(); navigate('/register'); }}>Create a citizen account</a>
+            </div>
+          ) : selectedRole === 'Admin' ? (
+            <div className="ct-login-footer-hint">
+              New here? <a href="#" onClick={(e) => { e.preventDefault(); navigate('/register?role=admin'); }}>Create an admin account</a>
+            </div>
+          ) : null}
         </div>
       </div>
     </div>

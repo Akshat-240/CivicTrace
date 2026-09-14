@@ -8,7 +8,7 @@ const FieldWorkerLocationPage = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const id = searchParams.get('id');
-  
+
   const [task, setTask] = useState(null);
   const [loading, setLoading] = useState(true);
 
@@ -107,7 +107,7 @@ const FieldWorkerLocationPage = () => {
               <span className="ct-fw-user-ping"></span>
             </div>
           </div>
-          
+
           <div className="ct-fw-map-address-banner">
             <h3 className="ct-fw-map-banner-title">{task.location?.address_raw || 'Unknown Location'}</h3>
             <p className="ct-fw-map-banner-sub">{targetCoords}</p>
@@ -122,7 +122,7 @@ const FieldWorkerLocationPage = () => {
             <div className="ct-fw-gps-icon-wrapper">
               <Compass size={28} className="ct-fw-compass-icon" />
             </div>
-            
+
             <div className="ct-fw-gps-readout">
               <div className="ct-fw-gps-readout-row">
                 <span className="ct-fw-gps-key">Current Fix:</span>
@@ -152,8 +152,8 @@ const FieldWorkerLocationPage = () => {
 
           <div className="ct-fw-gps-action-area">
             {!isConfirmed ? (
-              <button 
-                type="button" 
+              <button
+                type="button"
                 className="ct-fw-confirm-loc-btn"
                 onClick={handleConfirmLocation}
               >

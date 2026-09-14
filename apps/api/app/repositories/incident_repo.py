@@ -74,7 +74,7 @@ class IncidentRepository:
                 )
             else:
                 filter_clauses.append(Incident.fusion_metadata.contains({"citizen_id": citizen_id}))
-        
+
         if authority_id:
             try:
                 auth_uuid = uuid.UUID(str(authority_id))
@@ -90,5 +90,5 @@ class IncidentRepository:
         total = await self.session.scalar(count_stmt) or 0
         result = await self.session.execute(data_stmt)
         incidents = result.scalars().all()
-        
+
         return incidents, total

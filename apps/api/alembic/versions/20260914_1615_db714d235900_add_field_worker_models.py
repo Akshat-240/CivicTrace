@@ -37,7 +37,7 @@ def upgrade() -> None:
     op.add_column('incidents', sa.Column('worker_status', sa.String(length=30), nullable=True))
     op.create_index(op.f('ix_incidents_assigned_worker_id'), 'incidents', ['assigned_worker_id'], unique=False)
     op.create_foreign_key('fk_incidents_assigned_worker', 'incidents', 'worker_profiles', ['assigned_worker_id'], ['id'], ondelete='SET NULL')
-    
+
     # Update User role constraint
     op.execute("ALTER TABLE users DROP CONSTRAINT IF EXISTS users_role_authority_check;")
     op.execute("ALTER TABLE users ADD CONSTRAINT users_role_authority_check CHECK ((role IN ('citizen', 'admin') AND authority_id IS NULL) OR (role IN ('authority', 'field_worker') AND authority_id IS NOT NULL));")

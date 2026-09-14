@@ -4,16 +4,16 @@ import { Loader2 } from 'lucide-react';
 import PageHeader from '../../components/layout/PageHeader';
 import PriorityBadge from '../../components/common/PriorityBadge';
 import Modal from '../../components/common/Modal';
-import { getIncidents, getIncident } from '../../services/api';
+import { getIncidents, getIncident, getCurrentUser } from '../../services/api';
 import './DashboardPage.css';
 
 const DashboardPage = () => {
   const navigate = useNavigate();
   const [selectedIncident, setSelectedIncident] = useState(null);
-  
+
   const [incidents, setIncidents] = useState([]);
   const [loading, setLoading] = useState(true);
-  
+
   const normalizeIncidentListItem = (item) => ({
     realId: item.id,
     id: item.reference_number || (item.id ? item.id.substring(0, 8).toUpperCase() : 'UNKNOWN'),
@@ -35,8 +35,11 @@ const DashboardPage = () => {
     async function loadData() {
       try {
         setLoading(true);
-        const MOCK_AUTHORITY_ID = "61c6d93e-889d-42fc-b6b9-b167ce631d47";
-        const res = await getIncidents(0, 100, null, MOCK_AUTHORITY_ID);
+        const user = await getCurrentUser();
+        const authId = user?.authority_id;
+        if (!authId) throw new Error("No authority ID found for user.");
+
+        const res = await getIncidents(0, 100, null, authId);
         const myIncidents = res?.data || [];
         const mapped = myIncidents.map(normalizeIncidentListItem);
         setIncidents(mapped);
@@ -70,7 +73,7 @@ const DashboardPage = () => {
   };
 
   const priorityQueueIncidents = incidents.filter(inc => inc.priority === 'HIGH' || inc.priority === 'CRITICAL').slice(0, 5);
-  
+
   const dynStats = {
     criticalHigh: incidents.filter(i => i.priority === 'HIGH' || i.priority === 'CRITICAL').length,
     openIncidents: incidents.filter(i => i.status !== 'RESOLVED' && i.status !== 'CLOSED').length,
@@ -86,11 +89,8 @@ const DashboardPage = () => {
   };
 
   return (
-      <div className="ct-dashboard-page">
-      <div style={{ padding: '0.5rem 1rem', background: '#e0f2fe', color: '#0284c7', fontSize: '0.875rem', fontWeight: 500, marginBottom: '1rem', borderRadius: '4px', border: '1px solid #bae6fd' }}>
-        DEMO AUTHORITY CONTEXT — NOT AUTHENTICATION (Filtering by hardcoded Lucknow Municipal Corporation ID for Gate 4)
-      </div>
-      <PageHeader 
+    <div className="ct-dashboard-page">
+      <PageHeader
         title="Authority Dashboard"
         subtitle="Monitor incoming incidents, assignments, SLA risk and verification work."
       />
@@ -130,8 +130,8 @@ const DashboardPage = () => {
                 <Loader2 className="animate-spin" size={24} />
               </div>
             ) : priorityQueueIncidents.length > 0 ? priorityQueueIncidents.map((incident) => (
-              <div 
-                key={incident.id} 
+              <div
+                key={incident.id}
                 className="ct-priority-row"
                 onClick={() => handleIncidentClick(incident)}
               >
@@ -223,15 +223,15 @@ const DashboardPage = () => {
             </div>
 
             <div className="ct-modal-actions">
-              <button 
-                type="button" 
+              <button
+                type="button"
                 className="btn btn-outline"
                 onClick={() => setSelectedIncident(null)}
               >
                 Close
               </button>
-              <button 
-                type="button" 
+              <button
+                type="button"
                 className="btn btn-primary"
                 onClick={() => {
                   setSelectedIncident(null);

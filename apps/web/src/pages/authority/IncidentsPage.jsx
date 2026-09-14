@@ -5,7 +5,7 @@ import PageHeader from '../../components/layout/PageHeader';
 import PriorityBadge from '../../components/common/PriorityBadge';
 import StatusBadge from '../../components/common/StatusBadge';
 import Modal from '../../components/common/Modal';
-import { getIncidents } from '../../services/api';
+import { getIncidents, getCurrentUser } from '../../services/api';
 import './IncidentsPage.css';
 
 const IncidentsPage = () => {
@@ -13,7 +13,7 @@ const IncidentsPage = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [activeQuery, setActiveQuery] = useState('');
   const [selectedIncident, setSelectedIncident] = useState(null);
-  
+
   const [incidents, setIncidents] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -21,10 +21,13 @@ const IncidentsPage = () => {
     async function loadData() {
       try {
         setLoading(true);
-        const MOCK_AUTHORITY_ID = "61c6d93e-889d-42fc-b6b9-b167ce631d47";
-        const res = await getIncidents(0, 100, null, MOCK_AUTHORITY_ID);
+        const user = await getCurrentUser();
+        const authId = user?.authority_id;
+        if (!authId) throw new Error("No authority ID found for user.");
+
+        const res = await getIncidents(0, 100, null, authId);
         const myIncidents = res?.data || [];
-        
+
         const mapped = myIncidents.map(item => {
           return {
             realId: item.id,
@@ -93,10 +96,7 @@ const IncidentsPage = () => {
 
   return (
     <div className="ct-incidents-page">
-      <div style={{ padding: '0.5rem 1rem', background: '#e0f2fe', color: '#0284c7', fontSize: '0.875rem', fontWeight: 500, marginBottom: '1rem', borderRadius: '4px', border: '1px solid #bae6fd' }}>
-        DEMO AUTHORITY CONTEXT — NOT AUTHENTICATION (Filtering by hardcoded Lucknow Municipal Corporation ID for Gate 4)
-      </div>
-      <PageHeader 
+      <PageHeader
         title="Incidents"
         subtitle="Review and manage incidents routed to your authority."
       />
@@ -105,7 +105,7 @@ const IncidentsPage = () => {
       <div className="ct-search-card">
         <span className="ct-search-label">Search incidents</span>
         <form className="ct-search-form" onSubmit={handleSearch}>
-          <input 
+          <input
             type="text"
             className="ct-search-input"
             placeholder="Search by ID, issue or location"
@@ -125,13 +125,13 @@ const IncidentsPage = () => {
             <Loader2 className="animate-spin" size={32} />
           </div>
         ) : incidentsToDisplay.map((incident) => (
-          <div 
-            key={incident.id} 
+          <div
+            key={incident.id}
             className="ct-incident-item"
             onClick={() => handleIncidentClick(incident)}
           >
             <div className="ct-incident-id">{incident.id}</div>
-            
+
             <div className="ct-incident-info">
               <div className="ct-incident-title">{incident.title}</div>
               <div className="ct-incident-sub">
@@ -152,8 +152,8 @@ const IncidentsPage = () => {
         {incidentsToDisplay.length === 0 && (
           <div className="ct-empty-search">
             <p>No incidents match "{activeQuery}".</p>
-            <button 
-              className="btn btn-outline" 
+            <button
+              className="btn btn-outline"
               onClick={() => {
                 setSearchTerm('');
                 setActiveQuery('');
@@ -206,16 +206,16 @@ const IncidentsPage = () => {
             </div>
 
             <div className="ct-modal-actions">
-              <button 
-                type="button" 
+              <button
+                type="button"
                 className="btn btn-outline"
                 onClick={() => setSelectedIncident(null)}
               >
                 Close
               </button>
               {selectedIncident.status === 'Awaiting Verification' && (
-                <button 
-                  type="button" 
+                <button
+                  type="button"
                   className="btn btn-primary"
                   onClick={() => {
                     setSelectedIncident(null);
@@ -226,8 +226,8 @@ const IncidentsPage = () => {
                 </button>
               )}
               {!selectedIncident.assignedTeam && (
-                <button 
-                  type="button" 
+                <button
+                  type="button"
                   className="btn btn-primary"
                   onClick={() => {
                     setSelectedIncident(null);

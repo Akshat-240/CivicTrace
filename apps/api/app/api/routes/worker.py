@@ -47,12 +47,12 @@ async def get_worker_tasks(
     stmt = (
         select(Incident)
         .where(Incident.assigned_worker_id == worker.id)
-        .where(Incident.status.in_([IncidentStatus.ACTIVE.value, IncidentStatus.UNDER_REVIEW.value, IncidentStatus.ACTIVE, IncidentStatus.UNDER_REVIEW])) 
+        .where(Incident.status.in_([IncidentStatus.ACTIVE.value, IncidentStatus.UNDER_REVIEW.value, IncidentStatus.ACTIVE, IncidentStatus.UNDER_REVIEW]))
         .options(selectinload(Incident.location))
     )
     result = await db.execute(stmt)
     incidents = result.scalars().all()
-    
+
     tasks = []
     for inc in incidents:
         tasks.append(WorkerTaskResponse(
@@ -88,10 +88,10 @@ async def get_worker_task_detail(
     )
     result = await db.execute(stmt)
     inc = result.scalar_one_or_none()
-    
+
     if not inc:
         raise HTTPException(status_code=404, detail="Incident not found or not assigned to worker")
-        
+
     before_evidence_url = None
     for ev in inc.evidence_items:
         if ev.evidence_phase == EvidencePhase.BEFORE:
@@ -133,7 +133,7 @@ async def update_task_status(
     )
     result = await db.execute(stmt)
     inc = result.scalar_one_or_none()
-    
+
     if not inc:
         raise HTTPException(status_code=404, detail="Incident not found or not assigned to worker")
 
@@ -144,14 +144,14 @@ async def update_task_status(
         WorkerTaskStatus.AT_LOCATION: [WorkerTaskStatus.IN_PROGRESS],
         WorkerTaskStatus.IN_PROGRESS: [WorkerTaskStatus.COMPLETED],
     }
-    
+
     current = inc.worker_status
     if payload.status not in valid_transitions.get(current, []):
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=f"Invalid transition from {current} to {payload.status}"
         )
-        
+
     inc.worker_status = payload.status
     await db.commit()
     return {"message": "Status updated successfully", "worker_status": inc.worker_status}
@@ -173,7 +173,7 @@ async def submit_resolution(
     )
     result = await db.execute(stmt)
     inc = result.scalar_one_or_none()
-    
+
     if not inc:
         raise HTTPException(status_code=404, detail="Incident not found or not assigned to worker")
 
@@ -192,7 +192,7 @@ async def submit_resolution(
     if len(content) > 10 * 1024 * 1024:
         raise HTTPException(status_code=400, detail="File size too large (max 10MB)")
     evidence_service = EvidenceService(db)
-    
+
     dt_occurred = None
     if capture_timestamp:
         try:
@@ -217,21 +217,21 @@ async def submit_resolution(
         )
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
-    
+
     # Reload incident and update statuses
     stmt = select(Incident).where(Incident.id == incident_id)
     inc = (await db.execute(stmt)).scalar_one()
 
     inc.worker_status = WorkerTaskStatus.COMPLETED
     inc.status = IncidentStatus.UNDER_REVIEW
-    
+
     # Store notes in fusion metadata or completion notes
     metadata = dict(inc.fusion_metadata or {})
     metadata["completion_notes"] = notes
     inc.fusion_metadata = metadata
 
     await db.commit()
-    
+
     return {"message": "Resolution submitted successfully", "evidence_id": evidence.id}
 
 

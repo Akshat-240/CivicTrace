@@ -77,7 +77,7 @@ class GeminiAIProvider(AIProvider):
             # We use structured output format. The google-genai SDK supports
             # JSON schema validation via response_schema.
             schema = AIAnalysisResult.model_json_schema()
-            
+
             response = self.client.models.generate_content(
                 model=self.model,
                 contents=contents,
@@ -87,7 +87,7 @@ class GeminiAIProvider(AIProvider):
                     temperature=0.0, # Deterministic
                 ),
             )
-            
+
             if not response.text:
                 raise CivicTraceError(
                     "AI provider returned empty response", code="AI_PROVIDER_ERROR"
@@ -102,7 +102,7 @@ class GeminiAIProvider(AIProvider):
 
             parsed_data = json.loads(raw_text.strip())
             result = AIAnalysisResult(**parsed_data)
-            
+
             self._cache[cache_key] = result
             return result
 

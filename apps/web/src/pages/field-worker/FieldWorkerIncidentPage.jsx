@@ -129,8 +129,8 @@ const FieldWorkerIncidentPage = () => {
 
         {/* Bottom CTA to Map */}
         <div className="ct-fw-objective-footer">
-          <button 
-            type="button" 
+          <button
+            type="button"
             className="ct-fw-continue-btn"
             onClick={handleContinueToMap}
           >

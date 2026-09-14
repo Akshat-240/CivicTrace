@@ -33,32 +33,32 @@ const FieldWorkerReviewPage = () => {
   const handleSubmit = async () => {
     try {
       setSubmitting(true);
-    
+
     if (!navigator.geolocation) {
       alert("Geolocation is not supported by your browser.");
       setSubmitting(false);
       return;
     }
-    
+
     navigator.geolocation.getCurrentPosition(
       async (position) => {
         try {
           const notes = location.state?.notes || localStorage.getItem('fw_temp_notes') || 'Repaired and verified.';
           const file = location.state?.file;
-          
+
           if (!file) {
             alert("No photo provided. You must upload evidence.");
             setSubmitting(false);
             return;
           }
-          
+
           const formData = new FormData();
           formData.append('file', file);
           formData.append('notes', notes);
           formData.append('latitude', position.coords.latitude);
           formData.append('longitude', position.coords.longitude);
           formData.append('capture_timestamp', new Date().toISOString());
-          
+
           await submitWorkerResolution(task.id, formData);
           setSuccess(true);
           localStorage.removeItem('fw_temp_notes');
@@ -95,8 +95,8 @@ const FieldWorkerReviewPage = () => {
           <p className="ct-fw-success-subtitle">
             Resolution evidence submitted to authority. Verification pending.
           </p>
-          <button 
-            type="button" 
+          <button
+            type="button"
             className="ct-fw-btn-primary"
             onClick={() => navigate('/field-worker/dashboard')}
           >
@@ -146,7 +146,7 @@ const FieldWorkerReviewPage = () => {
           <div className="ct-fw-sec-content">
             <h3 className="ct-fw-sec-title">Cryptographic Hash Generated</h3>
             <p className="ct-fw-sec-desc">
-              Your photo, timestamp, and GPS coordinates are sealed. This ensures the 
+              Your photo, timestamp, and GPS coordinates are sealed. This ensures the
               resolution evidence cannot be tampered with prior to automated verification.
             </p>
             <div className="ct-fw-hash-string">
@@ -156,8 +156,8 @@ const FieldWorkerReviewPage = () => {
         </div>
 
         <div className="ct-fw-review-action-area">
-          <button 
-            type="button" 
+          <button
+            type="button"
             className="ct-fw-btn-primary ct-fw-submit-btn"
             onClick={handleSubmit}
             disabled={submitting}

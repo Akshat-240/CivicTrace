@@ -10,6 +10,7 @@ import {
   verifyResolution,
   humanVerifyResolution,
   closeIncident,
+  getCurrentUser,
 } from "../../services/api";
 import "./VerificationPage.css";
 
@@ -43,7 +44,7 @@ const VerificationPage = () => {
   // Evidence list for current incident
   const [evidenceList, setEvidenceList]     = useState([]);
 
-  const MOCK_AUTHORITY_ID = "61c6d93e-889d-42fc-b6b9-b167ce631d47";
+  const [currentUser, setCurrentUser] = useState(null);
 
   useEffect(() => {
     fetchPending();
@@ -52,7 +53,12 @@ const VerificationPage = () => {
   async function fetchPending() {
     try {
       setLoading(true);
-      const res = await getIncidents(0, 100, null, MOCK_AUTHORITY_ID);
+      const user = await getCurrentUser();
+      setCurrentUser(user);
+      const authId = user?.authority_id;
+      if (!authId) throw new Error("No authority ID found for user.");
+
+      const res = await getIncidents(0, 100, null, authId);
       const mine = res?.data || [];
       // Show incidents that are ACTIVE or UNDER_REVIEW or RESOLVED (for closure)
       const candidates = mine.filter(
@@ -136,8 +142,7 @@ const VerificationPage = () => {
       const rec = await humanVerifyResolution(currentInc.id, {
         result: selectedDecision,
         explanation: decisionExplanation.trim() || undefined,
-        // demo-authority-reviewer is applied server-side when verified_by is empty
-        verified_by: "demo-authority-reviewer",
+        verified_by: currentUser?.full_name || currentUser?.email || "Unknown Reviewer",
       });
       showBanner(
         `Decision saved: ${rec.result}. Incident status updated.`
@@ -378,7 +383,7 @@ const VerificationPage = () => {
                     Stage 3 — Human Verification Decision
                   </p>
                   <p style={{ fontSize: "0.8rem", color: "#6b7280", marginBottom: "0.75rem" }}>
-                    Reviewer: <strong>demo-authority-reviewer</strong> (no real auth in MVP)
+                    Reviewer: <strong>{currentUser?.full_name || currentUser?.email || "Unknown Reviewer"}</strong>
                   </p>
 
                   <div className="ct-groundtruth-list">

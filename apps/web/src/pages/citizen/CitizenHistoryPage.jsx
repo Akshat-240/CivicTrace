@@ -23,12 +23,12 @@ export default function CitizenHistoryPage() {
         // Load real backend incidents for authenticated citizen
         const response = await getIncidents(0, 100, citizenId);
         const items = response?.data || [];
-        
+
         // Map backend data to frontend expectations
         const mapped = items.map(item => {
           const rawStatus = (item.status || '').toLowerCase();
           const rawAccountability = (item.accountability_state || '').toLowerCase();
-          
+
           let uiStatus = 'Submitted';
           if (rawStatus === 'resolved' || rawStatus === 'closed') {
             uiStatus = 'Resolved';
@@ -42,8 +42,8 @@ export default function CitizenHistoryPage() {
             uiStatus = item.status || 'Submitted';
           }
 
-          const locationString = 
-            item.location?.address_raw || 
+          const locationString =
+            item.location?.address_raw ||
             [item.location?.street, item.location?.suburb, item.location?.city].filter(Boolean).join(', ') ||
             'Location not provided';
 
@@ -80,7 +80,7 @@ export default function CitizenHistoryPage() {
       {/* Filter Tabs */}
       <div className="history-filter-tabs">
         {['All', 'Resolved', 'Unresolved', 'Escalated'].map((tab) => (
-          <button 
+          <button
             key={tab}
             type="button"
             className={`history-filter-tab ${activeFilter === tab ? 'active' : ''}`}
@@ -116,7 +116,7 @@ export default function CitizenHistoryPage() {
       {!loading && !error && filteredIncidents.length > 0 && (
         <div className="history-incidents-list">
           {filteredIncidents.map((incident) => {
-            const badgeClass = 
+            const badgeClass =
               incident.status === 'Resolved' ? 'resolved' :
               incident.status === 'Escalated' ? 'escalated' :
               incident.status === 'In Progress' ? 'in-progress' :
@@ -136,7 +136,7 @@ export default function CitizenHistoryPage() {
                     {incident.status}
                   </span>
 
-                  <div 
+                  <div
                     className="history-action-col"
                     onClick={() => navigate(`/citizen/track?id=${encodeURIComponent(incident.realId)}`)}
                   >

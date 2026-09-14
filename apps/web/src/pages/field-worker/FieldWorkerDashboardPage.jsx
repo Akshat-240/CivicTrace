@@ -7,7 +7,7 @@ const FieldWorkerDashboardPage = () => {
   const navigate = useNavigate();
   const [tasks, setTasks] = useState([]);
   const [loading, setLoading] = useState(true);
-  
+
   const checklist = [
     "Ensure safety gear is worn",
     "Photograph before starting work",
@@ -19,10 +19,10 @@ const FieldWorkerDashboardPage = () => {
     async function fetchTasks() {
       try {
         setLoading(true);
-        
+
         const res = await getWorkerTasks();
         const myIncidents = res || [];
-        
+
         // Filter out resolved, closed, etc. Field workers only see active work.
         const activeTasks = myIncidents.filter(inc => {
           const s = inc.status?.toUpperCase();
@@ -32,7 +32,7 @@ const FieldWorkerDashboardPage = () => {
         const mapped = activeTasks.map(inc => {
           const sla = inc.accountability_state?.toUpperCase() || 'PENDING';
           const isHigh = sla === 'OVERDUE' || sla === 'ESCALATION_ELIGIBLE';
-          
+
           return {
             id: inc.id,
             code: inc.reference_number || inc.id.substring(0,8),
@@ -74,8 +74,8 @@ const FieldWorkerDashboardPage = () => {
         {loading ? <div style={{padding: '1rem'}}>Loading assignments...</div> : tasks.map((task, index) => {
           const isHigh = task.priority === 'HIGH';
           return (
-            <div 
-              key={task.id} 
+            <div
+              key={task.id}
               className={`ct-fw-task-card ${isHigh ? 'priority-high' : ''}`}
               onClick={() => handleOpenTask(task.id)}
             >

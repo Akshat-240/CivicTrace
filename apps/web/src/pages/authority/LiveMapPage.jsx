@@ -1,13 +1,48 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import PageHeader from '../../components/layout/PageHeader';
 import PriorityBadge from '../../components/common/PriorityBadge';
 import Modal from '../../components/common/Modal';
-import { mockIncidents, mockSlaMonitor } from '../../data/mockData';
+import { getIncidents, getCurrentUser } from '../../services/api';
 import './LiveMapPage.css';
 
 const LiveMapPage = () => {
   const [activeIncident, setActiveIncident] = useState(null);
   const [showEscalationModal, setShowEscalationModal] = useState(false);
+  const [incidents, setIncidents] = useState([]);
+
+  useEffect(() => {
+    async function loadData() {
+      try {
+        const user = await getCurrentUser();
+        const authId = user?.authority_id;
+        if (!authId) return;
+        const res = await getIncidents(0, 100, null, authId);
+        setIncidents(res?.data || []);
+      } catch (err) {
+        console.error(err);
+      }
+    }
+    loadData();
+  }, []);
+
+  const stats = {
+    critical: incidents.filter(i => i.priority_level === 'critical').length,
+    high: incidents.filter(i => i.priority_level === 'high').length,
+    medium: incidents.filter(i => i.priority_level === 'medium').length,
+    overdue: incidents.filter(i => i.accountability_state === 'overdue').length,
+  };
+
+  const escalationQueue = incidents
+    .filter(i => ['critical', 'high'].includes(i.priority_level) || i.accountability_state === 'overdue')
+    .slice(0, 5)
+    .map(item => ({
+      id: item.reference_number || (item.id ? item.id.substring(0, 8).toUpperCase() : 'UNKNOWN'),
+      title: item.title || item.issue_type?.replace(/_/g, ' ')?.toUpperCase() || 'Incident',
+      zone: item.jurisdiction?.name || 'Unknown Zone',
+      assignedTeam: item.authority?.name || 'Not assigned',
+      priority: item.priority_level?.toUpperCase() || 'PENDING',
+      slaRemaining: item.accountability_state ? item.accountability_state.toUpperCase() : 'Not available',
+    }));
 
   const mapMarkers = [
     {
@@ -69,7 +104,7 @@ const LiveMapPage = () => {
 
   return (
     <div className="ct-livemap-page">
-      <PageHeader 
+      <PageHeader
         title="Live Map + SLA Monitor"
         subtitle="See where incidents are concentrated and which deadlines are at risk."
       />
@@ -94,17 +129,17 @@ const LiveMapPage = () => {
             <div className="ct-map-landmark" style={{ top: '64%', left: '76%' }}>Mahanagar</div>
 
             {mapMarkers.map((marker) => (
-              <div 
+              <div
                 key={marker.id}
                 className="ct-marker-node"
                 style={{ top: marker.top, left: marker.left }}
                 onClick={() => setActiveIncident(marker)}
               >
-                <div 
-                  className="ct-marker-dot" 
+                <div
+                  className="ct-marker-dot"
                   style={{ backgroundColor: marker.color }}
                 />
-                
+
                 {activeIncident?.id === marker.id && (
                   <div className="ct-marker-popover" onClick={(e) => e.stopPropagation()}>
                     <div className="ct-popover-top">
@@ -130,28 +165,28 @@ const LiveMapPage = () => {
           <div className="ct-sla-stats-list">
             <div className="ct-sla-stat-item">
               <div className="ct-sla-stat-label">Critical</div>
-              <div className="ct-sla-stat-val ct-stat-red">{mockSlaMonitor.critical}</div>
+              <div className="ct-sla-stat-val ct-stat-red">{stats.critical}</div>
             </div>
 
             <div className="ct-sla-stat-item">
               <div className="ct-sla-stat-label">High</div>
-              <div className="ct-sla-stat-val ct-stat-orange">{mockSlaMonitor.high}</div>
+              <div className="ct-sla-stat-val ct-stat-orange">{stats.high}</div>
             </div>
 
             <div className="ct-sla-stat-item">
               <div className="ct-sla-stat-label">Medium</div>
-              <div className="ct-sla-stat-val ct-stat-green">{mockSlaMonitor.medium}</div>
+              <div className="ct-sla-stat-val ct-stat-green">{stats.medium}</div>
             </div>
 
             <div className="ct-sla-stat-item">
               <div className="ct-sla-stat-label">Overdue</div>
-              <div className="ct-sla-stat-val ct-stat-red">{mockSlaMonitor.overdue}</div>
+              <div className="ct-sla-stat-val ct-stat-red">{stats.overdue}</div>
             </div>
           </div>
 
           <div className="ct-sla-action-box">
-            <button 
-              type="button" 
+            <button
+              type="button"
               className="ct-btn-escalation"
               onClick={() => setShowEscalationModal(true)}
             >
@@ -169,11 +204,11 @@ const LiveMapPage = () => {
       >
         <div className="ct-escalation-modal">
           <p className="ct-escalation-intro">
-            The following 5 incidents have breached or are critically approaching breach thresholds.
+            The following incidents have breached or are critically approaching breach thresholds.
           </p>
 
           <div className="ct-escalation-list">
-            {mockIncidents.map((inc) => (
+            {escalationQueue.map((inc) => (
               <div key={inc.id} className="ct-escalation-row">
                 <div className="ct-esc-left">
                   <div className="ct-esc-id">{inc.id}</div>
@@ -189,15 +224,15 @@ const LiveMapPage = () => {
           </div>
 
           <div className="ct-modal-actions">
-            <button 
-              type="button" 
+            <button
+              type="button"
               className="btn btn-outline"
               onClick={() => setShowEscalationModal(false)}
             >
               Close
             </button>
-            <button 
-              type="button" 
+            <button
+              type="button"
               className="btn btn-primary"
               onClick={() => {
                 alert("Emergency notification broadcasted to Zonal Commissioner & Field Supervisors.");

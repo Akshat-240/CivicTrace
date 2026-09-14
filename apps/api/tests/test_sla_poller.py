@@ -27,7 +27,7 @@ class TestSLAPoller:
         db_session.add(auth)
         jur = Jurisdiction(id=uuid.uuid4(), name='J', code='J'+str(uuid.uuid4())[:8], authority_id=auth.id)
         db_session.add(jur)
-        
+
         # Incident 1: 50 hours elapsed -> PENDING
         inc1 = Incident(reference_number="POLL-1", status=IncidentStatus.ACTIVE, authority_id=auth.id, jurisdiction_id=jur.id)
         db_session.add(inc1)
@@ -45,7 +45,7 @@ class TestSLAPoller:
             incident_id=inc2.id, state=AccountabilityState.PENDING,
             started_at=base_time - timedelta(hours=30), due_at=base_time + timedelta(hours=70)
         ))
-        
+
         # Incident 3: 101 hours elapsed -> OVERDUE
         inc3 = Incident(reference_number="POLL-3", status=IncidentStatus.ACTIVE, authority_id=auth.id, jurisdiction_id=jur.id)
         db_session.add(inc3)
@@ -61,7 +61,7 @@ class TestSLAPoller:
         # Advance clock to base_time + 50 hours
         eval_time = base_time + timedelta(hours=50)
         summary = await poller.evaluate_all_active_slas(current_time=eval_time)
-        
+
         assert summary["total"] == 3
         assert summary["processed"] == 3
         assert summary["failed"] == 0
@@ -81,7 +81,7 @@ class TestSLAPoller:
         db_session.add(auth)
         jur = Jurisdiction(id=uuid.uuid4(), name='J', code='J'+str(uuid.uuid4())[:8], authority_id=auth.id)
         db_session.add(jur)
-        
+
         inc = Incident(reference_number="POLL-4", status=IncidentStatus.ACTIVE, authority_id=auth.id, jurisdiction_id=jur.id)
         db_session.add(inc)
         await db_session.flush()
@@ -111,7 +111,7 @@ class TestSLAPoller:
         db_session.add(auth)
         jur = Jurisdiction(id=uuid.uuid4(), name='J', code='J'+str(uuid.uuid4())[:8], authority_id=auth.id)
         db_session.add(jur)
-        
+
         # Valid incident
         inc1 = Incident(reference_number="POLL-5", status=IncidentStatus.ACTIVE, authority_id=auth.id, jurisdiction_id=jur.id)
         db_session.add(inc1)
@@ -139,11 +139,11 @@ class TestSLAPoller:
 
         poller = SLAPoller(db_session)
         summary = await poller.evaluate_all_active_slas(current_time=base_time + timedelta(hours=80))
-        
+
         assert summary["total"] == 2
         assert summary["processed"] == 2
         assert summary["failed"] == 0
-        
+
         db_session.expunge_all()
         from sqlalchemy.orm import selectinload
         inc1 = await db_session.get(Incident, inc1.id, options=[selectinload(Incident.sla)])
@@ -157,7 +157,7 @@ class TestSLAPoller:
         db_session.add(auth)
         jur = Jurisdiction(id=uuid.uuid4(), name='J', code='J'+str(uuid.uuid4())[:8], authority_id=auth.id)
         db_session.add(jur)
-        
+
         inc = Incident(reference_number="POLL-8", status=IncidentStatus.ACTIVE, authority_id=auth.id, jurisdiction_id=jur.id)
         db_session.add(inc)
         await db_session.flush()
@@ -170,10 +170,10 @@ class TestSLAPoller:
         poller = SLAPoller(db_session)
         now_tz = datetime.now(timezone.utc)
         summary = await poller.evaluate_all_active_slas() # uses default UTC
-        
+
         # Verify it ran correctly
         assert summary["processed"] == 1
-        
+
         db_session.expunge_all()
         from sqlalchemy.orm import selectinload
         inc = await db_session.get(Incident, inc.id, options=[selectinload(Incident.sla)])

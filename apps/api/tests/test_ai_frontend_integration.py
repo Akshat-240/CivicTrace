@@ -87,7 +87,7 @@ class TestAIFrontendIntegration:
 
         with patch("app.services.storage_service.StorageService.create_signed_url", new_callable=AsyncMock) as mock_signed_url, \
              patch("app.services.ai.azure.AzureVisionProvider.analyze_evidence", new_callable=AsyncMock) as mock_azure:
-            
+
             mock_signed_url.return_value = "https://supabase.mock/signed/pothole.jpg"
             mock_azure.return_value = mock_azure_result
 
@@ -157,7 +157,7 @@ class TestAIFrontendIntegration:
 
         with patch("app.services.storage_service.StorageService.create_signed_url", new_callable=AsyncMock) as mock_signed_url, \
              patch("app.services.ai.azure.AzureVisionProvider.analyze_evidence", new_callable=AsyncMock) as mock_azure:
-            
+
             mock_signed_url.return_value = "https://supabase.mock/signed/blurry.jpg"
             mock_azure.return_value = mock_ambiguous_result
 
@@ -207,7 +207,7 @@ class TestAIFrontendIntegration:
         with patch("app.services.storage_service.StorageService.create_signed_url", new_callable=AsyncMock) as mock_signed_url, \
              patch("app.services.ai.azure.AzureVisionProvider.analyze_evidence", side_effect=AzureOperationalError("Azure timeout")), \
              patch("app.services.ai.gemini.GeminiAIProvider.analyze_evidence", side_effect=AzureOperationalError("Gemini unavailable")):
-            
+
             mock_signed_url.return_value = "https://supabase.mock/signed/light.jpg"
 
             fail_res = await async_client.post(
@@ -234,7 +234,7 @@ class TestAIFrontendIntegration:
 
         with patch("app.services.storage_service.StorageService.create_signed_url", new_callable=AsyncMock) as mock_signed_url, \
              patch("app.services.ai.azure.AzureVisionProvider.analyze_evidence", new_callable=AsyncMock) as mock_azure:
-            
+
             mock_signed_url.return_value = "https://supabase.mock/signed/light.jpg"
             mock_azure.return_value = mock_retry_result
 
@@ -289,7 +289,7 @@ class TestAIFrontendIntegration:
         with patch("app.services.storage_service.StorageService.create_signed_url", new_callable=AsyncMock) as mock_signed_url, \
              patch("app.services.ai.azure.AzureVisionProvider.analyze_evidence", side_effect=AzureOperationalError("Azure 500 Internal Error")), \
              patch("app.services.ai.gemini.GeminiAIProvider.analyze_evidence", new_callable=AsyncMock) as mock_gemini:
-            
+
             mock_signed_url.return_value = "https://supabase.mock/signed/flood.jpg"
             mock_gemini.return_value = gemini_mock_result
 

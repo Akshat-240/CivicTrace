@@ -70,9 +70,9 @@ class IncidentService:
             summary="Incident submitted via API",
         )
         await self.event_repo.create(event)
-        
+
         await self.session.flush()
-        
+
         # Run orchestration workflow
         await self.process_incident_workflow(incident.id)
 
@@ -115,7 +115,7 @@ class IncidentService:
         from app.schemas.gis import GISStatus
 
         incident = await self.get_incident(incident_id)
-        
+
         if not incident.location:
             # Cannot resolve without a location
             event = IncidentEvent(
@@ -137,7 +137,7 @@ class IncidentService:
         if result.status == GISStatus.JURISDICTION_FOUND:
             incident.jurisdiction_id = result.jurisdiction_id
             incident.authority_id = result.authority_id
-            
+
             # Record events
             await self.event_repo.create(IncidentEvent(
                 incident_id=incident.id,

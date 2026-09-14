@@ -1,11 +1,11 @@
 import React from 'react';
 import { NavLink, useNavigate, useLocation } from 'react-router-dom';
-import { 
-  Home, 
-  PlusCircle, 
-  Target, 
-  Clock, 
-  MessageSquareQuote, 
+import {
+  Home,
+  PlusCircle,
+  Target,
+  Clock,
+  MessageSquareQuote,
   Settings
 } from 'lucide-react';
 import './CitizenSidebar.css';
@@ -23,7 +23,7 @@ const CitizenSidebar = ({ profile }) => {
   ];
 
   const isSettingsActive = location.pathname.includes('/citizen/settings');
-  
+
   const displayName = profile?.full_name ? profile.full_name.split(' ')[0] : 'Citizen';
   const initial = displayName.charAt(0).toUpperCase();
   const displayLocation = profile?.city ? `${profile.city} resident` : 'Resident';
@@ -45,7 +45,7 @@ const CitizenSidebar = ({ profile }) => {
             <li key={item.path} className="ct-citizen-nav-item">
               <NavLink
                 to={item.path}
-                className={({ isActive }) => 
+                className={({ isActive }) =>
                   `ct-citizen-nav-link ${isActive ? 'active' : ''}`
                 }
               >
@@ -59,7 +59,7 @@ const CitizenSidebar = ({ profile }) => {
 
       {/* Footer Profile & Settings */}
       <div className="ct-citizen-footer">
-        <div 
+        <div
           className={`ct-citizen-profile ${isSettingsActive ? 'active' : ''}`}
           onClick={() => navigate('/citizen/settings')}
           title="Account Settings"
@@ -69,8 +69,8 @@ const CitizenSidebar = ({ profile }) => {
             <span className="ct-citizen-user-name">{displayName}</span>
             <span className="ct-citizen-user-role">{displayLocation}</span>
           </div>
-          <button 
-            type="button" 
+          <button
+            type="button"
             className="ct-citizen-settings-btn"
             onClick={(e) => {
               e.stopPropagation();

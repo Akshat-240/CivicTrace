@@ -72,12 +72,12 @@ async def setup_test_db():
     """Create and drop all tables once per test session using the sync driver."""
     settings = get_test_settings()
     sync_engine = create_engine(settings.database_url_sync, echo=False)
-    
+
     Base.metadata.drop_all(bind=sync_engine)
     Base.metadata.create_all(bind=sync_engine)
-    
+
     yield
-    
+
     Base.metadata.drop_all(bind=sync_engine)
     sync_engine.dispose()
 
@@ -104,9 +104,9 @@ async def db_session(test_engine) -> AsyncGenerator[AsyncSession, None]:
 
     async with session_factory() as session:
         yield session
-        
+
         # Clean up data after each test
-        # We can't use TRUNCATE easily with foreign keys unless CASCADE, 
+        # We can't use TRUNCATE easily with foreign keys unless CASCADE,
         # so we'll just run a fast sync delete. Or just TRUNCATE with CASCADE.
         await session.rollback()
         for table in reversed(Base.metadata.sorted_tables):

@@ -62,13 +62,13 @@ class FusionService:
         # If ambiguous, skip fusion and create explicitly for review
         if evidence.ai_ambiguity_flag:
             return await self._create_new_incident(
-                evidence, 
+                evidence,
                 status=IncidentStatus.UNDER_REVIEW,
                 reason="Evidence was flagged as ambiguous by AI.",
                 title=title,
                 description=description,
             )
-            
+
         if not evidence.location:
             return await self._create_new_incident(
                 evidence,
@@ -112,7 +112,7 @@ class FusionService:
 
         # Use ST_DistanceSphere which returns distance in meters
         distance_col = func.ST_DistanceSphere(Location.geom, point).label("distance")
-        
+
         stmt = (
             select(
                 Incident,
@@ -126,7 +126,7 @@ class FusionService:
             ]))
             .where(func.ST_DistanceSphere(Location.geom, point) <= self.config.MAX_RADIUS_METERS)
         )
-        
+
         result = await self.session.execute(stmt)
         candidates = result.all()
 
@@ -179,10 +179,10 @@ class FusionService:
 
     async def _merge_into_incident(self, evidence: Evidence, match: tuple[Incident, float]) -> Incident:
         inc, score = match
-        
+
         evidence.incident_id = inc.id
         inc.evidence_count += 1
-        
+
         event = IncidentEvent(
             incident_id=inc.id,
             event_type=EventType.INCIDENT_FUSED,
@@ -215,7 +215,7 @@ class FusionService:
         )
         self.session.add(new_inc)
         await self.session.flush()
-        
+
         evidence.incident_id = new_inc.id
 
         event = IncidentEvent(
@@ -225,6 +225,6 @@ class FusionService:
             summary=f"Created new incident. Reason: {reason}"
         )
         self.session.add(event)
-        
+
         await self.session.flush()
         return new_inc

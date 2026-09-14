@@ -44,6 +44,7 @@ import FieldWorkerIncidentPage from '../pages/field-worker/FieldWorkerIncidentPa
 import FieldWorkerLocationPage from '../pages/field-worker/FieldWorkerLocationPage';
 import FieldWorkerEvidencePage from '../pages/field-worker/FieldWorkerEvidencePage';
 import FieldWorkerReviewPage from '../pages/field-worker/FieldWorkerReviewPage';
+import FieldWorkerSettingsPage from '../pages/field-worker/FieldWorkerSettingsPage';
 
 const AppRoutes = () => {
   return (
@@ -104,13 +105,18 @@ const AppRoutes = () => {
       </Route>
 
       {/* Field Worker Portal Routes */}
-      <Route path="/field-worker" element={<FieldWorkerLayout />}>
+      <Route path="/field-worker" element={
+        <ProtectedRoute allowedRole="field_worker">
+          <FieldWorkerLayout />
+        </ProtectedRoute>
+      }>
         <Route index element={<Navigate to="dashboard" replace />} />
         <Route path="dashboard" element={<FieldWorkerDashboardPage />} />
         <Route path="tasks/:id" element={<FieldWorkerIncidentPage />} />
         <Route path="location" element={<FieldWorkerLocationPage />} />
         <Route path="evidence" element={<FieldWorkerEvidencePage />} />
         <Route path="review" element={<FieldWorkerReviewPage />} />
+        <Route path="settings" element={<FieldWorkerSettingsPage />} />
       </Route>
 
       {/* Fallback */}

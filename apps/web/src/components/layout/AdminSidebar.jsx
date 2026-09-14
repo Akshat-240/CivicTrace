@@ -1,13 +1,13 @@
 import React from 'react';
 import { NavLink, useNavigate, useLocation } from 'react-router-dom';
-import { 
-  LayoutDashboard, 
-  AlertCircle, 
-  Map, 
-  BarChart3, 
-  Clock, 
-  Building2, 
-  ShieldCheck, 
+import {
+  LayoutDashboard,
+  AlertCircle,
+  Map,
+  BarChart3,
+  Clock,
+  Building2,
+  ShieldCheck,
   Settings,
   LogOut
 } from 'lucide-react';
@@ -46,7 +46,7 @@ const AdminSidebar = () => {
 
       <nav className="ct-admin-nav">
         {navItems.map((item) => (
-          <NavLink 
+          <NavLink
             key={item.path}
             to={item.path}
             className={({ isActive }) => `ct-admin-nav-item ${isActive ? 'active' : ''}`}
@@ -68,17 +68,17 @@ const AdminSidebar = () => {
           </div>
         </div>
         <div className="ct-admin-footer-actions">
-          <button 
-            type="button" 
-            className="ct-admin-footer-btn" 
+          <button
+            type="button"
+            className="ct-admin-footer-btn"
             onClick={() => navigate('/admin/settings')}
           >
             <Settings size={16} />
             <span>Settings</span>
           </button>
-          <button 
-            type="button" 
-            className="ct-admin-footer-btn" 
+          <button
+            type="button"
+            className="ct-admin-footer-btn"
             onClick={handleSignOut}
           >
             <LogOut size={16} />

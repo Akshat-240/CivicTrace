@@ -3,13 +3,52 @@ import PageHeader from '../../components/layout/PageHeader';
 import Modal from '../../components/common/Modal';
 import './SettingsPage.css';
 
+import { getCurrentUser, getAuthorities } from '../../services/api';
+
 const SettingsPage = () => {
   const [profile, setProfile] = useState({
-    name: "LMC Civil Authority",
-    department: "Lucknow Municipal Corporation",
-    role: "Civic Operations Officer",
+    name: "Loading...",
+    department: "Loading...",
+    role: "Loading...",
     auth: "Government SSO"
   });
+
+  React.useEffect(() => {
+    async function loadData() {
+      try {
+        const user = await getCurrentUser();
+        let authName = "Not Assigned";
+        let rolePart = "Authority User";
+        let namePart = user.full_name || "Unknown Authority";
+
+        if (user.full_name && user.full_name.includes(' - ')) {
+          const parts = user.full_name.split(' - ');
+          namePart = parts[0];
+          rolePart = parts[1];
+        }
+
+        if (user.authority_id) {
+          const auths = await getAuthorities();
+          const match = auths.find(a => a.id === user.authority_id);
+          if (match) authName = match.name;
+        }
+
+        setProfile({
+          name: namePart,
+          department: authName,
+          role: rolePart,
+          auth: "Government SSO"
+        });
+
+        if (user.city) {
+          setPreferences(prev => ({ ...prev, location: user.city }));
+        }
+      } catch (err) {
+        console.error("Failed to load user info", err);
+      }
+    }
+    loadData();
+  }, []);
 
   const [notifications, setNotifications] = useState({
     critical: true,
@@ -71,7 +110,7 @@ const SettingsPage = () => {
 
   return (
     <div className="ct-settings-page">
-      <PageHeader 
+      <PageHeader
         title="Settings"
         subtitle="Configure your authority profile, notifications, operational preferences and security."
         rightSub="Last updated 12 Sep 2026"
@@ -96,8 +135,8 @@ const SettingsPage = () => {
               <div className="ct-row-col-label">Profile Information</div>
               <div className="ct-row-col-value">{profile.name}</div>
               <div className="ct-row-col-action">
-                <button 
-                  type="button" 
+                <button
+                  type="button"
                   className="ct-link-btn"
                   onClick={() => handleOpenEdit('profileName', profile.name)}
                 >
@@ -110,8 +149,8 @@ const SettingsPage = () => {
               <div className="ct-row-col-label">Department</div>
               <div className="ct-row-col-value">{profile.department}</div>
               <div className="ct-row-col-action">
-                <button 
-                  type="button" 
+                <button
+                  type="button"
                   className="ct-link-btn"
                   onClick={() => handleOpenEdit('department', profile.department)}
                 >
@@ -152,8 +191,8 @@ const SettingsPage = () => {
               <div className="ct-row-col-label">Critical Incidents</div>
               <div className="ct-row-col-value">Immediate</div>
               <div className="ct-row-col-action">
-                <button 
-                  type="button" 
+                <button
+                  type="button"
                   className={`ct-badge-toggle ${notifications.critical ? 'enabled' : 'disabled'}`}
                   onClick={() => toggleNotification('critical')}
                 >
@@ -166,8 +205,8 @@ const SettingsPage = () => {
               <div className="ct-row-col-label">New Incident Assignments</div>
               <div className="ct-row-col-value">Immediate</div>
               <div className="ct-row-col-action">
-                <button 
-                  type="button" 
+                <button
+                  type="button"
                   className={`ct-badge-toggle ${notifications.assignments ? 'enabled' : 'disabled'}`}
                   onClick={() => toggleNotification('assignments')}
                 >
@@ -180,8 +219,8 @@ const SettingsPage = () => {
               <div className="ct-row-col-label">SLA Due Soon</div>
               <div className="ct-row-col-value">Immediate</div>
               <div className="ct-row-col-action">
-                <button 
-                  type="button" 
+                <button
+                  type="button"
                   className={`ct-badge-toggle ${notifications.dueSoon ? 'enabled' : 'disabled'}`}
                   onClick={() => toggleNotification('dueSoon')}
                 >
@@ -194,8 +233,8 @@ const SettingsPage = () => {
               <div className="ct-row-col-label">Verification Required</div>
               <div className="ct-row-col-value">Immediate</div>
               <div className="ct-row-col-action">
-                <button 
-                  type="button" 
+                <button
+                  type="button"
                   className={`ct-badge-toggle ${notifications.verification ? 'enabled' : 'disabled'}`}
                   onClick={() => toggleNotification('verification')}
                 >
@@ -218,8 +257,8 @@ const SettingsPage = () => {
               <div className="ct-row-col-label">Default Location</div>
               <div className="ct-row-col-value">{preferences.location}</div>
               <div className="ct-row-col-action">
-                <button 
-                  type="button" 
+                <button
+                  type="button"
                   className="ct-link-btn"
                   onClick={() => handleOpenEdit('location', preferences.location)}
                 >
@@ -232,8 +271,8 @@ const SettingsPage = () => {
               <div className="ct-row-col-label">Default Incident View</div>
               <div className="ct-row-col-value">{preferences.view}</div>
               <div className="ct-row-col-action">
-                <button 
-                  type="button" 
+                <button
+                  type="button"
                   className="ct-link-btn"
                   onClick={() => {
                     const next = preferences.view === 'Priority' ? 'Chronological' : 'Priority';
@@ -250,8 +289,8 @@ const SettingsPage = () => {
               <div className="ct-row-col-label">Map Display</div>
               <div className="ct-row-col-value">{preferences.mapDisplay}</div>
               <div className="ct-row-col-action">
-                <button 
-                  type="button" 
+                <button
+                  type="button"
                   className="ct-link-btn"
                   onClick={() => {
                     const next = preferences.mapDisplay === 'Incidents + SLA' ? 'Heatmap Density' : 'Incidents + SLA';
@@ -267,7 +306,7 @@ const SettingsPage = () => {
             <div className="ct-settings-row ct-timezone-row">
               <div className="ct-row-col-label">Timezone</div>
               <div className="ct-row-col-value">
-                <input 
+                <input
                   type="text"
                   className="ct-inline-input"
                   value={preferences.timezone}
@@ -275,15 +314,15 @@ const SettingsPage = () => {
                 />
               </div>
               <div className="ct-row-col-action ct-btn-pair">
-                <button 
-                  type="button" 
+                <button
+                  type="button"
                   className="ct-btn-cancel"
                   onClick={() => setPreferences(prev => ({ ...prev, timezone: 'Asia/Kolkata' }))}
                 >
                   Cancel
                 </button>
-                <button 
-                  type="button" 
+                <button
+                  type="button"
                   className="ct-btn-save-pill"
                   onClick={() => showToast(`Timezone saved as ${preferences.timezone}`)}
                 >
@@ -314,8 +353,8 @@ const SettingsPage = () => {
               <div className="ct-row-col-label">Due Soon Threshold</div>
               <div className="ct-row-col-value">{slaSettings.threshold}</div>
               <div className="ct-row-col-action">
-                <button 
-                  type="button" 
+                <button
+                  type="button"
                   className="ct-link-btn"
                   onClick={() => handleOpenEdit('threshold', slaSettings.threshold)}
                 >
@@ -335,7 +374,7 @@ const SettingsPage = () => {
       >
         <div className="ct-edit-modal-content">
           <label className="ct-modal-input-label">New Value:</label>
-          <input 
+          <input
             type="text"
             className="ct-search-input"
             value={tempValue}
@@ -343,15 +382,15 @@ const SettingsPage = () => {
           />
 
           <div className="ct-modal-actions">
-            <button 
-              type="button" 
+            <button
+              type="button"
               className="btn btn-outline"
               onClick={() => setActiveEditModal(null)}
             >
               Cancel
             </button>
-            <button 
-              type="button" 
+            <button
+              type="button"
               className="btn btn-primary"
               onClick={handleSaveModal}
             >

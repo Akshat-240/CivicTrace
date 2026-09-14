@@ -26,7 +26,7 @@ class SLAPoller:
         """
         if not current_time:
             current_time = datetime.now(timezone.utc)
-            
+
         # Get all incidents that are ACTIVE or UNDER_REVIEW, and have an unresolved SLA
         stmt = (
             select(Incident.id)
@@ -35,14 +35,14 @@ class SLAPoller:
             .where(SLA.state != AccountabilityState.RESOLVED)
             .where(SLA.state != AccountabilityState.ESCALATION_ELIGIBLE) # Terminal states don't need continuous ticking
         )
-        
+
         result = await self.session.execute(stmt)
         incident_ids = result.scalars().all()
-        
+
         summary = {"processed": 0, "failed": 0, "total": len(incident_ids), "errors": []}
-        
+
         sla_service = AccountabilityService(self.session)
-        
+
         for inc_id in incident_ids:
             try:
                 await sla_service.evaluate_sla(inc_id, current_time=current_time)
@@ -53,5 +53,5 @@ class SLAPoller:
                 summary["errors"].append(str(e))
                 # Rollback just in case a partial transaction was left open
                 await self.session.rollback()
-                
+
         return summary

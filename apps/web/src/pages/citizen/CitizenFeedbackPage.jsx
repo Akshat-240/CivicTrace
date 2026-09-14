@@ -43,8 +43,8 @@ export default function CitizenFeedbackPage() {
           <p className="thankyou-desc">
             Your verification for <strong>{mockCitizenFeedbackTarget.id}</strong> has been logged in the CivicTrace governance ledger and factored into the authority's SLA score.
           </p>
-          <button 
-            type="button" 
+          <button
+            type="button"
             className="btn-feedback-done"
             onClick={() => setSubmitted(false)}
           >
@@ -65,7 +65,7 @@ export default function CitizenFeedbackPage() {
             {/* 3 Resolution Option Cards */}
             <div className="resolution-options-list">
               {options.map((opt) => (
-                <label 
+                <label
                   key={opt.val}
                   className={`resolution-option-card ${resolutionStatus === opt.val ? 'selected' : ''}`}
                   onClick={() => setResolutionStatus(opt.val)}
@@ -87,7 +87,7 @@ export default function CitizenFeedbackPage() {
               <label className="rating-label">Rate your experience</label>
               <div className="stars-row">
                 {[1, 2, 3, 4, 5].map((star) => (
-                  <button 
+                  <button
                     key={star}
                     type="button"
                     className={`star-btn ${rating >= star ? 'filled' : ''}`}
@@ -102,7 +102,7 @@ export default function CitizenFeedbackPage() {
             {/* Optional Comment */}
             <div className="feedback-comment-section">
               <label className="comment-label">Tell us more (optional)</label>
-              <textarea 
+              <textarea
                 className="feedback-textarea"
                 rows={3}
                 placeholder="Share anything that could help us improve..."

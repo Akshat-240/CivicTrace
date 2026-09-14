@@ -107,7 +107,7 @@ class AzureVisionProvider(AIProvider):
         headers = {
             "Ocp-Apim-Subscription-Key": self.key,
         }
-        
+
         try:
             async with httpx.AsyncClient(timeout=self.timeout) as client:
                 if media_content:

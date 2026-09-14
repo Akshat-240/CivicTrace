@@ -19,7 +19,7 @@ class AIProvider(ABC):
     ) -> AIAnalysisResult:
         """
         Analyze the given evidence and return a validated structured result.
-        
+
         Raises CivicTraceError subclasses for timeouts, rate limits, or invalid output.
         """
         pass

@@ -30,7 +30,7 @@ class TestAccountabilityService:
         db_session.add(auth)
         jur = Jurisdiction(id=uuid.uuid4(), name='J', code='J'+str(uuid.uuid4())[:8], authority_id=auth.id)
         db_session.add(jur)
-        
+
         # Add explicit SLA rule for pothole -> 48 hours
         rule = SLARule(
             id=uuid.uuid4(),
@@ -105,11 +105,11 @@ class TestAccountabilityService:
 
         svc = AccountabilityService(db_session)
         sla = await svc.start_sla(inc.id, current_time=base_time) # due in 100 hours
-        
+
         # Evaluate 50 hours later
         eval_time = base_time + timedelta(hours=50)
         sla_updated = await svc.evaluate_sla(inc.id, current_time=eval_time)
-        
+
         assert sla_updated.state == AccountabilityState.PENDING
 
     async def test_due_incident(self, db_session, base_time):
@@ -126,11 +126,11 @@ class TestAccountabilityService:
 
         svc = AccountabilityService(db_session)
         sla = await svc.start_sla(inc.id, current_time=base_time)
-        
+
         # Evaluate 80 hours later (20 hours remaining)
         eval_time = base_time + timedelta(hours=80)
         sla_updated = await svc.evaluate_sla(inc.id, current_time=eval_time)
-        
+
         assert sla_updated.state == AccountabilityState.DUE
 
     async def test_overdue_incident(self, db_session, base_time):
@@ -147,11 +147,11 @@ class TestAccountabilityService:
 
         svc = AccountabilityService(db_session)
         sla = await svc.start_sla(inc.id, current_time=base_time)
-        
+
         # Evaluate 101 hours later
         eval_time = base_time + timedelta(hours=101)
         sla_updated = await svc.evaluate_sla(inc.id, current_time=eval_time)
-        
+
         assert sla_updated.state == AccountabilityState.OVERDUE
         assert sla_updated.overdue_at == eval_time
         assert sla_updated.is_escalation_eligible == False
@@ -170,7 +170,7 @@ class TestAccountabilityService:
 
         svc = AccountabilityService(db_session)
         sla = await svc.start_sla(inc.id, current_time=base_time)
-        
+
         # Manually jump to OVERDUE first
         overdue_time = base_time + timedelta(hours=101)
         await svc.evaluate_sla(inc.id, current_time=overdue_time)
@@ -178,7 +178,7 @@ class TestAccountabilityService:
         # Jump to 175 hours later (100 + 75 overdue)
         escalation_time = base_time + timedelta(hours=175)
         sla_updated = await svc.evaluate_sla(inc.id, current_time=escalation_time)
-        
+
         assert sla_updated.state == AccountabilityState.ESCALATION_ELIGIBLE
         assert sla_updated.is_escalation_eligible == True
         assert sla_updated.escalated_at == escalation_time
@@ -197,7 +197,7 @@ class TestAccountabilityService:
 
         svc = AccountabilityService(db_session)
         await svc.start_sla(inc.id, current_time=base_time)
-        
+
         # 80 hours -> DUE
         eval_time = base_time + timedelta(hours=80)
         s1 = await svc.evaluate_sla(inc.id, current_time=eval_time)
@@ -211,7 +211,7 @@ class TestAccountabilityService:
     async def test_timezone_handling(self, db_session):
         # 6. timezone handling
         base_utc = datetime(2026, 1, 1, 12, 0, 0, tzinfo=timezone.utc)
-        
+
         auth = Authority(id=uuid.uuid4(), name="Test", short_code="T6")
         db_session.add(auth)
         jur = Jurisdiction(id=uuid.uuid4(), name='J', code='J'+str(uuid.uuid4())[:8], authority_id=auth.id)
@@ -224,6 +224,6 @@ class TestAccountabilityService:
 
         svc = AccountabilityService(db_session)
         sla = await svc.start_sla(inc.id, current_time=base_utc)
-        
+
         assert sla.started_at.tzinfo == timezone.utc
         assert sla.due_at.tzinfo == timezone.utc

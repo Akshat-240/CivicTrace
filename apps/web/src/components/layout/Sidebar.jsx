@@ -1,11 +1,11 @@
 import React from 'react';
 import { NavLink, useNavigate, useLocation } from 'react-router-dom';
-import { 
-  Home, 
-  Grid, 
-  ArrowLeftRight, 
-  Target, 
-  CheckCircle2, 
+import {
+  Home,
+  Grid,
+  ArrowLeftRight,
+  Target,
+  CheckCircle2,
   Settings,
   LogOut
 } from 'lucide-react';
@@ -42,7 +42,7 @@ const Sidebar = () => {
 
       <nav className="ct-sidebar-nav">
         {navItems.map((item) => (
-          <NavLink 
+          <NavLink
             key={item.path}
             to={item.path}
             className={({ isActive }) => `ct-nav-item ${isActive ? 'active' : ''}`}
@@ -62,18 +62,18 @@ const Sidebar = () => {
           </div>
         </div>
         <div className="ct-admin-footer-actions" style={{ display: 'flex', flexDirection: 'column', gap: '4px', marginTop: '8px', paddingTop: '8px', borderTop: '1px solid rgba(255, 255, 255, 0.06)' }}>
-          <button 
-            type="button" 
-            className="ct-admin-footer-btn" 
+          <button
+            type="button"
+            className="ct-admin-footer-btn"
             style={{ display: 'flex', alignItems: 'center', gap: '10px', background: 'transparent', border: 'none', color: '#94A3B8', padding: '8px 12px', borderRadius: '6px', fontSize: '13px', fontWeight: 500, cursor: 'pointer', textAlign: 'left', width: '100%' }}
             onClick={(e) => { e.stopPropagation(); navigate('/authority/settings'); }}
           >
             <Settings size={16} />
             <span>Settings</span>
           </button>
-          <button 
-            type="button" 
-            className="ct-admin-footer-btn" 
+          <button
+            type="button"
+            className="ct-admin-footer-btn"
             style={{ display: 'flex', alignItems: 'center', gap: '10px', background: 'transparent', border: 'none', color: '#94A3B8', padding: '8px 12px', borderRadius: '6px', fontSize: '13px', fontWeight: 500, cursor: 'pointer', textAlign: 'left', width: '100%' }}
             onClick={handleSignOut}
           >

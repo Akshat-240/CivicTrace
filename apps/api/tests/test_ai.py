@@ -74,7 +74,7 @@ class TestGeminiAIProvider:
                 "extracted_attributes": {}
             })
         )
-        
+
         result = await ai_provider.analyze_evidence(
             description=None, media_urls=["s3://bucket/image.jpg"]
         )
@@ -96,7 +96,7 @@ class TestGeminiAIProvider:
         res1 = await ai_provider.analyze_evidence("Cache test", [])
         # Change mock to ensure it's not called
         mock_gemini_client.models.generate_content.return_value = MockGenerateContentResponse("{}")
-        
+
         # Second call should hit cache
         res2 = await ai_provider.analyze_evidence("Cache test", [])
         assert res1 == res2
@@ -199,7 +199,7 @@ class TestAIService:
     async def test_persistence_of_validated_result(self, db_session, mock_provider):
         # 17. Persistence of validated result
         from app.models.incident import Incident
-        
+
         inc = Incident(
             reference_number="INC-123", status="draft", evidence_count=1
         )
@@ -229,7 +229,7 @@ class TestAIService:
 
         # Refresh from DB to verify persistence
         await db_session.refresh(ev)
-        
+
         assert ev.status == EvidenceStatus.PROCESSED
         assert ev.ai_category == "pothole"
         assert ev.ai_confidence == 0.99
@@ -240,7 +240,7 @@ class TestAIService:
 
     async def test_failure_reverts_to_failed_status(self, db_session, mock_provider):
         from app.models.incident import Incident
-        
+
         inc = Incident(
             reference_number="INC-124", status="draft", evidence_count=1
         )
@@ -257,9 +257,9 @@ class TestAIService:
 
         # Provider raises an error
         mock_provider.analyze_evidence.side_effect = CivicTraceError("API down")
-        
+
         ai_service = AIService(db_session, provider=mock_provider)
-        
+
         with pytest.raises(CivicTraceError):
             await ai_service.process_evidence(ev.id)
 

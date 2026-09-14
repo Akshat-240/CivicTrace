@@ -73,7 +73,8 @@ export async function registerCitizen(data) {
       city: data.city,
       email: data.email,
       password: data.password,
-      role: 'citizen'
+      role: data.role || 'citizen',
+      authority_id: data.authority_id || null
     }),
   });
 }
@@ -285,7 +286,7 @@ export async function transcribeSpeech(audioBlob, language = 'en-US') {
 
 export async function getWorkerTasks() {
   const token = localStorage.getItem('token');
-  return fetchAPI('/api/v1/worker/tasks', {
+  return fetchAPI('/worker/tasks', {
     method: 'GET',
     headers: token ? { Authorization: `Bearer ${token}` } : {}
   });
@@ -293,7 +294,7 @@ export async function getWorkerTasks() {
 
 export async function getWorkerTaskDetail(incidentId) {
   const token = localStorage.getItem('token');
-  return fetchAPI('/api/v1/worker/tasks/' + incidentId, {
+  return fetchAPI('/worker/tasks/' + incidentId, {
     method: 'GET',
     headers: token ? { Authorization: `Bearer ${token}` } : {}
   });
@@ -301,7 +302,7 @@ export async function getWorkerTaskDetail(incidentId) {
 
 export async function updateWorkerTaskStatus(incidentId, status) {
   const token = localStorage.getItem('token');
-  return fetchAPI('/api/v1/worker/tasks/' + incidentId + '/status', {
+  return fetchAPI('/worker/tasks/' + incidentId + '/status', {
     method: 'PATCH',
     headers: token ? { Authorization: `Bearer ${token}` } : {},
     body: JSON.stringify({ status })
@@ -311,11 +312,11 @@ export async function updateWorkerTaskStatus(incidentId, status) {
 export async function submitWorkerResolution(incidentId, formData) {
   const token = localStorage.getItem('token') || localStorage.getItem('ct_auth_token');
   const url = `${API_BASE_URL}/api/v1/worker/tasks/${incidentId}/submit-resolution`;
-  
-  // NOTE: When sending FormData, do NOT set Content-Type header. 
+
+  // NOTE: When sending FormData, do NOT set Content-Type header.
   // fetch will automatically set it to multipart/form-data with the correct boundary.
   const headers = token ? { Authorization: `Bearer ${token}` } : {};
-  
+
   const response = await fetch(url, {
     method: 'POST',
     headers,
@@ -334,5 +335,20 @@ export async function submitWorkerResolution(incidentId, formData) {
 }
 
 export async function getIntelligenceReport(incidentId) {
-  return fetchAPI(`/api/v1/incidents/${incidentId}/intelligence-report`);
+  return fetchAPI(`/incidents/${incidentId}/intelligence-report`);
+}
+
+export async function assignWorker(incidentId, workerId) {
+  return fetchAPI(`/incidents/${incidentId}/assign-worker`, {
+    method: 'POST',
+    body: JSON.stringify({ worker_id: workerId })
+  });
+}
+
+export async function getAuthorityWorkers() {
+  return fetchAPI(`/auth/workers`);
+}
+
+export async function getAuthorities() {
+  return fetchAPI('/auth/authorities');
 }

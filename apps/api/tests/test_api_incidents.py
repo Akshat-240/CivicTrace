@@ -38,7 +38,7 @@ class TestIncidentsAPI:
             "/api/v1/incidents",
             json={"title": "Test Incident 1", "issue_type": "pothole"},
         )
-        
+
         response = await async_client.get("/api/v1/incidents")
         assert response.status_code == 200
         data = response.json()

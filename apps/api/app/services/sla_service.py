@@ -109,10 +109,10 @@ class AccountabilityService:
             }
         )
         self.session.add(event)
-        
+
         if incident.status == IncidentStatus.DRAFT:
             incident.status = IncidentStatus.ACTIVE
-        
+
         await self.session.flush()
         return sla_record
 
@@ -163,9 +163,9 @@ class AccountabilityService:
 
         if new_state != old_state:
             sla_record.state = new_state
-            
+
             event_type = EventType.ESCALATION_TRIGGERED if new_state == AccountabilityState.ESCALATION_ELIGIBLE else EventType.SLA_STATE_CHANGED
-            
+
             event = IncidentEvent(
                 incident_id=incident_id,
                 event_type=event_type,

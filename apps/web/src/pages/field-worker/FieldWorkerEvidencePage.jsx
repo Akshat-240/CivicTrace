@@ -8,7 +8,7 @@ const FieldWorkerEvidencePage = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const id = searchParams.get('id');
-  
+
   const [task, setTask] = useState(null);
   const [loading, setLoading] = useState(true);
 
@@ -70,12 +70,12 @@ const FieldWorkerEvidencePage = () => {
       <div className="ct-fw-evidence-grid">
         <div className="ct-fw-card ct-fw-camera-card">
           <div className="ct-fw-card-header-label">Resolution Photo</div>
-          
+
           <div className="ct-fw-camera-viewport">
             {capturedImage ? (
               <div className="ct-fw-captured-preview">
                 <img src={capturedImage} alt="Captured resolution" />
-                <button 
+                <button
                   type="button"
                   className="ct-fw-retake-btn"
                   onClick={() => setCapturedImage(null)}
@@ -95,10 +95,10 @@ const FieldWorkerEvidencePage = () => {
 
           {!capturedImage && (
             <div className="ct-fw-camera-controls">
-              <input 
-                type="file" 
-                accept="image/*" 
-                capture="environment" 
+              <input
+                type="file"
+                accept="image/*"
+                capture="environment"
                 ref={fileInputRef}
                 style={{ display: 'none' }}
                 onChange={handleFileChange}
@@ -123,10 +123,10 @@ const FieldWorkerEvidencePage = () => {
 
         <div className="ct-fw-card ct-fw-evidence-form-card">
           <div className="ct-fw-card-header-label">Field Notes</div>
-          
+
           <div className="ct-fw-form-group">
             <label className="ct-fw-form-label">Material & Action Summary</label>
-            <textarea 
+            <textarea
               className="ct-fw-form-textarea"
               placeholder="e.g. Filled pothole with 2 bags of cold-mix asphalt and leveled surface."
               value={notes}
@@ -135,8 +135,8 @@ const FieldWorkerEvidencePage = () => {
           </div>
 
           <div className="ct-fw-evidence-action-area">
-            <button 
-              type="button" 
+            <button
+              type="button"
               className="ct-fw-continue-btn"
               disabled={!capturedImage}
               onClick={handleContinue}

@@ -5,7 +5,7 @@ import './Header.css';
 
 const Header = () => {
   const location = useLocation();
-  
+
   const getPageTitle = () => {
     const path = location.pathname;
     if (path.includes('dashboard')) return 'Dashboard Overview';
@@ -22,13 +22,13 @@ const Header = () => {
       <div className="header-left">
         <h1 className="page-title">{getPageTitle()}</h1>
       </div>
-      
+
       <div className="header-right">
         <div className="location-context">
           <MapPin size={16} className="context-icon" />
           <span className="context-text">LMC Civil · Lucknow</span>
         </div>
-        
+
         <button className="notification-btn">
           <Bell size={20} />
           <span className="notification-badge"></span>

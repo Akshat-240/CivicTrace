@@ -33,12 +33,14 @@ class IncidentListItem(AuditFields):
 
     reference_number: str
     status: IncidentStatus
+    priority: Optional[str] = None
     issue_type: Optional[IssueType] = None
     title: Optional[str] = None
     evidence_count: int
     ai_ambiguity_flag: bool
     location: Optional[LocationResponse] = None
     authority: Optional[AuthorityResponse] = None
+    responsible_department: Optional[str] = None
     # Accountability state only (not full SLA record)
     accountability_state: Optional[str] = None
 
@@ -64,6 +66,7 @@ class IncidentDetail(AuditFields):
     location: Optional[LocationResponse] = None
     jurisdiction: Optional[JurisdictionResponse] = None
     authority: Optional[AuthorityResponse] = None
+    responsible_department: Optional[str] = None
     sla: Optional[SLAResponse] = None
     verification: Optional[VerificationResponse] = None
 

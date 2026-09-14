@@ -1,13 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { 
-  Search, 
-  Check, 
-  Clock, 
-  ShieldCheck, 
-  CheckCircle2, 
-  MapPin, 
-  Building2, 
+import {
+  Search,
+  Check,
+  Clock,
+  ShieldCheck,
+  CheckCircle2,
+  MapPin,
+  Building2,
   Sparkles,
   Loader2,
   AlertTriangle
@@ -18,7 +18,7 @@ import './CitizenTrackPage.css';
 export default function CitizenTrackPage() {
   const [searchParams] = useSearchParams();
   const urlId = searchParams.get('id');
-  
+
   const [searchId, setSearchId] = useState('');
   const [incident, setIncident] = useState(null);
   const [timeline, setTimeline] = useState([]);
@@ -35,10 +35,10 @@ export default function CitizenTrackPage() {
     try {
       setLoading(true);
       setError(null);
-      
+
       const data = await getIncident(idToFetch);
       setIncident(data);
-      
+
       try {
         const timelineData = await getIncidentTimeline(idToFetch);
         setTimeline(timelineData || []);
@@ -46,7 +46,7 @@ export default function CitizenTrackPage() {
         console.warn('Could not fetch timeline', err);
         setTimeline([]);
       }
-      
+
       setSearchId(data.reference_number || data.id);
     } catch (err) {
       console.error(err);
@@ -104,10 +104,10 @@ export default function CitizenTrackPage() {
       <form className="track-search-bar" onSubmit={handleSearch}>
         <span className="search-bar-label">Search Report ID</span>
         <div className="search-input-wrapper">
-          <input 
-            type="text" 
+          <input
+            type="text"
             className="track-search-input"
-            value={searchId} 
+            value={searchId}
             onChange={(e) => setSearchId(e.target.value)}
             placeholder="Enter UUID"
           />
@@ -291,7 +291,7 @@ export default function CitizenTrackPage() {
           </div>
         </div>
       )}
-      
+
       {!loading && !error && !incident && !urlId && (
         <div style={{ textAlign: 'center', padding: '3rem', color: '#6b7280' }}>
           <Search size={32} style={{ margin: '0 auto 12px', opacity: 0.5 }} />
