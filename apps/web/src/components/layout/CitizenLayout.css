@@ -1,0 +1,121 @@
+.ct-citizen-app-container {
+  display: flex;
+  min-height: 100vh;
+  background-color: #F8FAFC;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  color: #0F172A;
+}
+
+.ct-citizen-main-wrapper {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  overflow-x: hidden;
+}
+
+.ct-citizen-header {
+  height: 74px;
+  background-color: #FFFFFF;
+  border-bottom: 1px solid #E2E8F0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 32px;
+  position: sticky;
+  top: 0;
+  z-index: 40;
+}
+
+.ct-citizen-header-left {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.ct-citizen-header-title {
+  font-size: 20px;
+  font-weight: 700;
+  color: #0F172A;
+  margin: 0;
+  line-height: 1.2;
+}
+
+.ct-citizen-header-subtitle {
+  font-size: 13px;
+  color: #64748B;
+  margin: 0;
+}
+
+.ct-citizen-header-right {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.ct-citizen-location-pill {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 2px;
+}
+
+.ct-location-title-row {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.ct-loc-pin-icon {
+  color: #2563EB;
+}
+
+.ct-location-text {
+  font-size: 13px;
+  font-weight: 600;
+  color: #1E293B;
+}
+
+.ct-location-status-row {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.ct-loc-green-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background-color: #10B981;
+  box-shadow: 0 0 6px rgba(16, 185, 129, 0.6);
+}
+
+.ct-location-subtext {
+  font-size: 11px;
+  color: #64748B;
+}
+
+.ct-header-report-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background-color: #2563EB;
+  color: #FFFFFF;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.ct-header-report-btn:hover {
+  background-color: #1D4ED8;
+}
+
+.ct-citizen-content {
+  flex: 1;
+  padding: 24px 32px;
+  overflow-y: auto;
+}

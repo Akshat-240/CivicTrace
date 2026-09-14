@@ -31,10 +31,13 @@ class TestAccountabilityService:
             sla_hours_low=168, sla_hours_medium=72, sla_hours_high=24, sla_hours_critical=4
         )
         db_session.add(auth)
+        from app.models.jurisdiction import Jurisdiction
+        jur = Jurisdiction(id=__import__('uuid').uuid4(), name='J', code='J'+str(__import__('uuid').uuid4())[:8], authority_id=auth.id)
+        db_session.add(jur)
         
         inc = Incident(
             reference_number="INC-SLA-1", status=IncidentStatus.ACTIVE, issue_type="POTHOLE",
-            created_at=base_time, authority_id=auth.id
+            created_at=base_time, authority_id=auth.id, jurisdiction_id=jur.id
         )
         db_session.add(inc)
         await db_session.flush()
@@ -88,7 +91,10 @@ class TestAccountabilityService:
         # 1. pending incident
         auth = Authority(id=uuid.uuid4(), name="Test", short_code="T", sla_hours_low=100)
         db_session.add(auth)
-        inc = Incident(reference_number="INC-SLA-3", status=IncidentStatus.ACTIVE, authority_id=auth.id)
+        from app.models.jurisdiction import Jurisdiction
+        jur = Jurisdiction(id=__import__('uuid').uuid4(), name='J', code='J'+str(__import__('uuid').uuid4())[:8], authority_id=auth.id)
+        db_session.add(jur)
+        inc = Incident(reference_number="INC-SLA-3", status=IncidentStatus.ACTIVE, authority_id=auth.id, jurisdiction_id=jur.id)
         db_session.add(inc)
         await db_session.flush()
         priority = Priority(incident_id=inc.id, final_priority=PriorityLevel.LOW)
@@ -108,7 +114,10 @@ class TestAccountabilityService:
         # 2. due incident (within 24 hours of deadline)
         auth = Authority(id=uuid.uuid4(), name="Test", short_code="T2", sla_hours_low=100)
         db_session.add(auth)
-        inc = Incident(reference_number="INC-SLA-4", status=IncidentStatus.ACTIVE, authority_id=auth.id)
+        from app.models.jurisdiction import Jurisdiction
+        jur = Jurisdiction(id=__import__('uuid').uuid4(), name='J', code='J'+str(__import__('uuid').uuid4())[:8], authority_id=auth.id)
+        db_session.add(jur)
+        inc = Incident(reference_number="INC-SLA-4", status=IncidentStatus.ACTIVE, authority_id=auth.id, jurisdiction_id=jur.id)
         db_session.add(inc)
         await db_session.flush()
         priority = Priority(incident_id=inc.id, final_priority=PriorityLevel.LOW)
@@ -128,7 +137,10 @@ class TestAccountabilityService:
         # 3. overdue incident
         auth = Authority(id=uuid.uuid4(), name="Test", short_code="T3", sla_hours_low=100)
         db_session.add(auth)
-        inc = Incident(reference_number="INC-SLA-5", status=IncidentStatus.ACTIVE, authority_id=auth.id)
+        from app.models.jurisdiction import Jurisdiction
+        jur = Jurisdiction(id=__import__('uuid').uuid4(), name='J', code='J'+str(__import__('uuid').uuid4())[:8], authority_id=auth.id)
+        db_session.add(jur)
+        inc = Incident(reference_number="INC-SLA-5", status=IncidentStatus.ACTIVE, authority_id=auth.id, jurisdiction_id=jur.id)
         db_session.add(inc)
         await db_session.flush()
         priority = Priority(incident_id=inc.id, final_priority=PriorityLevel.LOW)
@@ -150,7 +162,10 @@ class TestAccountabilityService:
         # 4. escalation eligible (default > 72 hours overdue)
         auth = Authority(id=uuid.uuid4(), name="Test", short_code="T4", sla_hours_low=100)
         db_session.add(auth)
-        inc = Incident(reference_number="INC-SLA-6", status=IncidentStatus.ACTIVE, authority_id=auth.id)
+        from app.models.jurisdiction import Jurisdiction
+        jur = Jurisdiction(id=__import__('uuid').uuid4(), name='J', code='J'+str(__import__('uuid').uuid4())[:8], authority_id=auth.id)
+        db_session.add(jur)
+        inc = Incident(reference_number="INC-SLA-6", status=IncidentStatus.ACTIVE, authority_id=auth.id, jurisdiction_id=jur.id)
         db_session.add(inc)
         await db_session.flush()
         priority = Priority(incident_id=inc.id, final_priority=PriorityLevel.LOW)
@@ -176,7 +191,10 @@ class TestAccountabilityService:
         # 9. repeated evaluation determinism
         auth = Authority(id=uuid.uuid4(), name="Test", short_code="T5", sla_hours_low=100)
         db_session.add(auth)
-        inc = Incident(reference_number="INC-SLA-7", status=IncidentStatus.ACTIVE, authority_id=auth.id)
+        from app.models.jurisdiction import Jurisdiction
+        jur = Jurisdiction(id=__import__('uuid').uuid4(), name='J', code='J'+str(__import__('uuid').uuid4())[:8], authority_id=auth.id)
+        db_session.add(jur)
+        inc = Incident(reference_number="INC-SLA-7", status=IncidentStatus.ACTIVE, authority_id=auth.id, jurisdiction_id=jur.id)
         db_session.add(inc)
         await db_session.flush()
         priority = Priority(incident_id=inc.id, final_priority=PriorityLevel.LOW)
@@ -203,7 +221,10 @@ class TestAccountabilityService:
         
         auth = Authority(id=uuid.uuid4(), name="Test", short_code="T6", sla_hours_low=10)
         db_session.add(auth)
-        inc = Incident(reference_number="INC-SLA-8", status=IncidentStatus.ACTIVE, authority_id=auth.id)
+        from app.models.jurisdiction import Jurisdiction
+        jur = Jurisdiction(id=__import__('uuid').uuid4(), name='J', code='J'+str(__import__('uuid').uuid4())[:8], authority_id=auth.id)
+        db_session.add(jur)
+        inc = Incident(reference_number="INC-SLA-8", status=IncidentStatus.ACTIVE, authority_id=auth.id, jurisdiction_id=jur.id)
         db_session.add(inc)
         await db_session.flush()
         priority = Priority(incident_id=inc.id, final_priority=PriorityLevel.LOW)

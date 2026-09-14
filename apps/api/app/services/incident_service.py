@@ -64,8 +64,38 @@ class IncidentService:
             summary="Incident submitted via API",
         )
         await self.event_repo.create(event)
+        
+        await self.session.flush()
+        
+        # Run orchestration workflow
+        await self.process_incident_workflow(incident.id)
 
         return await self.get_incident(incident.id)
+
+    async def process_incident_workflow(self, incident_id: uuid.UUID) -> None:
+        """
+        Orchestrates the lifecycle for a new incident:
+        1. GIS Jurisdiction Resolution
+        2. Priority Computation
+        3. SLA Clock Start
+        """
+        from app.services.priority_service import PriorityService
+        from app.services.sla_service import AccountabilityService
+
+        # 1. GIS assignment
+        incident = await self.assign_jurisdiction(incident_id)
+
+        # 2. Priority computation
+        p_service = PriorityService(self.session)
+        await p_service.compute_priority(incident.id)
+
+        # refresh incident to get priority
+        incident = await self.get_incident(incident.id)
+
+        # 3. SLA start (only if authority was assigned)
+        if incident.authority_id:
+            sla_service = AccountabilityService(self.session)
+            await sla_service.start_sla(incident.id)
 
     async def get_incident(self, incident_id: uuid.UUID) -> Incident:
         incident = await self.incident_repo.get_by_id(incident_id)
@@ -91,7 +121,7 @@ class IncidentService:
                 summary="GIS resolution failed: No location attached to incident.",
             )
             await self.event_repo.create(event)
-            await self.session.commit()
+            await self.session.flush()
             return await self.get_incident(incident.id)
 
         gis_service = GISService(self.session)
@@ -126,7 +156,7 @@ class IncidentService:
                 summary=f"GIS resolution issue ({result.status.value}): {result.explanation}",
             ))
 
-        await self.session.commit()
+        await self.session.flush()
         return await self.get_incident(incident.id)
 
     async def list_incidents(
@@ -150,3 +180,41 @@ class IncidentService:
         if not incident.verification:
             raise NotFoundError(f"Verification data not found for Incident {incident_id}.")
         return incident.verification
+
+
+    async def close_incident(self, incident_id: uuid.UUID) -> Incident:
+        """
+        Closes a RESOLVED incident.
+
+        Guard: only RESOLVED incidents can be closed.
+        ACTIVE, UNDER_REVIEW, DRAFT, INVALID -> ConflictError.
+        CLOSED -> returns as-is (idempotent).
+
+        Uses flush() only -- get_db() commits at request end.
+        """
+        from app.core.errors import ConflictError
+
+        incident = await self.get_incident(incident_id)
+
+        if incident.status == IncidentStatus.CLOSED:
+            return incident  # Already closed -- idempotent.
+
+        if incident.status != IncidentStatus.RESOLVED:
+            raise ConflictError(
+                f"Only RESOLVED incidents can be closed. "
+                f"Current status: {incident.status.value}. "
+                f"Ensure human verification has approved a FULLY_RESOLVED decision first."
+            )
+
+        incident.status = IncidentStatus.CLOSED
+
+        await self.event_repo.create(IncidentEvent(
+            incident_id=incident.id,
+            event_type=EventType.INCIDENT_STATUS_CHANGED,
+            actor="authority",
+            summary="Incident closed after verified resolution.",
+            payload={"previous_status": "resolved", "new_status": "closed"},
+        ))
+        await self.session.flush()
+
+        return await self.get_incident(incident.id)
