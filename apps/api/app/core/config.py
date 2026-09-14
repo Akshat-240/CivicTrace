@@ -93,6 +93,13 @@ class Settings(BaseSettings):
     gemini_model: str = Field(default="gemini-1.5-flash")
 
     # ------------------------------------------------------------------
+    # Storage (Supabase)
+    # ------------------------------------------------------------------
+    supabase_url: str | None = None
+    supabase_secret_key: str | None = None
+    supabase_storage_bucket: str = "evidence"
+
+    # ------------------------------------------------------------------
     # Derived helpers
     # ------------------------------------------------------------------
     @property
@@ -113,3 +120,4 @@ def get_settings() -> Settings:
     easy overriding in tests via app.dependency_overrides.
     """
     return Settings()
+

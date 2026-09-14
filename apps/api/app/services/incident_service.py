@@ -12,7 +12,7 @@ from app.models.enums import EventType, IncidentStatus
 from app.models.event import IncidentEvent
 from app.models.incident import Incident
 from app.models.location import Location
-from app.models.priority import Priority
+# from app.models.priority import Priority
 from app.models.sla import SLA
 from app.models.verification import VerificationRecord
 from app.repositories.event_repo import EventRepository
@@ -83,15 +83,15 @@ class IncidentService:
         2. Priority Computation
         3. SLA Clock Start
         """
-        from app.services.priority_service import PriorityService
+        # from app.services.priority_service import PriorityService
         from app.services.sla_service import AccountabilityService
 
         # 1. GIS assignment
         incident = await self.assign_jurisdiction(incident_id)
 
         # 2. Priority computation
-        p_service = PriorityService(self.session)
-        await p_service.compute_priority(incident.id)
+        # p_service = PriorityService(self.session)
+        # await p_service.compute_priority(incident.id)
 
         # refresh incident to get priority
         incident = await self.get_incident(incident.id)
@@ -107,7 +107,7 @@ class IncidentService:
             raise NotFoundError(f"Incident {incident_id} not found.")
         await self.session.refresh(
             incident,
-            ["location", "jurisdiction", "authority", "priority", "sla", "verification"],
+            ["location", "jurisdiction", "authority",  "sla", "verification"],
         )
         return incident
 
@@ -226,3 +226,4 @@ class IncidentService:
         await self.session.flush()
 
         return await self.get_incident(incident.id)
+

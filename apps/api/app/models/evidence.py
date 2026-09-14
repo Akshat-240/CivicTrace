@@ -35,7 +35,7 @@ from sqlalchemy.dialects.postgresql import JSONB, UUID as PG_UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.core.database import Base
-from app.models.enums import EvidenceStatus, EvidenceType
+from app.models.enums import EvidenceStatus, EvidenceType, EvidencePhase
 
 if TYPE_CHECKING:
     from app.models.incident import Incident
@@ -57,6 +57,10 @@ class Evidence(Base):
     # ------------------------------------------------------------------
     evidence_type: Mapped[EvidenceType] = mapped_column(
         String(20), nullable=False, index=True
+    )
+    # When in the lifecycle this evidence was gathered
+    evidence_phase: Mapped[Optional[EvidencePhase]] = mapped_column(
+        String(20), nullable=True, default=EvidencePhase.BEFORE
     )
     status: Mapped[EvidenceStatus] = mapped_column(
         String(20), nullable=False, default=EvidenceStatus.PENDING, index=True
@@ -152,3 +156,4 @@ class Evidence(Base):
             f"<Evidence id={self.id} type={self.evidence_type!r} "
             f"status={self.status!r}>"
         )
+

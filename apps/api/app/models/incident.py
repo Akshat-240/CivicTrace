@@ -37,7 +37,7 @@ from sqlalchemy.dialects.postgresql import JSONB, UUID as PG_UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.core.database import Base
-from app.models.enums import IncidentStatus, IssueType
+from app.models.enums import IncidentStatus, WorkerTaskStatus, IssueType
 
 if TYPE_CHECKING:
     from app.models.evidence import Evidence
@@ -47,6 +47,7 @@ if TYPE_CHECKING:
     from app.models.asset import Asset
     from app.models.sla import SLA
     from app.models.verification import VerificationRecord
+    from app.models.worker_profile import WorkerProfile
     from app.models.event import IncidentEvent
 
 
@@ -131,6 +132,19 @@ class Incident(Base):
     # Fusion scoring metadata (stored for explainability, not used in queries)
     fusion_metadata: Mapped[Optional[dict]] = mapped_column(JSONB, nullable=True)
 
+        # ------------------------------------------------------------------
+    # Worker Assignment
+    # ------------------------------------------------------------------
+    assigned_worker_id: Mapped[Optional[uuid.UUID]] = mapped_column(
+        PG_UUID(as_uuid=True),
+        ForeignKey("worker_profiles.id", ondelete="SET NULL"),
+        nullable=True,
+        index=True,
+    )
+    worker_status: Mapped[Optional[WorkerTaskStatus]] = mapped_column(
+        String(30), nullable=True
+    )
+
     # ------------------------------------------------------------------
     # Relationships
     # ------------------------------------------------------------------
@@ -142,6 +156,9 @@ class Incident(Base):
     )
     authority: Mapped[Optional["Authority"]] = relationship(
         "Authority", back_populates="incidents"
+    )
+    assigned_worker: Mapped[Optional["WorkerProfile"]] = relationship(
+        "WorkerProfile", back_populates="assigned_incidents"
     )
 
     evidence_items: Mapped[list["Evidence"]] = relationship(
@@ -202,7 +219,7 @@ class Incident(Base):
 
     @property
     def priority_level(self) -> Optional[str]:
-        if self.priority and self.priority.final_priority:
+        if getattr(self, 'priority', None) and self.priority.final_priority:
             return self.priority.final_priority.value if hasattr(self.priority.final_priority, "value") else str(self.priority.final_priority)
         return None
 
@@ -211,3 +228,5 @@ class Incident(Base):
             f"<Incident id={self.id} ref={self.reference_number!r} "
             f"status={self.status!r}>"
         )
+
+

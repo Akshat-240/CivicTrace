@@ -12,7 +12,7 @@ import structlog
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.errors import CivicTraceError, ConflictError, ServiceUnavailableError, ValidationError
-from app.models.enums import EventType, EvidenceStatus, EvidenceType, IncidentStatus
+from app.models.enums import EventType, EvidenceStatus, EvidenceType, IncidentStatus, EvidencePhase, EvidencePhase
 from app.models.event import IncidentEvent
 from app.models.evidence import Evidence
 from app.models.location import Location
@@ -38,7 +38,7 @@ class EvidenceService:
         self.storage_service = storage_service or StorageService()
 
     async def add_evidence(
-        self, incident_id: uuid.UUID, data: EvidenceSubmit
+        self, incident_id: uuid.UUID, data: EvidenceSubmit, evidence_phase: EvidencePhase = EvidencePhase.BEFORE
     ) -> Evidence:
         """
         Adds evidence metadata to an existing incident.
@@ -75,7 +75,7 @@ class EvidenceService:
             location_id=loc.id if loc else None,
             storage_key=data.storage_key,
             mime_type=data.mime_type,
-            file_size_bytes=data.file_size_bytes,
+            file_size_bytes=data.file_size_bytes, evidence_phase=evidence_phase,
         )
         await self.evidence_repo.create(evidence)
 
@@ -106,7 +106,7 @@ class EvidenceService:
         longitude: Optional[float] = None,
         accuracy_meters: Optional[float] = None,
         address_raw: Optional[str] = None,
-        evidence_type: Optional[EvidenceType] = None,
+        evidence_type: Optional[EvidenceType] = None, evidence_phase: EvidencePhase = EvidencePhase.BEFORE,
     ) -> Evidence:
         """
         Validates, uploads file to private storage, and records Evidence row.
@@ -181,7 +181,7 @@ class EvidenceService:
             location_id=loc.id if loc else None,
             storage_key=storage_meta.storage_key,
             mime_type=content_type,
-            file_size_bytes=storage_meta.file_size_bytes,
+            file_size_bytes=storage_meta.file_size_bytes, evidence_phase=evidence_phase,
         )
 
         try:
@@ -225,3 +225,7 @@ class EvidenceService:
         # Ensure incident exists
         await self.incident_service.get_incident(incident_id)
         return await self.evidence_repo.get_by_incident(incident_id)
+
+
+
+

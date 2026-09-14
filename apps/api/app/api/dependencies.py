@@ -24,6 +24,7 @@ from app.core.config import Settings, get_settings
 from app.core.database import get_db
 from app.core.security import decode_access_token
 from app.models.user import User
+from app.models.worker_profile import WorkerProfile
 from app.models.enums import UserRole
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="api/v1/auth/token")
@@ -77,3 +78,26 @@ def require_role(*allowed_roles: UserRole):
 # Typed aliases — use these in route function signatures for cleaner code.
 DbSession = Annotated[AsyncSession, Depends(get_db)]
 AppSettings = Annotated[Settings, Depends(get_settings)]
+
+async def get_current_worker(
+    current_user: Annotated[User, Depends(get_current_user)],
+    db: Annotated[AsyncSession, Depends(get_db)]
+) -> WorkerProfile:
+    if current_user.role != UserRole.FIELD_WORKER:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Requires field worker role"
+        )
+        
+    stmt = select(WorkerProfile).where(WorkerProfile.user_id == current_user.id)
+    result = await db.execute(stmt)
+    worker_profile = result.scalar_one_or_none()
+    
+    if worker_profile is None:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Worker profile not found"
+        )
+        
+    return worker_profile
+

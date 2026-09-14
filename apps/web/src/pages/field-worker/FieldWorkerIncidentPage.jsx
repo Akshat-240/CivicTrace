@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { getIncident } from '../../services/api';
+import { getWorkerTaskDetail, updateWorkerTaskStatus } from '../../services/api';
 import { Image as ImageIcon, ArrowRight } from 'lucide-react';
 import './FieldWorkerIncidentPage.css';
 
@@ -14,7 +14,7 @@ const FieldWorkerIncidentPage = () => {
     async function loadIncident() {
       try {
         setLoading(true);
-        const res = await getIncident(id);
+        const res = await getWorkerTaskDetail(id);
         setTask(res);
       } catch (err) {
         console.error(err);
@@ -25,7 +25,21 @@ const FieldWorkerIncidentPage = () => {
     if (id) loadIncident();
   }, [id]);
 
-  const handleContinueToMap = () => {
+  const handleContinueToMap = async () => {
+    try {
+      let currentStatus = task.worker_status;
+      if (currentStatus === 'ASSIGNED') {
+        await updateWorkerTaskStatus(task.id, 'ACCEPTED');
+        currentStatus = 'ACCEPTED';
+      }
+      if (currentStatus === 'ACCEPTED') {
+        await updateWorkerTaskStatus(task.id, 'ON_THE_WAY');
+      }
+    } catch (e) {
+      console.error(e);
+      alert('Failed to update status. Please try again.');
+      return;
+    }
     navigate(`/field-worker/location?id=${task.id}`);
   };
 
@@ -60,11 +74,11 @@ const FieldWorkerIncidentPage = () => {
             </div>
             <div className="ct-fw-meta-row">
               <span className="ct-fw-meta-key">Assigned authority</span>
-              <span className="ct-fw-meta-val">{task.authority?.name || 'Unassigned'}</span>
+              <span className="ct-fw-meta-val">Your Authority</span>
             </div>
             <div className="ct-fw-meta-row">
               <span className="ct-fw-meta-key">SLA</span>
-              <span className="ct-fw-meta-val ct-fw-meta-sla-urgent">{task.sla?.state?.toUpperCase() || 'PENDING'}</span>
+              <span className="ct-fw-meta-val ct-fw-meta-sla-urgent">{task.priority || 'PENDING'}</span>
             </div>
           </div>
         </div>
@@ -74,8 +88,7 @@ const FieldWorkerIncidentPage = () => {
           <span className="ct-fw-card-header-label">Citizen evidence</span>
           <div className="ct-fw-evidence-photo-box">
             <div className="ct-fw-photo-placeholder">
-              <ImageIcon size={36} className="ct-fw-photo-icon" />
-              <span className="ct-fw-photo-text">PHOTO</span>
+              {task.before_evidence_url ? <img src={task.before_evidence_url} alt="Before Evidence" style={{width: "100%", height: "100%", objectFit: "cover"}} /> : <><ImageIcon size={36} className="ct-fw-photo-icon" /><span className="ct-fw-photo-text">PHOTO</span></>}
             </div>
           </div>
           <div className="ct-fw-evidence-footer-note">
@@ -131,4 +144,9 @@ const FieldWorkerIncidentPage = () => {
 };
 
 export default FieldWorkerIncidentPage;
+
+
+
+
+
 

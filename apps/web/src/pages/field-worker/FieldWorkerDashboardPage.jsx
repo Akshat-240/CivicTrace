@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { getIncidents } from '../../services/api';
+import { getWorkerTasks } from '../../services/api';
 import './FieldWorkerDashboardPage.css';
 
 const FieldWorkerDashboardPage = () => {
@@ -19,9 +19,9 @@ const FieldWorkerDashboardPage = () => {
     async function fetchTasks() {
       try {
         setLoading(true);
-        const MOCK_AUTHORITY_ID = "61c6d93e-889d-42fc-b6b9-b167ce631d47";
-        const res = await getIncidents(0, 100, null, MOCK_AUTHORITY_ID);
-        const myIncidents = res?.data || [];
+        
+        const res = await getWorkerTasks();
+        const myIncidents = res || [];
         
         // Filter out resolved, closed, etc. Field workers only see active work.
         const activeTasks = myIncidents.filter(inc => {
@@ -149,3 +149,4 @@ const FieldWorkerDashboardPage = () => {
 };
 
 export default FieldWorkerDashboardPage;
+
