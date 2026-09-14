@@ -46,7 +46,10 @@ class EvidenceResponse(AuditFields):
     # Note: storage_key is NOT exposed — only a signed URL would be
     ai_category: Optional[str] = None
     ai_confidence: Optional[float] = None
+    ai_severity_raw: Optional[str] = None
     ai_safety_risk: Optional[bool] = None
     ai_ambiguity_flag: bool = False
+    ai_ambiguity_reason: Optional[str] = None
+    ai_perception_payload: Optional[dict[str, Any]] = None
     is_verification_evidence: bool = False
     location: Optional[LocationResponse] = None

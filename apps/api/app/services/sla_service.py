@@ -8,22 +8,24 @@ from typing import Optional
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.orm import selectinload
 
-from app.models.enums import AccountabilityState, EventType, PriorityLevel, IncidentStatus
+from app.models.enums import AccountabilityState, EventType, IncidentStatus
 from app.models.event import IncidentEvent
 from app.models.incident import Incident
 from app.models.sla import SLA
+from app.models.sla_rule import SLARule
 
 
 class SLAConfig:
     DUE_WARNING_HOURS = 24
     ESCALATION_DELAY_HOURS = 72
+    DEFAULT_RESOLUTION_HOURS = 72
 
 
 class AccountabilityService:
     """
-    Manages SLA tracking and accountability state machine.
+    Manages SLA tracking and accountability state machine based on
+    Authority + Issue Type SLA rules.
     """
 
     def __init__(self, session: AsyncSession):
@@ -32,7 +34,7 @@ class AccountabilityService:
 
     async def start_sla(self, incident_id: uuid.UUID, current_time: Optional[datetime] = None) -> SLA:
         """
-        Starts the SLA clock for an incident based on its Priority and Authority.
+        Starts the SLA clock for an incident based on its Authority and Issue Type.
         """
         now = current_time or datetime.now(timezone.utc)
 
@@ -46,30 +48,30 @@ class AccountabilityService:
         if not incident:
             raise ValueError(f"Incident {incident_id} not found.")
 
-        # Ensure relationships are loaded since it might be in identity map
-        await self.session.refresh(incident, attribute_names=['authority', 'priority', 'sla'])
+        # Ensure relationships are loaded
+        await self.session.refresh(incident, attribute_names=['authority', 'sla'])
 
         if not incident.authority:
             raise ValueError("Cannot start SLA: No responsible Authority assigned.")
 
-        if not incident.priority or not incident.priority.final_priority:
-            raise ValueError("Cannot start SLA: Final Priority has not been computed.")
+        # 1. Look up SLA Rule for Authority + Issue Type
+        hours = self.config.DEFAULT_RESOLUTION_HOURS
+        matched_rule = None
 
-        if incident.sla:
-            # SLA already running, we might update it if priority changed, but for simplicity
-            # we just return the running SLA or restart it. We'll restart it for this implementation.
-            pass
-
-        # Calculate SLA duration based on Authority rules for the specific Priority
-        p_level = incident.priority.final_priority
-        if p_level == PriorityLevel.CRITICAL:
-            hours = incident.authority.sla_hours_critical
-        elif p_level == PriorityLevel.HIGH:
-            hours = incident.authority.sla_hours_high
-        elif p_level == PriorityLevel.MEDIUM:
-            hours = incident.authority.sla_hours_medium
-        else:
-            hours = incident.authority.sla_hours_low
+        if incident.issue_type:
+            issue_val = incident.issue_type.value if hasattr(incident.issue_type, 'value') else str(incident.issue_type).lower()
+            rule_stmt = (
+                select(SLARule)
+                .where(
+                    SLARule.authority_id == incident.authority_id,
+                    SLARule.issue_type == issue_val,
+                    SLARule.is_active == True,
+                )
+            )
+            rule_res = await self.session.execute(rule_stmt)
+            matched_rule = rule_res.scalar_one_or_none()
+            if matched_rule:
+                hours = matched_rule.resolution_hours
 
         due_at = now + timedelta(hours=hours)
 
@@ -99,7 +101,12 @@ class AccountabilityService:
             event_type=EventType.SLA_STARTED,
             actor="system",
             summary=f"SLA clock started. {hours} hours allotted by {incident.authority.name}. Due at {due_at.isoformat()}.",
-            payload={"sla_hours": hours, "due_at": due_at.isoformat()}
+            payload={
+                "sla_hours": hours,
+                "due_at": due_at.isoformat(),
+                "rule_id": str(matched_rule.id) if matched_rule else None,
+                "issue_type": str(incident.issue_type) if incident.issue_type else None,
+            }
         )
         self.session.add(event)
         

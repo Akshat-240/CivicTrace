@@ -176,18 +176,20 @@ EVIDENCE_TYPE_MAP: dict[str, EvidenceType] = {
 
 VERIFICATION_RESULT_MAP: dict[str, VerificationResult] = {
     "FULLY_RESOLVED": VerificationResult.FULLY_RESOLVED,
-    "PARTIALLY_RESOLVED": VerificationResult.PARTIALLY_RESOLVED,
-    "UNRESOLVED": VerificationResult.UNRESOLVED,
-    "NOT_RESOLVED": VerificationResult.UNRESOLVED,
-    "INSUFFICIENT_EVIDENCE": VerificationResult.INSUFFICIENT_EVIDENCE,
+    "NOT_RESOLVED": VerificationResult.NOT_RESOLVED,
+    "UNRESOLVED": VerificationResult.NOT_RESOLVED,
+    "NO_EVIDENCE": VerificationResult.NO_EVIDENCE,
+    "INSUFFICIENT_EVIDENCE": VerificationResult.NO_EVIDENCE,
+    "HUMAN_REVIEW": VerificationResult.HUMAN_REVIEW,
 }
 
 INCIDENT_STATUS_FROM_RESOLUTION: dict[str, IncidentStatus] = {
     "FULLY_RESOLVED": IncidentStatus.RESOLVED,
-    "PARTIALLY_RESOLVED": IncidentStatus.UNDER_REVIEW,
-    "UNRESOLVED": IncidentStatus.ACTIVE,
     "NOT_RESOLVED": IncidentStatus.ACTIVE,
+    "UNRESOLVED": IncidentStatus.ACTIVE,
+    "NO_EVIDENCE": IncidentStatus.DRAFT,
     "INSUFFICIENT_EVIDENCE": IncidentStatus.DRAFT,
+    "HUMAN_REVIEW": IncidentStatus.UNDER_REVIEW,
 }
 
 

@@ -15,10 +15,10 @@ import "./VerificationPage.css";
 
 // Real VerificationResult enum values from backend.
 const GROUND_TRUTH_OPTIONS = [
-  { key: "FULLY_RESOLVED",       label: "FULLY_RESOLVED",       colorClass: "ct-gt-green"  },
-  { key: "PARTIALLY_RESOLVED",   label: "PARTIALLY_RESOLVED",   colorClass: "ct-gt-orange" },
-  { key: "UNRESOLVED",           label: "UNRESOLVED",           colorClass: "ct-gt-red"    },
-  { key: "INSUFFICIENT_EVIDENCE", label: "INSUFFICIENT_EVIDENCE", colorClass: "ct-gt-grey"  },
+  { key: "FULLY_RESOLVED", label: "Fully Resolved", colorClass: "ct-gt-green" },
+  { key: "NOT_RESOLVED",   label: "Not Resolved",   colorClass: "ct-gt-red"   },
+  { key: "NO_EVIDENCE",    label: "No Evidence",    colorClass: "ct-gt-grey"  },
+  { key: "HUMAN_REVIEW",   label: "Human Review",   colorClass: "ct-gt-orange" },
 ];
 
 const VerificationPage = () => {

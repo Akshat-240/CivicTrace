@@ -30,7 +30,6 @@ class IncidentRepository:
                 selectinload(Incident.location),
                 selectinload(Incident.jurisdiction),
                 selectinload(Incident.authority),
-                selectinload(Incident.priority),
                 selectinload(Incident.sla),
                 selectinload(Incident.verification),
             )
@@ -52,7 +51,6 @@ class IncidentRepository:
             .options(
                 selectinload(Incident.location),
                 selectinload(Incident.authority),
-                selectinload(Incident.priority),
                 selectinload(Incident.sla),
                 selectinload(Incident.verification),
             )

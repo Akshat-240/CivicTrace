@@ -28,12 +28,15 @@ class GeminiAIProvider(AIProvider):
     def __init__(self):
         settings = get_settings()
         self.model = settings.gemini_model
-        
-        # We rely on settings for the key; if it's explicitly set or we're running tests
-        if settings.gemini_api_key:
-            self.client = genai.Client(api_key=settings.gemini_api_key)
+        self.api_key = settings.gemini_api_key
+
+        if self.api_key:
+            self.client = genai.Client(api_key=self.api_key)
         else:
-            self.client = genai.Client()
+            try:
+                self.client = genai.Client()
+            except Exception:
+                self.client = None
 
         # Simple deterministic cache (in-memory for MVP)
         self._cache: dict[str, AIAnalysisResult] = {}
@@ -50,6 +53,10 @@ class GeminiAIProvider(AIProvider):
     async def analyze_evidence(
         self, description: Optional[str], media_urls: list[str]
     ) -> AIAnalysisResult:
+        if not self.client:
+            from app.core.errors import ServiceUnavailableError
+            raise ServiceUnavailableError("Gemini API key is not configured.")
+
         cache_key = self._hash_input(description, media_urls)
         if cache_key in self._cache:
             logger.info("ai_perception_cache_hit", extra={"cache_key": cache_key})

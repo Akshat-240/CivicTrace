@@ -157,15 +157,31 @@ export default function CitizenTrackPage() {
               </div>
             </div>
 
-            {/* Priority Section */}
-            {incident.priority && (
-              <div style={{ padding: '1rem 1.5rem', borderBottom: '1px solid #e5e7eb', backgroundColor: '#f9fafb' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.25rem' }}>
-                  <ShieldCheck size={16} color="#6366f1" />
-                  <span style={{ fontWeight: 600, fontSize: '0.9rem', color: '#374151' }}>Priority: {incident.priority.final_priority?.toUpperCase() || 'PENDING'}</span>
+            {/* AI Perception Analysis */}
+            {(incident.ai_category || incident.ai_confidence !== null || incident.ai_perception_payload) && (
+              <div style={{ padding: '1rem 1.5rem', borderBottom: '1px solid #e5e7eb', backgroundColor: '#f8fafc' }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                    <Sparkles size={16} color="#2563eb" />
+                    <span style={{ fontWeight: 600, fontSize: '0.9rem', color: '#1e293b' }}>
+                      AI Perception: {incident.ai_category ? incident.ai_category.toUpperCase().replace(/_/g, ' ') : 'GENERAL'}
+                    </span>
+                  </div>
+                  {incident.ai_confidence !== null && incident.ai_confidence !== undefined && (
+                    <span style={{ fontSize: '0.8rem', fontWeight: 600, color: '#2563eb', background: '#eff6ff', padding: '2px 8px', borderRadius: '4px' }}>
+                      Confidence: {Math.round(incident.ai_confidence * 100)}%
+                    </span>
+                  )}
                 </div>
-                {incident.priority.explanation && (
-                  <p style={{ fontSize: '0.85rem', color: '#6b7280', margin: 0 }}>{incident.priority.explanation}</p>
+                {incident.ai_perception_payload?.explanation && (
+                  <p style={{ fontSize: '0.85rem', color: '#64748b', margin: 0 }}>
+                    {incident.ai_perception_payload.explanation}
+                  </p>
+                )}
+                {incident.ai_ambiguity_flag && (
+                  <span style={{ display: 'inline-block', marginTop: '0.5rem', fontSize: '0.75rem', fontWeight: 600, color: '#b45309', background: '#fef3c7', padding: '2px 6px', borderRadius: '4px' }}>
+                    Ambiguous Evidence Flagged
+                  </span>
                 )}
               </div>
             )}
