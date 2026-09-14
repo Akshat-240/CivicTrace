@@ -25,16 +25,19 @@ class IncidentService:
         self.incident_repo = IncidentRepository(session)
         self.event_repo = EventRepository(session)
 
-    async def create_incident(self, data: IncidentSubmit) -> Incident:
+    async def create_incident(self, data: IncidentSubmit, citizen_id: Optional[uuid.UUID] = None) -> Incident:
         """
-        Creates a new draft incident.
-
-        In a real flow, AI perception and GIS would follow asynchronously.
-        For MVP API, we store it and mark as DRAFT.
+        Create a new incident with its initial location.
+        Always starts in DRAFT state.
         """
-        # Create location if provided
+        # Validate coordinate constraints if location is provided
         loc = None
         if data.location:
+            if not (-90.0 <= data.location.latitude <= 90.0):
+                raise ValidationError("Latitude must be between -90 and 90.")
+            if not (-180.0 <= data.location.longitude <= 180.0):
+                raise ValidationError("Longitude must be between -180 and 180.")
+
             loc = Location(
                 latitude=data.location.latitude,
                 longitude=data.location.longitude,
@@ -45,7 +48,8 @@ class IncidentService:
             await self.session.flush()
 
         metadata = dict(data.fusion_metadata or {})
-        metadata.setdefault("citizen_id", "citizen_default")
+        if citizen_id:
+            metadata["citizen_id"] = str(citizen_id)
 
         incident = Incident(
             reference_number=f"INC-{uuid.uuid4().hex[:8].upper()}",
@@ -54,7 +58,6 @@ class IncidentService:
             title=data.title,
             description=data.description,
             location_id=loc.id if loc else None,
-            evidence_count=0,
             fusion_metadata=metadata,
         )
         await self.incident_repo.create(incident)
@@ -79,23 +82,17 @@ class IncidentService:
         """
         Orchestrates the lifecycle for a new incident:
         1. GIS Jurisdiction Resolution
-        2. Priority Computation
-        3. SLA Clock Start
+        2. SLA Clock Start
         """
-        # from app.services.priority_service import PriorityService
         from app.services.sla_service import AccountabilityService
 
         # 1. GIS assignment
         incident = await self.assign_jurisdiction(incident_id)
 
-        # 2. Priority computation
-        # p_service = PriorityService(self.session)
-        # await p_service.compute_priority(incident.id)
-
-        # refresh incident to get priority
+        # refresh incident to get latest state
         incident = await self.get_incident(incident.id)
 
-        # 3. SLA start (only if authority was assigned)
+        # 2. SLA start (only if authority was assigned)
         if incident.authority_id:
             sla_service = AccountabilityService(self.session)
             await sla_service.start_sla(incident.id)

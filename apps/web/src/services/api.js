@@ -121,10 +121,10 @@ export async function getIncidentEvidence(id) {
 }
 
 export async function uploadEvidence(id, file) {
-  const token = localStorage.getItem('token');
+  const token = localStorage.getItem('ct_auth_token');
   const formData = new FormData();
   formData.append('file', file);
-  const response = await fetch(`${API_URL}/incidents/${id}/evidence/upload`, {
+  const response = await fetch(`${API_BASE_URL}/api/v1/incidents/${id}/evidence/upload`, {
     method: 'POST',
     headers: token ? { Authorization: `Bearer ${token}` } : {},
     body: formData,
@@ -282,6 +282,7 @@ export async function transcribeSpeech(audioBlob, language = 'en-US') {
   }
   return await response.json();
 }
+
 export async function getWorkerTasks() {
   const token = localStorage.getItem('token');
   return fetchAPI('/api/v1/worker/tasks', {
@@ -308,7 +309,7 @@ export async function updateWorkerTaskStatus(incidentId, status) {
 }
 
 export async function submitWorkerResolution(incidentId, formData) {
-  const token = localStorage.getItem('token');
+  const token = localStorage.getItem('token') || localStorage.getItem('ct_auth_token');
   const url = `${API_BASE_URL}/api/v1/worker/tasks/${incidentId}/submit-resolution`;
   
   // NOTE: When sending FormData, do NOT set Content-Type header. 
@@ -332,7 +333,6 @@ export async function submitWorkerResolution(incidentId, formData) {
   return await response.json();
 }
 
-
-
-
-
+export async function getIntelligenceReport(incidentId) {
+  return fetchAPI(`/api/v1/incidents/${incidentId}/intelligence-report`);
+}

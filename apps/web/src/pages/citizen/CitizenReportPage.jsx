@@ -16,7 +16,7 @@ import {
   Loader2,
   AlertTriangle
 } from 'lucide-react';
-import { createIncident, getJurisdiction, uploadEvidence, analyzeEvidence } from '../../services/api';
+import { createIncident, getJurisdiction, uploadEvidence, analyzeEvidence, getIntelligenceReport } from '../../services/api';
 import { MapContainer, TileLayer, Marker, useMapEvents } from 'react-leaflet';
 import L from 'leaflet';
 import './CitizenReportPage.css';
@@ -63,6 +63,7 @@ export default function CitizenReportPage() {
   const [evidencePreview, setEvidencePreview] = useState(null);
   const [evidenceId, setEvidenceId] = useState(null);
   const [aiResult, setAiResult] = useState(null);
+  const [intelligence, setIntelligence] = useState(null);
   const [coords, setCoords] = useState({
     latitude: null,
     longitude: null,
@@ -215,6 +216,14 @@ export default function CitizenReportPage() {
             throw new Error("AI analysis failed. Please retry.");
           }
         }
+        
+        // Generate structured intelligence report
+        try {
+          const report = await getIntelligenceReport(currentIncidentId);
+          setIntelligence(report);
+        } catch (intelErr) {
+          console.error('Intelligence Report Failed:', intelErr);
+        }
       } catch (err) {
         console.error('Failed to submit incident:', err);
         setSubmitError(err.message || 'Failed to submit incident. Please check your connection and try again.');
@@ -257,44 +266,130 @@ export default function CitizenReportPage() {
              </div>
           )}
 
-          {aiResult && (
-            <div style={{margin: '20px 0', padding: '20px', background: '#f8f9fa', borderRadius: '8px', textAlign: 'left', border: '1px solid #e9ecef'}}>
-              <h4 style={{marginTop: 0, color: '#495057', fontSize: '1.1rem', marginBottom: '15px'}}>AI Perception</h4>
-              {evidencePreview && (
-                 <div style={{marginBottom: '15px'}}>
-                   <img src={evidencePreview} alt="Evidence" style={{width: '100%', maxHeight: '200px', objectFit: 'cover', borderRadius: '4px'}} />
-                 </div>
-              )}
-              <div style={{display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', marginBottom: '15px'}}>
-                <div>
-                  <span style={{color: '#6c757d', fontSize: '0.9rem'}}>Category</span>
-                  <div style={{fontWeight: '500'}}>{aiResult.category || aiResult.ai_category || 'Unknown'}</div>
-                </div>
-                <div>
-                  <span style={{color: '#6c757d', fontSize: '0.9rem'}}>Confidence</span>
-                  <div style={{fontWeight: '500'}}>{aiResult.confidence || aiResult.ai_confidence ? `${((aiResult.confidence || aiResult.ai_confidence) * 100).toFixed(0)}%` : 'N/A'}</div>
-                </div>
-                {aiResult.severity && (
-                  <div>
-                    <span style={{color: '#6c757d', fontSize: '0.9rem'}}>Severity</span>
-                    <div style={{fontWeight: '500'}}>{aiResult.severity}</div>
-                  </div>
-                )}
+          {intelligence && (
+            <div style={{margin: '20px 0', border: '1px solid #e5e7eb', borderRadius: '8px', overflow: 'hidden', boxShadow: '0 1px 3px rgba(0,0,0,0.05)'}}>
+              <div style={{background: '#f8fafc', padding: '12px 20px', borderBottom: '1px solid #e5e7eb', display: 'flex', justifyContent: 'space-between', alignItems: 'center'}}>
+                <h3 style={{margin: 0, fontSize: '1.1rem', color: '#0f172a', fontWeight: '600'}}>CivicTrace Intelligence</h3>
+                <span style={{fontSize: '0.75rem', background: '#dbeafe', color: '#1e40af', padding: '2px 8px', borderRadius: '12px', fontWeight: '500'}}>AI + GIS Enhanced</span>
               </div>
-              {(aiResult.explanation || aiResult.visual_explanation || aiResult.ai_perception_payload?.visual_explanation) && (
-                <div style={{marginBottom: '15px'}}>
-                  <span style={{color: '#6c757d', fontSize: '0.9rem'}}>Visual Explanation</span>
-                  <p style={{margin: '5px 0 0 0', fontSize: '0.95rem'}}>{aiResult.explanation || aiResult.visual_explanation || aiResult.ai_perception_payload?.visual_explanation}</p>
+              
+              <div style={{padding: '20px'}}>
+                {/* AI EVIDENCE ASSESSMENT */}
+                <div style={{marginBottom: '24px'}}>
+                  <h4 style={{fontSize: '0.85rem', textTransform: 'uppercase', color: '#64748b', letterSpacing: '0.05em', margin: '0 0 12px 0', borderBottom: '1px solid #f1f5f9', paddingBottom: '4px'}}>AI Evidence Assessment</h4>
+                  {evidencePreview && (
+                     <div style={{marginBottom: '15px'}}>
+                       <img src={evidencePreview} alt="Evidence" style={{width: '100%', maxHeight: '160px', objectFit: 'cover', borderRadius: '6px', border: '1px solid #e2e8f0'}} />
+                     </div>
+                  )}
+                  
+                  <div style={{display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '12px'}}>
+                    <div>
+                      <span style={{color: '#64748b', fontSize: '0.8rem', display: 'block'}}>Issue</span>
+                      <div style={{fontWeight: '500', color: '#334155', fontSize: '0.95rem'}}>{intelligence.normalized_issue_category || intelligence.issue_category || 'Unknown'}</div>
+                    </div>
+                    {intelligence.severity && (
+                      <div>
+                        <span style={{color: '#64748b', fontSize: '0.8rem', display: 'block'}}>Severity</span>
+                        <div style={{fontWeight: '500', color: '#334155', fontSize: '0.95rem'}}>{intelligence.severity}</div>
+                      </div>
+                    )}
+                    {intelligence.confidence !== null && (
+                      <div>
+                        <span style={{color: '#64748b', fontSize: '0.8rem', display: 'block'}}>Confidence</span>
+                        <div style={{fontWeight: '500', color: '#334155', fontSize: '0.95rem'}}>{(intelligence.confidence * 100).toFixed(0)}%</div>
+                      </div>
+                    )}
+                    <div>
+                      <span style={{color: '#64748b', fontSize: '0.8rem', display: 'block'}}>Evidence Quality</span>
+                      <div style={{fontWeight: '500', color: '#334155', fontSize: '0.95rem'}}>{intelligence.evidence_quality || 'N/A'}</div>
+                    </div>
+                  </div>
+                  
+                  {intelligence.visual_finding && (
+                    <div style={{marginBottom: '12px'}}>
+                      <span style={{color: '#64748b', fontSize: '0.8rem', display: 'block'}}>Visual Finding</span>
+                      <p style={{margin: '2px 0 0 0', fontSize: '0.95rem', color: '#334155'}}>{intelligence.visual_finding}</p>
+                    </div>
+                  )}
+                  
+                  {intelligence.safety_risk && (
+                    <div style={{background: '#fee2e2', color: '#991b1b', padding: '8px 12px', borderRadius: '6px', fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '8px', marginTop: '8px'}}>
+                      <AlertTriangle size={14} />
+                      <span><strong>Safety Risk:</strong> Potential road-user or public hazard detected.</span>
+                    </div>
+                  )}
+                  
+                  {intelligence.ambiguity_flag && (
+                    <div style={{background: '#fef3c7', color: '#92400e', padding: '8px 12px', borderRadius: '6px', fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '8px', marginTop: '8px'}}>
+                      <AlertTriangle size={14} />
+                      <span><strong>Needs review:</strong> {intelligence.ambiguity_reason || "Image does not provide sufficient clear visual evidence."}</span>
+                    </div>
+                  )}
                 </div>
-              )}
-              {aiResult.ambiguity_flag || aiResult.ai_ambiguity_flag ? (
-                <div style={{background: '#fff3cd', color: '#856404', padding: '10px', borderRadius: '4px', fontSize: '0.9rem', display: 'flex', alignItems: 'center', gap: '8px'}}>
-                  <AlertTriangle size={16} />
-                  <span><strong>Needs review:</strong> Image does not provide sufficient visual evidence.</span>
+
+                {/* LOCATION INTELLIGENCE */}
+                <div style={{marginBottom: '24px'}}>
+                  <h4 style={{fontSize: '0.85rem', textTransform: 'uppercase', color: '#64748b', letterSpacing: '0.05em', margin: '0 0 12px 0', borderBottom: '1px solid #f1f5f9', paddingBottom: '4px'}}>Location Intelligence</h4>
+                  <div style={{display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px'}}>
+                    <div>
+                      <span style={{color: '#64748b', fontSize: '0.8rem', display: 'block'}}>Coordinates</span>
+                      <div style={{fontWeight: '500', color: '#334155', fontSize: '0.95rem'}}>{intelligence.latitude?.toFixed(4)}, {intelligence.longitude?.toFixed(4)}</div>
+                    </div>
+                    <div>
+                      <span style={{color: '#64748b', fontSize: '0.8rem', display: 'block'}}>Ward</span>
+                      <div style={{fontWeight: '500', color: '#334155', fontSize: '0.95rem'}}>{intelligence.ward || 'Pending GIS'}</div>
+                    </div>
+                    <div style={{gridColumn: '1 / -1'}}>
+                      <span style={{color: '#64748b', fontSize: '0.8rem', display: 'block'}}>Jurisdiction</span>
+                      <div style={{fontWeight: '500', color: '#334155', fontSize: '0.95rem'}}>{intelligence.jurisdiction || 'Pending GIS'}</div>
+                    </div>
+                  </div>
                 </div>
-              ) : null}
-              <div style={{marginTop: '15px', fontSize: '0.85rem', color: '#6c757d', fontStyle: 'italic', textAlign: 'center'}}>
-                Note: This is an AI perception/assessment, NOT a final authority determination.
+
+                {/* RESPONSIBILITY */}
+                <div style={{marginBottom: '24px'}}>
+                  <h4 style={{fontSize: '0.85rem', textTransform: 'uppercase', color: '#64748b', letterSpacing: '0.05em', margin: '0 0 12px 0', borderBottom: '1px solid #f1f5f9', paddingBottom: '4px'}}>Responsibility</h4>
+                  <div style={{display: 'grid', gridTemplateColumns: '1fr', gap: '12px'}}>
+                    <div>
+                      <span style={{color: '#64748b', fontSize: '0.8rem', display: 'block'}}>Responsible Authority</span>
+                      <div style={{fontWeight: '500', color: '#334155', fontSize: '0.95rem'}}>{intelligence.responsible_authority || 'Authority mapping unavailable'}</div>
+                    </div>
+                    <div>
+                      <span style={{color: '#64748b', fontSize: '0.8rem', display: 'block'}}>Department</span>
+                      <div style={{fontWeight: '500', color: '#334155', fontSize: '0.95rem'}}>{intelligence.responsible_department || 'Department mapping unavailable'}</div>
+                    </div>
+                    <div>
+                      <span style={{color: '#64748b', fontSize: '0.8rem', display: 'block'}}>Basis</span>
+                      <div style={{fontWeight: '500', color: '#334155', fontSize: '0.95rem'}}>{intelligence.responsibility_basis}</div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* SLA */}
+                <div style={{marginBottom: '24px'}}>
+                  <h4 style={{fontSize: '0.85rem', textTransform: 'uppercase', color: '#64748b', letterSpacing: '0.05em', margin: '0 0 12px 0', borderBottom: '1px solid #f1f5f9', paddingBottom: '4px'}}>Service Level Agreement</h4>
+                  <div style={{display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px'}}>
+                    <div>
+                      <span style={{color: '#64748b', fontSize: '0.8rem', display: 'block'}}>Target</span>
+                      <div style={{fontWeight: '500', color: '#334155', fontSize: '0.95rem'}}>{intelligence.resolution_target || 'N/A'}</div>
+                    </div>
+                    <div>
+                      <span style={{color: '#64748b', fontSize: '0.8rem', display: 'block'}}>Due</span>
+                      <div style={{fontWeight: '500', color: '#334155', fontSize: '0.95rem'}}>{intelligence.due_at ? new Date(intelligence.due_at).toLocaleString() : 'N/A'}</div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* SUMMARY */}
+                <div style={{background: '#f8fafc', padding: '12px 16px', borderRadius: '6px', borderLeft: '3px solid #3b82f6'}}>
+                  <h4 style={{fontSize: '0.85rem', textTransform: 'uppercase', color: '#1e40af', letterSpacing: '0.05em', margin: '0 0 8px 0'}}>CivicTrace Assessment</h4>
+                  <p style={{margin: '0', fontSize: '0.95rem', color: '#334155', lineHeight: '1.5'}}>{intelligence.civictrace_summary}</p>
+                </div>
+                
+                <div style={{marginTop: '16px', fontSize: '0.75rem', color: '#94a3b8', fontStyle: 'italic', textAlign: 'center'}}>
+                  AI perception is advisory. Final responsibility and administrative decisions are determined by CivicTrace rules and authorized workflows.
+                </div>
               </div>
             </div>
           )}
@@ -549,7 +644,10 @@ export default function CitizenReportPage() {
                   {evidenceFile && (
                     <div className="review-row">
                       <span className="review-key">Evidence</span>
-                      <span className="review-val">1 image attached (AI perception available)</span>
+                      <span className="review-val">
+                        <div style={{fontWeight: '500', color: '#1f2937'}}>1 image attached</div>
+                        <div style={{fontSize: '0.85rem', color: '#0d6efd', marginTop: '4px'}}>AI assessment available upon submission</div>
+                      </span>
                     </div>
                   )}
                   <div className="review-row">

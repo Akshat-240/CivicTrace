@@ -144,12 +144,20 @@ class AIService:
 
         media_urls = await self._resolve_media_urls(evidence.storage_key)
 
+        # Download bytes directly to send to Azure since signed URLs might be localhost and inaccessible
+        media_content: Optional[bytes] = None
+        if evidence.storage_key and not evidence.storage_key.startswith("synthetic://"):
+            try:
+                media_content = await self.storage_service.download_object(evidence.storage_key)
+            except Exception as exc:
+                logger.warning("failed_to_download_evidence_for_analysis", extra={"error": str(exc)})
+
         result: Optional[AIAnalysisResult] = None
         try:
             try:
                 # 1. Primary visual perception execution
                 result = await self.primary_provider.analyze_evidence(
-                    description=evidence.description, media_urls=media_urls
+                    description=evidence.description, media_urls=media_urls, media_content=media_content
                 )
             except (AzureOperationalError, ServiceUnavailableError) as op_err:
                 # Fallback strictly for operational failures
@@ -163,7 +171,7 @@ class AIService:
                 )
                 if self.fallback_provider is not None:
                     result = await self.fallback_provider.analyze_evidence(
-                        description=evidence.description, media_urls=media_urls
+                        description=evidence.description, media_urls=media_urls, media_content=media_content
                     )
                 else:
                     raise op_err
