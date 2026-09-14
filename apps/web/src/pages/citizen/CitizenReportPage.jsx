@@ -1,23 +1,45 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { 
-  Road, 
-  Trash2, 
-  Droplet, 
-  Waves, 
-  Lightbulb, 
-  Zap, 
-  Mic, 
-  ArrowRight, 
-  Check, 
-  UploadCloud, 
-  MapPin, 
+import {
+  Road,
+  Trash2,
+  Droplet,
+  Waves,
+  Lightbulb,
+  Zap,
+  Mic,
+  ArrowRight,
+  Check,
+  UploadCloud,
+  MapPin,
   CheckCircle2,
   Loader2,
   AlertTriangle
 } from 'lucide-react';
-import { createIncident } from '../../services/api';
+import { createIncident, getJurisdiction } from '../../services/api';
+import { MapContainer, TileLayer, Marker, useMapEvents } from 'react-leaflet';
+import L from 'leaflet';
 import './CitizenReportPage.css';
+
+// Fix Leaflet's default icon path issues with Vite
+delete L.Icon.Default.prototype._getIconUrl;
+L.Icon.Default.mergeOptions({
+  iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png',
+  iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png',
+  shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
+});
+
+function LocationMarker({ position, setPosition }) {
+  useMapEvents({
+    click(e) {
+      setPosition(e.latlng);
+    },
+  });
+
+  return position === null ? null : (
+    <Marker position={position}></Marker>
+  );
+}
 
 export default function CitizenReportPage() {
   const navigate = useNavigate();
@@ -44,29 +66,62 @@ export default function CitizenReportPage() {
     isLiveGps: false,
   });
   const [locError, setLocError] = useState(null);
+  const [mapPosition, setMapPosition] = useState(null);
+  const [resolvingGis, setResolvingGis] = useState(false);
 
-  useEffect(() => {
+  const resolveAndSetLocation = async (lat, lng, isLive) => {
+    setResolvingGis(true);
+    setLocError(null);
+    try {
+      const res = await getJurisdiction(lat, lng);
+      setCoords({
+        latitude: lat,
+        longitude: lng,
+        address_raw: res.status === 'JURISDICTION_FOUND' ? res.explanation : 'Jurisdiction unresolved',
+        isLiveGps: isLive,
+      });
+    } catch (error) {
+      console.warn("GIS resolve failed", error);
+      setCoords({
+        latitude: lat,
+        longitude: lng,
+        address_raw: `Location coordinates captured (Lat: ${lat.toFixed(4)}, Long: ${lng.toFixed(4)})`,
+        isLiveGps: isLive,
+      });
+    } finally {
+      setResolvingGis(false);
+    }
+  };
+
+  const requestGps = () => {
+    setLocError(null);
     if (typeof navigator !== 'undefined' && navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
         (pos) => {
-          setCoords({
-            latitude: pos.coords.latitude,
-            longitude: pos.coords.longitude,
-            address_raw: `GPS Location (${pos.coords.latitude.toFixed(4)}, ${pos.coords.longitude.toFixed(4)})`,
-            isLiveGps: true,
-          });
-          setLocError(null);
+          resolveAndSetLocation(pos.coords.latitude, pos.coords.longitude, true);
         },
         (err) => {
           console.warn('Geolocation unavailable or denied:', err);
-          setLocError('Location access is required to submit a report. Please enable GPS.');
+          setLocError('Location access denied or unavailable. Please choose a location on the map.');
         },
         { timeout: 10000, enableHighAccuracy: true }
       );
     } else {
       setLocError('Geolocation is not supported by your browser.');
     }
+  };
+
+  useEffect(() => {
+    requestGps();
   }, []);
+
+  const handleManualLocationSubmit = () => {
+    if (!mapPosition) {
+      setLocError('Please place a marker on the map.');
+      return;
+    }
+    resolveAndSetLocation(mapPosition.lat, mapPosition.lng, false);
+  };
 
   const categories = [
     { name: 'Road', icon: <Road size={20} />, label: 'Pothole, broken asphalt, road caving' },
@@ -95,7 +150,7 @@ export default function CitizenReportPage() {
       // Step 4: Complete submission
       setIsSubmitting(true);
       setSubmitError(null);
-      
+
       const issueTypeMap = {
         'Road': 'road_damage',
         'Garbage': 'illegal_dumping',
@@ -104,7 +159,7 @@ export default function CitizenReportPage() {
         'Streetlight': 'broken_streetlight',
         'Electrical': 'other'
       };
-      
+
       const payload = {
         title: selectedCategory + ' Issue',
         description: description || 'No description provided.',
@@ -147,13 +202,13 @@ export default function CitizenReportPage() {
             Your complaint has been assigned incident ID <strong className="id-highlight">{submittedId}</strong> and routed to the municipal triage engine.
           </p>
           <div className="success-actions">
-            <button 
+            <button
               className="btn-track-submitted"
               onClick={() => navigate(`/citizen/track?id=${realId || submittedId}`)}
             >
               Track Report ({submittedId})
             </button>
-            <button 
+            <button
               className="btn-back-dashboard"
               onClick={() => navigate('/citizen/dashboard')}
             >
@@ -172,7 +227,7 @@ export default function CitizenReportPage() {
                 <span style={{ fontSize: '0.9rem' }}>{submitError}</span>
               </div>
             )}
-            
+
             {currentStep === 1 && (
               <>
                 <div className="report-step-header">
@@ -183,7 +238,7 @@ export default function CitizenReportPage() {
                 {/* Categories 3x2 Grid */}
                 <div className="categories-grid">
                   {categories.map((cat) => (
-                    <div 
+                    <div
                       key={cat.name}
                       className={`category-select-card ${selectedCategory === cat.name ? 'selected' : ''}`}
                       onClick={() => setSelectedCategory(cat.name)}
@@ -203,15 +258,15 @@ export default function CitizenReportPage() {
                 <div className="report-desc-box">
                   <label className="desc-label">Describe the issue</label>
                   <div className="desc-textarea-wrapper">
-                    <textarea 
+                    <textarea
                       className="desc-textarea"
                       placeholder="Tell us what happened..."
                       value={description}
                       onChange={(e) => setDescription(e.target.value)}
                       rows={3}
                     />
-                    <button 
-                      type="button" 
+                    <button
+                      type="button"
                       className={`mic-btn ${isRecording ? 'recording' : ''}`}
                       onClick={handleSpeechToggle}
                       title="Voice input"
@@ -223,8 +278,8 @@ export default function CitizenReportPage() {
                 </div>
 
                 <div className="report-actions-row">
-                  <button 
-                    type="button" 
+                  <button
+                    type="button"
                     className="btn-continue-step"
                     onClick={handleNextStep}
                   >
@@ -256,15 +311,15 @@ export default function CitizenReportPage() {
                 </div>
 
                 <div className="report-actions-row">
-                  <button 
-                    type="button" 
+                  <button
+                    type="button"
                     className="btn-step-back"
                     onClick={() => setCurrentStep(1)}
                   >
                     Back
                   </button>
-                  <button 
-                    type="button" 
+                  <button
+                    type="button"
                     className="btn-continue-step"
                     onClick={handleNextStep}
                   >
@@ -306,21 +361,53 @@ export default function CitizenReportPage() {
                     <div className="simulated-map-box">
                       {!locError && <div className="map-circle-ping"></div>}
                       <span className="map-ping-label">
-                        {locError ? 'No GPS Lock' : (coords.isLiveGps ? 'Live GPS Lock Acquired' : 'Location Set')}
+                        {resolvingGis ? 'Resolving Jurisdiction...' : (locError ? 'No GPS Lock' : (coords.isLiveGps ? 'Live GPS Lock Acquired' : 'Location Set'))}
                       </span>
                     </div>
+
+                    {locError && (
+                      <div style={{ marginTop: '1rem', padding: '1rem', background: '#F8FAFC', borderRadius: '8px', border: '1px solid #E2E8F0' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem' }}>
+                          <h5 style={{ fontSize: '0.9rem', fontWeight: 600, color: '#334155', margin: 0 }}>Select Location on Map</h5>
+                          <button
+                            type="button"
+                            onClick={requestGps}
+                            style={{ padding: '0.35rem 0.75rem', backgroundColor: '#F1F5F9', color: '#475569', border: '1px solid #CBD5E1', borderRadius: '4px', fontSize: '0.75rem', cursor: 'pointer' }}
+                          >
+                            Retry GPS
+                          </button>
+                        </div>
+                        <div style={{ height: '300px', width: '100%', marginBottom: '1rem', borderRadius: '6px', overflow: 'hidden', border: '1px solid #CBD5E1' }}>
+                          <MapContainer center={[26.8467, 80.9462]} zoom={12} style={{ height: '100%', width: '100%' }}>
+                            <TileLayer
+                              url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                              attribution='&copy; OpenStreetMap contributors'
+                            />
+                            <LocationMarker position={mapPosition} setPosition={setMapPosition} />
+                          </MapContainer>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={handleManualLocationSubmit}
+                          disabled={resolvingGis || !mapPosition}
+                          style={{ width: '100%', padding: '0.65rem', backgroundColor: '#3B82F6', color: 'white', border: 'none', borderRadius: '6px', fontSize: '0.9rem', fontWeight: 500, cursor: (resolvingGis || !mapPosition) ? 'not-allowed' : 'pointer', opacity: (resolvingGis || !mapPosition) ? 0.6 : 1 }}
+                        >
+                          {resolvingGis ? 'Resolving Jurisdiction...' : 'Confirm Location'}
+                        </button>
+                      </div>
+                    )}
                   </div>
 
                 <div className="report-actions-row">
-                  <button 
-                    type="button" 
+                  <button
+                    type="button"
                     className="btn-step-back"
                     onClick={() => setCurrentStep(2)}
                   >
                     Back
                   </button>
-                  <button 
-                    type="button" 
+                  <button
+                    type="button"
                     className="btn-continue-step"
                     onClick={handleNextStep}
                     disabled={!!locError}
@@ -364,15 +451,15 @@ export default function CitizenReportPage() {
                 </div>
 
                 <div className="report-actions-row">
-                  <button 
-                    type="button" 
+                  <button
+                    type="button"
                     className="btn-step-back"
                     onClick={() => setCurrentStep(3)}
                   >
                     Back
                   </button>
-                  <button 
-                    type="button" 
+                  <button
+                    type="button"
                     className="btn-submit-final"
                     onClick={handleNextStep}
                     disabled={isSubmitting}
