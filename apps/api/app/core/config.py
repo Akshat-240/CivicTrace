@@ -120,3 +120,4 @@ def get_settings() -> Settings:
     easy overriding in tests via app.dependency_overrides.
     """
     return Settings()
+

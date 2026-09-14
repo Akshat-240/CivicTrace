@@ -149,7 +149,7 @@ const LoginPage = () => {
 
           {/* Role selector tabs */}
           <div className="ct-login-role-tabs">
-            {['Authority', 'Citizen', 'Admin'].map((role) => (
+            {['Authority', 'Field Worker', 'Citizen', 'Admin'].map((role) => (
               <button
                 key={role}
                 type="button"

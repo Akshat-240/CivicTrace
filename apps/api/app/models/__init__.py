@@ -29,7 +29,8 @@ from app.models.evidence import Evidence  # noqa: F401
 from app.models.asset import Asset  # noqa: F401
 from app.models.sla import SLA  # noqa: F401
 from app.models.sla_rule import SLARule  # noqa: F401
-from app.models.verification import VerificationRecord  # noqa: F401
+from app.models.verification import VerificationRecord
+from app.models.worker_profile import WorkerProfile  # noqa: F401
 from app.models.event import IncidentEvent  # noqa: F401
 from app.models.user import User  # noqa: F401
 
@@ -55,6 +56,8 @@ __all__ = [
     "SLA",
     "SLARule",
     "VerificationRecord",
+    "WorkerProfile",
     "IncidentEvent",
     "User",
 ]
+

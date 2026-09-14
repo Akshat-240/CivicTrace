@@ -282,3 +282,57 @@ export async function transcribeSpeech(audioBlob, language = 'en-US') {
   }
   return await response.json();
 }
+export async function getWorkerTasks() {
+  const token = localStorage.getItem('token');
+  return fetchAPI('/api/v1/worker/tasks', {
+    method: 'GET',
+    headers: token ? { Authorization: `Bearer ${token}` } : {}
+  });
+}
+
+export async function getWorkerTaskDetail(incidentId) {
+  const token = localStorage.getItem('token');
+  return fetchAPI('/api/v1/worker/tasks/' + incidentId, {
+    method: 'GET',
+    headers: token ? { Authorization: `Bearer ${token}` } : {}
+  });
+}
+
+export async function updateWorkerTaskStatus(incidentId, status) {
+  const token = localStorage.getItem('token');
+  return fetchAPI('/api/v1/worker/tasks/' + incidentId + '/status', {
+    method: 'PATCH',
+    headers: token ? { Authorization: `Bearer ${token}` } : {},
+    body: JSON.stringify({ status })
+  });
+}
+
+export async function submitWorkerResolution(incidentId, formData) {
+  const token = localStorage.getItem('token');
+  const url = `${API_BASE_URL}/api/v1/worker/tasks/${incidentId}/submit-resolution`;
+  
+  // NOTE: When sending FormData, do NOT set Content-Type header. 
+  // fetch will automatically set it to multipart/form-data with the correct boundary.
+  const headers = token ? { Authorization: `Bearer ${token}` } : {};
+  
+  const response = await fetch(url, {
+    method: 'POST',
+    headers,
+    body: formData,
+  });
+
+  if (!response.ok) {
+    let errorMessage = response.statusText;
+    try {
+      const errorData = await response.json();
+      if (errorData.detail) errorMessage = typeof errorData.detail === 'string' ? errorData.detail : JSON.stringify(errorData.detail);
+    } catch(e) {}
+    throw new Error(`API Error: ${errorMessage}`);
+  }
+  return await response.json();
+}
+
+
+
+
+

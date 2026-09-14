@@ -170,6 +170,7 @@ class UserRole(str, enum.Enum):
     CITIZEN = "citizen"
     AUTHORITY = "authority"
     ADMIN = "admin"
+    FIELD_WORKER = "field_worker"
 
 class AssetType(str, enum.Enum):
     """Infrastructure asset associated with an incident."""
@@ -184,3 +185,17 @@ class AssetType(str, enum.Enum):
     PARK = "park"
     BRIDGE = "bridge"
     OTHER = "other"
+
+
+
+class WorkerTaskStatus(str, enum.Enum):
+    ASSIGNED = "ASSIGNED"
+    ACCEPTED = "ACCEPTED"
+    ON_THE_WAY = "ON_THE_WAY"
+    AT_LOCATION = "AT_LOCATION"
+    IN_PROGRESS = "IN_PROGRESS"
+    COMPLETED = "COMPLETED"
+
+class EvidencePhase(str, enum.Enum):
+    BEFORE = "BEFORE"
+    AFTER = "AFTER"
