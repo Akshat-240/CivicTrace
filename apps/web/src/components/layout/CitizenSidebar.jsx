@@ -63,6 +63,13 @@ const CitizenSidebar = () => {
           >
             Citizen
           </button>
+          <button 
+            type="button" 
+            className="ct-portal-pill" 
+            onClick={() => navigate('/field-worker/dashboard')}
+          >
+            Worker
+          </button>
         </div>
       </div>
 

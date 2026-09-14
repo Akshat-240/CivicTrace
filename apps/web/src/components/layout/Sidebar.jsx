@@ -55,6 +55,13 @@ const Sidebar = () => {
           >
             Citizen
           </button>
+          <button 
+            type="button" 
+            style={{ flex: 1, background: 'transparent', border: 'none', color: '#94A3B8', fontSize: '11px', fontWeight: 600, padding: '5px 0', borderRadius: '4px', cursor: 'pointer' }}
+            onClick={() => navigate('/field-worker/dashboard')}
+          >
+            Worker
+          </button>
         </div>
       </div>
 

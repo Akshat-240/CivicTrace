@@ -1,0 +1,222 @@
+/* Field Worker Sidebar - High Fidelity to Figma */
+.ct-fw-sidebar {
+  width: 250px;
+  background-color: #0B132B;
+  color: #F8FAFC;
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  position: fixed;
+  left: 0;
+  top: 0;
+  z-index: 100;
+  border-right: 1px solid rgba(255, 255, 255, 0.08);
+  font-family: inherit;
+  box-sizing: border-box;
+}
+
+/* Brand */
+.ct-fw-brand {
+  padding: 24px 20px 18px 20px;
+  cursor: pointer;
+}
+
+.ct-fw-brand-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.ct-fw-brand-dot {
+  width: 10px;
+  height: 10px;
+  background-color: #2563EB;
+  border-radius: 50%;
+  display: inline-block;
+  box-shadow: 0 0 10px rgba(37, 99, 235, 0.6);
+}
+
+.ct-fw-brand-name {
+  font-size: 20px;
+  font-weight: 700;
+  letter-spacing: -0.5px;
+  color: #FFFFFF;
+}
+
+.ct-fw-brand-subtitle {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 1.2px;
+  color: #94A3B8;
+  margin-top: 6px;
+  text-transform: uppercase;
+}
+
+/* 4-Way Portal Switcher */
+.ct-fw-portal-switcher {
+  padding: 0 16px 16px 16px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.ct-fw-portal-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.8px;
+  color: #64748B;
+  margin-bottom: 8px;
+}
+
+.ct-fw-portal-pills {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 4px;
+  background-color: rgba(255, 255, 255, 0.04);
+  padding: 4px;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.ct-fw-portal-pill {
+  background: transparent;
+  border: none;
+  color: #94A3B8;
+  font-size: 10px;
+  font-weight: 600;
+  padding: 6px 2px;
+  border-radius: 6px;
+  cursor: pointer;
+  text-align: center;
+  transition: all 0.15s ease;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.ct-fw-portal-pill:hover {
+  color: #FFFFFF;
+  background-color: rgba(255, 255, 255, 0.08);
+}
+
+.ct-fw-portal-pill.active {
+  background-color: #2563EB;
+  color: #FFFFFF;
+  font-weight: 700;
+  box-shadow: 0 2px 6px rgba(37, 99, 235, 0.4);
+}
+
+/* Navigation */
+.ct-fw-nav {
+  flex: 1;
+  padding: 20px 14px;
+  overflow-y: auto;
+}
+
+.ct-fw-nav-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.ct-fw-nav-link {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  border-radius: 8px;
+  color: #94A3B8;
+  text-decoration: none;
+  font-size: 14px;
+  font-weight: 500;
+  transition: all 0.15s ease;
+}
+
+.ct-fw-nav-link:hover {
+  color: #FFFFFF;
+  background-color: rgba(255, 255, 255, 0.05);
+}
+
+.ct-fw-nav-link.active {
+  background-color: #1E293B;
+  color: #FFFFFF;
+  font-weight: 600;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+}
+
+.ct-fw-nav-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: inherit;
+}
+
+.ct-fw-nav-text {
+  flex: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Footer Profile */
+.ct-fw-footer {
+  padding: 16px 20px;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  background-color: rgba(0, 0, 0, 0.15);
+}
+
+.ct-fw-profile-label {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.8px;
+  color: #64748B;
+  margin-bottom: 8px;
+  text-transform: uppercase;
+}
+
+.ct-fw-profile-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.ct-fw-avatar {
+  width: 36px;
+  height: 36px;
+  background: linear-gradient(135deg, #1E3A8A, #2563EB);
+  color: #FFFFFF;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  font-weight: 700;
+  border: 1.5px solid rgba(255, 255, 255, 0.2);
+}
+
+.ct-fw-user-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.ct-fw-user-name {
+  font-size: 14px;
+  font-weight: 600;
+  color: #FFFFFF;
+}
+
+.ct-fw-user-role {
+  font-size: 12px;
+  color: #94A3B8;
+}
+
+/* Responsive adjustments */
+@media (max-width: 900px) {
+  .ct-fw-sidebar {
+    display: none;
+  }
+}

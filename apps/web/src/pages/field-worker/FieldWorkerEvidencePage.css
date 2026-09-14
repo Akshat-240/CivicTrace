@@ -1,0 +1,209 @@
+/* Field Worker Evidence & Work Status Page */
+.ct-fw-evidence-grid {
+  display: grid;
+  grid-template-columns: 1.1fr 1.4fr;
+  gap: 20px;
+  align-items: start;
+}
+
+/* Common Card Header */
+.ct-fw-card-top-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 20px;
+}
+
+.ct-fw-work-status-card,
+.ct-fw-resolution-evidence-card {
+  padding: 24px 28px;
+}
+
+/* Status Badge */
+.ct-fw-status-badge.in-progress {
+  background-color: #FEF3C7;
+  color: #D97706;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  padding: 4px 12px;
+  border-radius: 9999px;
+  text-transform: uppercase;
+}
+
+/* Fields */
+.ct-fw-field-group {
+  margin-bottom: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.ct-fw-field-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: #64748B;
+}
+
+.ct-fw-action-completed-val {
+  font-size: 15px;
+  font-weight: 700;
+  color: #0F172A;
+}
+
+.ct-fw-textarea {
+  width: 100%;
+  padding: 12px 14px;
+  border: 1px solid #CBD5E1;
+  border-radius: 8px;
+  font-family: inherit;
+  font-size: 13.5px;
+  line-height: 1.5;
+  color: #1E293B;
+  background-color: #FFFFFF;
+  box-sizing: border-box;
+  resize: vertical;
+  transition: border-color 0.15s ease;
+}
+
+.ct-fw-textarea:focus {
+  outline: none;
+  border-color: #2563EB;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+
+.ct-fw-readiness-badge {
+  background-color: #DCFCE7;
+  color: #16A34A;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  padding: 4px 12px;
+  border-radius: 9999px;
+  text-transform: uppercase;
+  display: inline-block;
+}
+
+/* Side by Side Evidence Boxes */
+.ct-fw-evidence-boxes-container {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-top: 14px;
+  margin-bottom: 16px;
+}
+
+.ct-fw-evidence-col {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.ct-fw-box-sublabel {
+  font-size: 12px;
+  color: #64748B;
+  font-weight: 500;
+}
+
+.ct-fw-evidence-box {
+  height: 140px;
+  border-radius: 8px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+  border: 1px solid transparent;
+  transition: all 0.2s ease;
+}
+
+.ct-fw-evidence-box.before-box {
+  background-color: #E2E8F0;
+  border-color: #CBD5E1;
+}
+
+.ct-fw-evidence-box.after-box {
+  background-color: #DCFCE7;
+  border-color: #86EFAC;
+}
+
+.ct-fw-evidence-box.after-box:hover {
+  border-color: #22C55E;
+  box-shadow: 0 2px 8px rgba(34, 197, 94, 0.2);
+}
+
+.ct-fw-box-center-tag {
+  font-size: 14px;
+  font-weight: 800;
+  letter-spacing: 1.2px;
+  color: #475569;
+}
+
+.ct-fw-box-center-tag.after-tag {
+  color: #15803D;
+}
+
+.ct-fw-evidence-pothole-hint,
+.ct-fw-evidence-repaired-hint {
+  font-size: 11px;
+  color: #64748B;
+  margin-top: 4px;
+}
+
+.ct-fw-evidence-repaired-hint {
+  color: #16A34A;
+  font-weight: 600;
+}
+
+.ct-fw-uploaded-img-preview {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* Upload Action Button */
+.ct-fw-upload-action-row {
+  margin-bottom: 18px;
+}
+
+.ct-fw-capture-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background-color: #2563EB;
+  color: #FFFFFF;
+  border: none;
+  border-radius: 8px;
+  padding: 10px 18px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  box-shadow: 0 1px 3px rgba(37, 99, 235, 0.25);
+}
+
+.ct-fw-capture-btn:hover {
+  background-color: #1D4ED8;
+}
+
+/* Evidence Footer */
+.ct-fw-evidence-footer {
+  display: flex;
+  justify-content: flex-end;
+  padding-top: 16px;
+  border-top: 1px solid #F1F5F9;
+}
+
+/* Responsive */
+@media (max-width: 900px) {
+  .ct-fw-evidence-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .ct-fw-continue-btn {
+    width: 100%;
+    justify-content: center;
+  }
+}

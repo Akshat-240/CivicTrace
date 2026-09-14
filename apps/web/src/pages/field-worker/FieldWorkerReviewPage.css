@@ -1,0 +1,276 @@
+/* Field Worker Review & Submit Page */
+.ct-fw-review-grid {
+  display: grid;
+  grid-template-columns: 1.8fr 1.2fr;
+  gap: 20px;
+  align-items: start;
+}
+
+.ct-fw-summary-card,
+.ct-fw-checks-card {
+  padding: 24px 28px;
+}
+
+/* Submission Summary */
+.ct-fw-summary-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-top: 14px;
+}
+
+.ct-fw-summary-item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid #F1F5F9;
+}
+
+.ct-fw-summary-item:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+.ct-fw-summary-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: #64748B;
+}
+
+.ct-fw-summary-val {
+  font-size: 14.5px;
+  font-weight: 600;
+  color: #0F172A;
+}
+
+.ct-fw-val-highlight {
+  color: #2563EB;
+  font-weight: 700;
+}
+
+/* Submission Checks */
+.ct-fw-pass-checks-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 14px;
+  margin-bottom: 24px;
+}
+
+.ct-fw-pass-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.ct-fw-pass-badge {
+  background-color: #DCFCE7;
+  color: #16A34A;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.5px;
+  padding: 3px 10px;
+  border-radius: 9999px;
+  display: inline-block;
+}
+
+.ct-fw-pass-name {
+  font-size: 13.5px;
+  color: #1E293B;
+  font-weight: 500;
+}
+
+.ct-fw-next-step-section {
+  margin-bottom: 28px;
+  padding: 14px 16px;
+  background-color: #F8FAFC;
+  border-radius: 8px;
+  border: 1px solid #E2E8F0;
+}
+
+.ct-fw-next-step-label {
+  display: block;
+  font-size: 11px;
+  font-weight: 700;
+  color: #64748B;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 4px;
+}
+
+.ct-fw-next-step-text {
+  font-size: 13px;
+  color: #0F172A;
+  margin: 0;
+  line-height: 1.4;
+  font-weight: 500;
+}
+
+.ct-fw-submission-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.ct-fw-submit-btn {
+  width: 100%;
+  background-color: #2563EB;
+  color: #FFFFFF;
+  border: none;
+  border-radius: 8px;
+  padding: 13px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  box-shadow: 0 1px 3px rgba(37, 99, 235, 0.3);
+}
+
+.ct-fw-submit-btn:hover {
+  background-color: #1D4ED8;
+}
+
+.ct-fw-back-btn {
+  width: 100%;
+  background: transparent;
+  color: #2563EB;
+  border: 1px solid #CBD5E1;
+  border-radius: 8px;
+  padding: 11px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.ct-fw-back-btn:hover {
+  background-color: #F8FAFC;
+  border-color: #94A3B8;
+}
+
+/* Modal Confirmation */
+.ct-fw-modal-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(15, 23, 42, 0.6);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 999;
+  padding: 20px;
+}
+
+.ct-fw-success-modal {
+  background: #FFFFFF;
+  border-radius: 16px;
+  max-width: 440px;
+  width: 100%;
+  padding: 32px 28px;
+  text-align: center;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  animation: modalPopIn 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes modalPopIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95) translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+.ct-fw-modal-icon-circle {
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  background-color: #DCFCE7;
+  color: #16A34A;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 18px auto;
+}
+
+.ct-fw-modal-title {
+  font-size: 20px;
+  font-weight: 700;
+  color: #0F172A;
+  margin: 0 0 10px 0;
+}
+
+.ct-fw-modal-desc {
+  font-size: 14px;
+  color: #64748B;
+  line-height: 1.5;
+  margin: 0 0 20px 0;
+}
+
+.ct-fw-modal-meta-box {
+  background-color: #F8FAFC;
+  border: 1px solid #E2E8F0;
+  border-radius: 8px;
+  padding: 12px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 24px;
+  font-size: 13px;
+  text-align: left;
+}
+
+.ct-fw-modal-meta-line {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  color: #64748B;
+}
+
+.ct-fw-modal-meta-line span:last-child {
+  font-weight: 600;
+  color: #0F172A;
+}
+
+.ct-fw-tag-pending {
+  background-color: #EFF6FF;
+  color: #2563EB;
+  font-size: 10px;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 4px;
+}
+
+.ct-fw-modal-confirm-btn {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background-color: #2563EB;
+  color: #FFFFFF;
+  border: none;
+  border-radius: 8px;
+  padding: 13px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.ct-fw-modal-confirm-btn:hover {
+  background-color: #1D4ED8;
+}
+
+/* Responsive */
+@media (max-width: 900px) {
+  .ct-fw-review-grid {
+    grid-template-columns: 1fr;
+  }
+}
