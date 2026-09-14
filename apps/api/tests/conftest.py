@@ -166,3 +166,4 @@ async def async_client(test_app) -> AsyncGenerator[AsyncClient, None]:
         base_url="http://testserver",
     ) as client:
         yield client
+

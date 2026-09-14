@@ -20,7 +20,7 @@ depends_on: Union[str, Sequence[str], None] = None
 
 def upgrade() -> None:
     # 1. Drop old check constraint first so data update doesn't violate it
-    op.drop_constraint("ck_verification_result", "verification_records", type_="check")
+    op.execute("ALTER TABLE verification_records DROP CONSTRAINT IF EXISTS ck_verification_result")
 
     # 2. Migrate existing verification_records data
     op.execute("UPDATE verification_records SET result = 'not_resolved' WHERE result IN ('unresolved', 'partially_resolved')")
@@ -36,7 +36,7 @@ def upgrade() -> None:
 
 def downgrade() -> None:
     # 1. Drop updated check constraint first
-    op.drop_constraint("ck_verification_result", "verification_records", type_="check")
+    op.execute("ALTER TABLE verification_records DROP CONSTRAINT IF EXISTS ck_verification_result")
 
     # 2. Map values back for downgrade compatibility
     op.execute("UPDATE verification_records SET result = 'unresolved' WHERE result IN ('not_resolved', 'human_review')")
@@ -48,3 +48,4 @@ def downgrade() -> None:
         "verification_records",
         "result IS NULL OR result IN ('fully_resolved', 'partially_resolved', 'unresolved', 'insufficient_evidence')"
     )
+

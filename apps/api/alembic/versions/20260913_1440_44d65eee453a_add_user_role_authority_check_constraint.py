@@ -31,3 +31,6 @@ def upgrade() -> None:
 
 def downgrade() -> None:
     op.drop_constraint('users_role_authority_check', 'users', type_='check')
+
+
+

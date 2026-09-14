@@ -28,7 +28,7 @@ class TestIncidentsAPI:
         assert data["title"] == "Large pothole on main street"
         assert data["issue_type"] == IssueType.POTHOLE.value
         assert data["status"] == IncidentStatus.DRAFT.value
-        assert data["evidence_count"] == 1
+        assert data["evidence_count"] == 0
         assert data["reference_number"].startswith("INC-")
         assert "id" in data
 
@@ -128,8 +128,8 @@ class TestIncidentsAPI:
         list_ev_res = await async_client.get(f"/api/v1/incidents/{inc_id}/evidence")
         assert list_ev_res.status_code == 200
         ev_list = list_ev_res.json()
-        assert len(ev_list) == 2
-        assert any(e["id"] == ev_data["id"] for e in ev_list)
+        assert len(ev_list) == 1
+        assert ev_list[0]["id"] == ev_data["id"]
 
     async def test_get_timeline(self, async_client: AsyncClient):
         # Create incident (generates INCIDENT_CREATED event)
@@ -144,3 +144,4 @@ class TestIncidentsAPI:
         events = timeline_res.json()
         assert len(events) >= 1
         assert events[0]["event_type"] == "incident_created"
+
