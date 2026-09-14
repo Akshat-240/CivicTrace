@@ -106,7 +106,7 @@ class IncidentService:
             raise NotFoundError(f"Incident {incident_id} not found.")
         await self.session.refresh(
             incident,
-            ["location", "jurisdiction", "authority", "priority", "sla", "verification"],
+            ["location", "jurisdiction", "authority", "sla", "verification"],
         )
         return incident
 

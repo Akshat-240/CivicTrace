@@ -16,7 +16,7 @@ import {
   Loader2,
   AlertTriangle
 } from 'lucide-react';
-import { createIncident, getJurisdiction } from '../../services/api';
+import { createIncident, getJurisdiction, uploadEvidence, analyzeEvidence } from '../../services/api';
 import { MapContainer, TileLayer, Marker, useMapEvents } from 'react-leaflet';
 import L from 'leaflet';
 import './CitizenReportPage.css';
@@ -59,6 +59,10 @@ export default function CitizenReportPage() {
   const [realId, setRealId] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState(null);
+  const [evidenceFile, setEvidenceFile] = useState(null);
+  const [evidencePreview, setEvidencePreview] = useState(null);
+  const [evidenceId, setEvidenceId] = useState(null);
+  const [aiResult, setAiResult] = useState(null);
   const [coords, setCoords] = useState({
     latitude: null,
     longitude: null,
@@ -142,6 +146,18 @@ export default function CitizenReportPage() {
     }
   };
 
+  const handleFileChange = (e) => {
+    if (e.target.files && e.target.files[0]) {
+      const file = e.target.files[0];
+      setEvidenceFile(file);
+      const reader = new FileReader();
+      reader.onload = (ev) => {
+        setEvidencePreview(ev.target.result);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
   const handleNextStep = async (e) => {
     e.preventDefault();
     if (currentStep < 4) {
@@ -176,14 +192,38 @@ export default function CitizenReportPage() {
       };
 
       try {
-        const response = await createIncident(payload);
-        setSubmittedId(response.reference_number || response.id);
-        setRealId(response.id);
+        let currentIncidentId = realId;
+        if (!currentIncidentId) {
+          const response = await createIncident(payload);
+          setSubmittedId(response.reference_number || response.id);
+          currentIncidentId = response.id;
+          setRealId(response.id);
+        }
+
+        if (evidenceFile && !aiResult) {
+          let currentEvId = evidenceId;
+          if (!currentEvId) {
+            const evResponse = await uploadEvidence(currentIncidentId, evidenceFile);
+            currentEvId = evResponse.id;
+            setEvidenceId(currentEvId);
+          }
+          try {
+            const aiData = await analyzeEvidence(currentIncidentId, currentEvId);
+            setAiResult(aiData);
+          } catch (aiErr) {
+            console.error('AI Analysis Failed:', aiErr);
+            throw new Error("AI analysis failed. Please retry.");
+          }
+        }
       } catch (err) {
         console.error('Failed to submit incident:', err);
         setSubmitError(err.message || 'Failed to submit incident. Please check your connection and try again.');
-      } finally {
         setIsSubmitting(false);
+        return; // Stop and allow retry
+      } finally {
+        if (!submitError) {
+          setIsSubmitting(false);
+        }
       }
     }
   };
@@ -201,6 +241,64 @@ export default function CitizenReportPage() {
           <p className="success-subtitle">
             Your complaint has been assigned incident ID <strong className="id-highlight">{submittedId}</strong> and routed to the municipal triage engine.
           </p>
+          
+          {isSubmitting && !aiResult && evidenceFile && (
+            <div style={{margin: '20px 0', padding: '15px', background: '#f8f9fa', borderRadius: '8px', textAlign: 'center'}}>
+              <Loader2 className="spinning" size={24} style={{marginBottom: '10px', color: '#0d6efd'}} />
+              <p>Analyzing evidence using AI...</p>
+            </div>
+          )}
+
+          {submitError && (
+             <div style={{margin: '20px 0', padding: '15px', background: '#fff3cd', color: '#856404', borderRadius: '8px', textAlign: 'center'}}>
+                <AlertTriangle size={24} style={{marginBottom: '10px'}} />
+                <p>{submitError}</p>
+                <button onClick={handleNextStep} style={{marginTop: '10px', padding: '5px 15px'}}>Retry Analysis</button>
+             </div>
+          )}
+
+          {aiResult && (
+            <div style={{margin: '20px 0', padding: '20px', background: '#f8f9fa', borderRadius: '8px', textAlign: 'left', border: '1px solid #e9ecef'}}>
+              <h4 style={{marginTop: 0, color: '#495057', fontSize: '1.1rem', marginBottom: '15px'}}>AI Perception</h4>
+              {evidencePreview && (
+                 <div style={{marginBottom: '15px'}}>
+                   <img src={evidencePreview} alt="Evidence" style={{width: '100%', maxHeight: '200px', objectFit: 'cover', borderRadius: '4px'}} />
+                 </div>
+              )}
+              <div style={{display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', marginBottom: '15px'}}>
+                <div>
+                  <span style={{color: '#6c757d', fontSize: '0.9rem'}}>Category</span>
+                  <div style={{fontWeight: '500'}}>{aiResult.category || aiResult.ai_category || 'Unknown'}</div>
+                </div>
+                <div>
+                  <span style={{color: '#6c757d', fontSize: '0.9rem'}}>Confidence</span>
+                  <div style={{fontWeight: '500'}}>{aiResult.confidence || aiResult.ai_confidence ? `${((aiResult.confidence || aiResult.ai_confidence) * 100).toFixed(0)}%` : 'N/A'}</div>
+                </div>
+                {aiResult.severity && (
+                  <div>
+                    <span style={{color: '#6c757d', fontSize: '0.9rem'}}>Severity</span>
+                    <div style={{fontWeight: '500'}}>{aiResult.severity}</div>
+                  </div>
+                )}
+              </div>
+              {(aiResult.explanation || aiResult.visual_explanation || aiResult.ai_perception_payload?.visual_explanation) && (
+                <div style={{marginBottom: '15px'}}>
+                  <span style={{color: '#6c757d', fontSize: '0.9rem'}}>Visual Explanation</span>
+                  <p style={{margin: '5px 0 0 0', fontSize: '0.95rem'}}>{aiResult.explanation || aiResult.visual_explanation || aiResult.ai_perception_payload?.visual_explanation}</p>
+                </div>
+              )}
+              {aiResult.ambiguity_flag || aiResult.ai_ambiguity_flag ? (
+                <div style={{background: '#fff3cd', color: '#856404', padding: '10px', borderRadius: '4px', fontSize: '0.9rem', display: 'flex', alignItems: 'center', gap: '8px'}}>
+                  <AlertTriangle size={16} />
+                  <span><strong>Needs review:</strong> Image does not provide sufficient visual evidence.</span>
+                </div>
+              ) : null}
+              <div style={{marginTop: '15px', fontSize: '0.85rem', color: '#6c757d', fontStyle: 'italic', textAlign: 'center'}}>
+                Note: This is an AI perception/assessment, NOT a final authority determination.
+              </div>
+            </div>
+          )}
+
           <div className="success-actions">
             <button
               className="btn-track-submitted"
@@ -297,18 +395,26 @@ export default function CitizenReportPage() {
                   <p className="report-step-subtitle">Photographs allow automated AI verification and rapid authority dispatch.</p>
                 </div>
 
-                <div className="evidence-upload-zone">
+                <div className="evidence-upload-zone" style={{position: 'relative'}}>
+                  <input 
+                    type="file" 
+                    accept="image/jpeg, image/png, image/webp" 
+                    onChange={handleFileChange}
+                    style={{position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', opacity: 0, cursor: 'pointer'}}
+                  />
                   <UploadCloud size={36} className="upload-cloud-icon" />
                   <p className="upload-zone-prompt">Drag & drop photo here or <span>Browse Files</span></p>
-                  <span className="upload-zone-hint">Supports JPEG, PNG, HEIC up to 15MB. Geotagged photos automatically fill coordinates.</span>
+                  <span className="upload-zone-hint">Supports JPEG, PNG, WEBP up to 20MB.</span>
                 </div>
 
-                <div className="sample-photo-preview">
-                  <span className="preview-badge">Sample Attached</span>
-                  <div className="photo-placeholder-box">
-                    <span>Pothole photo attached with GPS metadata</span>
+                {evidencePreview && (
+                  <div className="sample-photo-preview" style={{marginTop: '1rem'}}>
+                    <span className="preview-badge">Image Attached</span>
+                    <div style={{marginTop: '10px'}}>
+                      <img src={evidencePreview} alt="Evidence Preview" style={{maxHeight: '150px', borderRadius: '8px'}} />
+                    </div>
                   </div>
-                </div>
+                )}
 
                 <div className="report-actions-row">
                   <button
@@ -440,6 +546,12 @@ export default function CitizenReportPage() {
                     <span className="review-key">Location</span>
                     <span className="review-val">{coords.address_raw}</span>
                   </div>
+                  {evidenceFile && (
+                    <div className="review-row">
+                      <span className="review-key">Evidence</span>
+                      <span className="review-val">1 image attached (AI perception available)</span>
+                    </div>
+                  )}
                   <div className="review-row">
                     <span className="review-key">Responsible Department</span>
                     <span className="review-val" style={{ fontStyle: 'italic', color: '#6b7280' }}>Pending Triage Assignment</span>

@@ -120,6 +120,22 @@ export async function getIncidentEvidence(id) {
   return fetchAPI(`/incidents/${id}/evidence`);
 }
 
+export async function uploadEvidence(id, file) {
+  const token = localStorage.getItem('token');
+  const formData = new FormData();
+  formData.append('file', file);
+  const response = await fetch(`${API_URL}/incidents/${id}/evidence/upload`, {
+    method: 'POST',
+    headers: token ? { Authorization: `Bearer ${token}` } : {},
+    body: formData,
+  });
+  if (!response.ok) {
+    throw new Error(`Upload failed: ${response.statusText}`);
+  }
+  return response.json();
+}
+
+
 export async function getIncidentTimeline(id) {
   return fetchAPI(`/incidents/${id}/timeline`);
 }

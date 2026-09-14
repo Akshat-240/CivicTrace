@@ -202,8 +202,6 @@ class Incident(Base):
 
     @property
     def priority_level(self) -> Optional[str]:
-        if self.priority and self.priority.final_priority:
-            return self.priority.final_priority.value if hasattr(self.priority.final_priority, "value") else str(self.priority.final_priority)
         return None
 
     def __repr__(self) -> str:
