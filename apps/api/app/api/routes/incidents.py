@@ -89,6 +89,62 @@ async def add_evidence(
     return await service.add_evidence(incident_id, data)
 
 
+from fastapi import File, Form, UploadFile, HTTPException
+
+@router.post(
+    "/{incident_id}/evidence/upload",
+    response_model=EvidenceResponse,
+    status_code=status.HTTP_201_CREATED,
+    summary="Upload binary evidence to incident",
+)
+async def upload_evidence(
+    incident_id: uuid.UUID,
+    db: DbSession,
+    file: UploadFile = File(...),
+    description: Optional[str] = Form(None),
+    latitude: Optional[float] = Form(None),
+    longitude: Optional[float] = Form(None),
+    accuracy_meters: Optional[float] = Form(None),
+    address_raw: Optional[str] = Form(None),
+) -> Any:
+    service = EvidenceService(db)
+    content = await file.read()
+    from app.core.errors import ValidationError
+    if not content:
+        raise ValidationError("File content is empty")
+        
+    try:
+        return await service.upload_evidence(
+            incident_id=incident_id,
+            file_content=content,
+            filename=file.filename,
+            content_type=file.content_type,
+            description=description,
+            latitude=latitude,
+            longitude=longitude,
+            accuracy_meters=accuracy_meters,
+            address_raw=address_raw,
+        )
+    except Exception as e:
+        if hasattr(e, "status_code"):
+            raise e
+        if "maximum limit" in str(e) or "Unsupported MIME type" in str(e) or "VALIDATION_ERROR" in str(e):
+            raise HTTPException(
+                status_code=422,
+                detail={"code": "VALIDATION_ERROR", "message": str(e)}
+            )
+        if "storage" in str(e).lower() or isinstance(e, RuntimeError):
+            raise HTTPException(
+                status_code=503,
+                detail={"code": "SERVICE_UNAVAILABLE", "message": str(e)}
+            )
+        if "state and cannot accept" in str(e):
+            raise HTTPException(
+                status_code=409,
+                detail={"code": "CONFLICT", "message": str(e)}
+            )
+        raise e
+
 @router.get(
     "/{incident_id}/evidence",
     response_model=list[EvidenceResponse],

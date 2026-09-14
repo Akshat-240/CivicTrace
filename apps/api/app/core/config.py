@@ -93,6 +93,13 @@ class Settings(BaseSettings):
     gemini_model: str = Field(default="gemini-1.5-flash")
 
     # ------------------------------------------------------------------
+    # Supabase (Storage)
+    # ------------------------------------------------------------------
+    supabase_url: str = Field(default="")
+    supabase_secret_key: str = Field(default="")
+    supabase_storage_bucket: str = Field(default="evidence")
+
+    # ------------------------------------------------------------------
     # Derived helpers
     # ------------------------------------------------------------------
     @property
