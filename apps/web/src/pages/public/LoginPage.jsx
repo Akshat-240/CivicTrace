@@ -13,6 +13,7 @@ const LoginPage = () => {
     setSelectedRole(role);
     if (role === 'Admin') setEmail('admin@lucknow.gov.in');
     else if (role === 'Authority') setEmail('officer.roads@lucknow.gov.in');
+    else if (role === 'Field Worker') setEmail('worker.1@lucknow.gov.in');
     else setEmail('citizen.lucknow@example.in');
   };
 
@@ -22,6 +23,8 @@ const LoginPage = () => {
       navigate('/admin/dashboard');
     } else if (selectedRole === 'Authority') {
       navigate('/authority/dashboard');
+    } else if (selectedRole === 'Field Worker') {
+      navigate('/field-worker/dashboard');
     } else {
       navigate('/citizen/dashboard');
     }
@@ -76,7 +79,7 @@ const LoginPage = () => {
 
           {/* Role selector tabs */}
           <div className="ct-login-role-tabs">
-            {['Authority', 'Citizen', 'Admin'].map((role) => (
+            {['Authority', 'Field Worker', 'Citizen', 'Admin'].map((role) => (
               <button
                 key={role}
                 type="button"

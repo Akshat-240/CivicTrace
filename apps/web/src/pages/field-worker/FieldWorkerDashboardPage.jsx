@@ -1,27 +1,77 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { mockFieldWorkerData } from '../../data/mockData';
+import { getIncidents } from '../../services/api';
 import './FieldWorkerDashboardPage.css';
 
 const FieldWorkerDashboardPage = () => {
   const navigate = useNavigate();
-  const { summary, checklist, tasks } = mockFieldWorkerData;
+  const [tasks, setTasks] = useState([]);
+  const [loading, setLoading] = useState(true);
+  
+  const checklist = [
+    "Ensure safety gear is worn",
+    "Photograph before starting work",
+    "Log any additional materials used",
+    "Photograph completed work for verification"
+  ];
+
+  useEffect(() => {
+    async function fetchTasks() {
+      try {
+        setLoading(true);
+        const MOCK_AUTHORITY_ID = "61c6d93e-889d-42fc-b6b9-b167ce631d47";
+        const res = await getIncidents(0, 100, null, MOCK_AUTHORITY_ID);
+        const myIncidents = res?.data || [];
+        
+        // Filter out resolved, closed, etc. Field workers only see active work.
+        const activeTasks = myIncidents.filter(inc => {
+          const s = inc.status?.toUpperCase();
+          return s === 'ACTIVE' || s === 'ASSIGNED' || s === 'IN_PROGRESS';
+        });
+
+        const mapped = activeTasks.map(inc => {
+          const sla = inc.accountability_state?.toUpperCase() || 'PENDING';
+          const isHigh = sla === 'OVERDUE' || sla === 'ESCALATION_ELIGIBLE';
+          
+          return {
+            id: inc.id,
+            code: inc.reference_number || inc.id.substring(0,8),
+            title: inc.title || 'Untitled',
+            incidentName: inc.title || 'Untitled',
+            priority: isHigh ? 'HIGH' : 'NORMAL',
+            priorityBadge: isHigh ? 'Critical SLA' : 'Routine',
+            location: inc.location?.address_raw || 'Unknown Location',
+            slaRemaining: sla
+          };
+        });
+
+        setTasks(mapped);
+      } catch (err) {
+        console.error("Failed to load tasks", err);
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchTasks();
+  }, []);
 
   const handleOpenTask = (taskId) => {
     navigate(`/field-worker/tasks/${taskId}`);
   };
 
+  const highRiskCount = tasks.filter(t => t.priority === 'HIGH').length;
+
   return (
     <div className="ct-fw-page-container">
       {/* Header */}
       <div className="ct-fw-page-header">
-        <h1 className="ct-fw-page-title">{summary.title}</h1>
-        <p className="ct-fw-page-subtitle">{summary.subtitle}</p>
+        <h1 className="ct-fw-page-title">Today's Assignments</h1>
+        <p className="ct-fw-page-subtitle">Your active field jobs for today.</p>
       </div>
 
       {/* Task Cards List */}
       <div className="ct-fw-task-list">
-        {tasks.map((task, index) => {
+        {loading ? <div style={{padding: '1rem'}}>Loading assignments...</div> : tasks.map((task, index) => {
           const isHigh = task.priority === 'HIGH';
           return (
             <div 
@@ -73,6 +123,9 @@ const FieldWorkerDashboardPage = () => {
             </div>
           );
         })}
+        {!loading && tasks.length === 0 && (
+          <div style={{padding: '1rem', color: '#666'}}>No active assignments for you.</div>
+        )}
       </div>
 
       {/* Field Checklist Card */}
@@ -87,8 +140,8 @@ const FieldWorkerDashboardPage = () => {
         </div>
 
         <div className="ct-fw-checklist-badges">
-          <span className="ct-fw-count-pill jobs-pill">{summary.activeJobsCount} jobs</span>
-          <span className="ct-fw-count-pill risk-pill">{summary.highRiskCount} high risk</span>
+          <span className="ct-fw-count-pill jobs-pill">{tasks.length} jobs</span>
+          <span className="ct-fw-count-pill risk-pill">{highRiskCount} high risk</span>
         </div>
       </div>
     </div>
