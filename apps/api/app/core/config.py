@@ -9,7 +9,8 @@ by get_settings() to avoid repeated env reads.
 from functools import lru_cache
 from typing import Literal
 
-from pydantic import AnyUrl, Field, field_validator
+from pydantic import AliasChoices, AnyUrl, Field, field_validator
+from pathlib import Path
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -24,7 +25,7 @@ class Settings(BaseSettings):
     """
 
     model_config = SettingsConfigDict(
-        env_file=".env",
+        env_file=str(Path(__file__).resolve().parent.parent.parent / ".env"),
         env_file_encoding="utf-8",
         case_sensitive=False,
         extra="ignore",
@@ -44,7 +45,7 @@ class Settings(BaseSettings):
     api_v1_prefix: str = "/api/v1"
 
     # Comma-separated in env vars; list in code.
-    allowed_origins: list[str] = Field(
+    allowed_origins: list[str] | str = Field(
         default=["http://localhost:3000", "http://localhost:5173"]
     )
 
@@ -80,10 +81,55 @@ class Settings(BaseSettings):
     db_pool_timeout: int = 30
 
     # ------------------------------------------------------------------
-    # AI (Gemini)
+    # AI Providers & Configuration
     # ------------------------------------------------------------------
+    ai_primary_provider: str = Field(
+        default="azure",
+        validation_alias=AliasChoices("ai_primary_provider", "ai_provider"),
+    )
+    ai_fallback_provider: str = Field(
+        default="gemini",
+        validation_alias=AliasChoices("ai_fallback_provider"),
+    )
+
+    # Azure Computer Vision (Primary)
+    azure_ai_vision_endpoint: str = Field(
+        default="",
+        validation_alias=AliasChoices("azure_ai_vision_endpoint", "azure_vision_endpoint"),
+    )
+    azure_ai_vision_key: str = Field(
+        default="",
+        validation_alias=AliasChoices("azure_ai_vision_key", "azure_vision_key"),
+    )
+
+    # Gemini (Fallback)
     gemini_api_key: str = Field(default="")
     gemini_model: str = Field(default="gemini-1.5-flash")
+
+    @property
+    def azure_vision_configured(self) -> bool:
+        return bool(self.azure_ai_vision_endpoint and self.azure_ai_vision_key)
+
+    # ------------------------------------------------------------------
+    # Storage (Supabase)
+    # ------------------------------------------------------------------
+    supabase_url: str = Field(default="")
+    supabase_secret_key: str = Field(
+        default="",
+        validation_alias=AliasChoices("supabase_secret_key", "supabase_key"),
+    )
+    supabase_storage_bucket: str = Field(
+        default="evidence",
+        validation_alias=AliasChoices("supabase_storage_bucket", "storage_bucket"),
+    )
+
+    @property
+    def supabase_key(self) -> str:
+        return self.supabase_secret_key
+
+    @property
+    def storage_bucket(self) -> str:
+        return self.supabase_storage_bucket
 
     # ------------------------------------------------------------------
     # Derived helpers

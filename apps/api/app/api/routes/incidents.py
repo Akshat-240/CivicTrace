@@ -3,11 +3,13 @@ Incidents API routes.
 """
 
 import uuid
-from typing import Any, Sequence
+from datetime import datetime
+from typing import Any, Optional, Sequence
 
-from fastapi import APIRouter, Depends, Query, status
+from fastapi import APIRouter, Depends, File, Form, Query, UploadFile, status
 
 from app.api.dependencies import DbSession
+from app.models.enums import EvidenceType
 from app.schemas import (
     EventResponse,
     EvidenceResponse,
@@ -85,6 +87,41 @@ async def add_evidence(
 ) -> Any:
     service = EvidenceService(db)
     return await service.add_evidence(incident_id, data)
+
+
+@router.post(
+    "/{incident_id}/evidence/upload",
+    response_model=EvidenceResponse,
+    status_code=status.HTTP_201_CREATED,
+    summary="Upload evidence media file to incident",
+)
+async def upload_evidence(
+    incident_id: uuid.UUID,
+    db: DbSession,
+    file: UploadFile = File(...),
+    description: Optional[str] = Form(None),
+    occurred_at: Optional[datetime] = Form(None),
+    latitude: Optional[float] = Form(None),
+    longitude: Optional[float] = Form(None),
+    accuracy_meters: Optional[float] = Form(None),
+    address_raw: Optional[str] = Form(None),
+    evidence_type: Optional[EvidenceType] = Form(None),
+) -> Any:
+    service = EvidenceService(db)
+    content = await file.read()
+    return await service.upload_evidence(
+        incident_id=incident_id,
+        file_content=content,
+        filename=file.filename or "evidence_media.bin",
+        content_type=file.content_type or "application/octet-stream",
+        description=description,
+        occurred_at=occurred_at,
+        latitude=latitude,
+        longitude=longitude,
+        accuracy_meters=accuracy_meters,
+        address_raw=address_raw,
+        evidence_type=evidence_type,
+    )
 
 
 @router.get(
