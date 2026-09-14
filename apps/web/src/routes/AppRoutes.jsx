@@ -35,6 +35,14 @@ import CitizenHistoryPage from '../pages/citizen/CitizenHistoryPage';
 import CitizenFeedbackPage from '../pages/citizen/CitizenFeedbackPage';
 import CitizenSettingsPage from '../pages/citizen/CitizenSettingsPage';
 
+// Field Worker Portal
+import FieldWorkerLayout from '../components/layout/FieldWorkerLayout';
+import FieldWorkerDashboardPage from '../pages/field-worker/FieldWorkerDashboardPage';
+import FieldWorkerIncidentPage from '../pages/field-worker/FieldWorkerIncidentPage';
+import FieldWorkerLocationPage from '../pages/field-worker/FieldWorkerLocationPage';
+import FieldWorkerEvidencePage from '../pages/field-worker/FieldWorkerEvidencePage';
+import FieldWorkerReviewPage from '../pages/field-worker/FieldWorkerReviewPage';
+
 const AppRoutes = () => {
   return (
     <Routes>
@@ -78,6 +86,21 @@ const AppRoutes = () => {
         <Route path="feedback" element={<CitizenFeedbackPage />} />
         <Route path="feedback/:id" element={<CitizenFeedbackPage />} />
         <Route path="settings" element={<CitizenSettingsPage />} />
+      </Route>
+
+      {/* Field Worker Portal Routes */}
+      <Route path="/field-worker" element={<FieldWorkerLayout />}>
+        <Route index element={<Navigate to="dashboard" replace />} />
+        <Route path="dashboard" element={<FieldWorkerDashboardPage />} />
+        <Route path="tasks" element={<FieldWorkerDashboardPage />} />
+        <Route path="tasks/:id" element={<FieldWorkerIncidentPage />} />
+        <Route path="incident" element={<FieldWorkerIncidentPage />} />
+        <Route path="location" element={<FieldWorkerLocationPage />} />
+        <Route path="tasks/:id/location" element={<FieldWorkerLocationPage />} />
+        <Route path="evidence" element={<FieldWorkerEvidencePage />} />
+        <Route path="tasks/:id/evidence" element={<FieldWorkerEvidencePage />} />
+        <Route path="review" element={<FieldWorkerReviewPage />} />
+        <Route path="tasks/:id/review" element={<FieldWorkerReviewPage />} />
       </Route>
 
       {/* Fallback */}

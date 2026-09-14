@@ -622,4 +622,120 @@ export const mockCitizenSettings = {
   }
 };
 
+export const mockFieldWorkerData = {
+  worker: {
+    name: "Ravi Kumar",
+    role: "Field Worker",
+    team: "Zone 3 • Team B",
+    zone: "Zone 3",
+    avatar: "R"
+  },
+  summary: {
+    title: "Assigned Work",
+    subtitle: "Today • 3 active jobs • sorted by SLA risk",
+    activeJobsCount: 3,
+    highRiskCount: 1
+  },
+  checklist: [
+    "Confirm incident location",
+    "Capture before / after evidence",
+    "Record work status and notes",
+    "Submit for authority verification"
+  ],
+  tasks: [
+    {
+      id: "CT-INC-024",
+      code: "CT-INC-024",
+      title: "CT-INC-024 • Pothole on MG Road",
+      incidentName: "Pothole on MG Road",
+      category: "Road Damage",
+      detailedCategory: "Road Safety / Infrastructure",
+      location: "MG Road • Hazratganj • Ward 12",
+      fullLocation: "MG Road, Hazratganj, Lucknow",
+      ward: "Ward 12",
+      roadSegment: "Road segment B-14",
+      priority: "HIGH",
+      priorityBadge: "HIGH PRIORITY",
+      status: "In Progress",
+      slaRemaining: "03h 12m",
+      slaTotal: "High • 6 hours",
+      reportedBy: "Citizen • 14 Sep 2026, 09:42",
+      assignedAuthority: "Municipal Roads Department",
+      objective: {
+        badge: "REPAIR REQUIRED",
+        fieldAction: "Inspect, repair the pothole, and capture clear resolution evidence.",
+        beforeWork: "Confirm the exact damage location and severity before starting.",
+        completionRequirement: "After-work evidence must show the repaired surface and match the incident location."
+      },
+      locationChecks: {
+        gpsStatus: "GPS LOCKED",
+        accuracy: "± 8 m",
+        distance: "6 m",
+        coordinates: "26.8467° N, 80.9462° E",
+        wardMatch: "Confirmed",
+        incidentPin: "Within 10 m",
+        fieldBoundary: "Zone 3"
+      },
+      evidence: {
+        actionCompleted: "Pothole repaired and surface levelled",
+        workNotes: "Used cold asphalt mix. Final surface level checked. No loose debris remains in the lane.",
+        evidenceNotes: "After image shows repaired surface, matching the same road segment and no visible pothole remains.",
+        status: "IN PROGRESS",
+        readiness: "READY FOR REVIEW",
+        beforeLabel: "BEFORE",
+        afterLabel: "AFTER"
+      },
+      submission: {
+        workStatus: "Completed",
+        checks: [
+          { name: "Incident linked", status: "PASS" },
+          { name: "Location verified", status: "PASS" },
+          { name: "Evidence attached", status: "PASS" },
+          { name: "Work note added", status: "PASS" }
+        ],
+        nextStep: "Authority reviews resolution evidence and records verification."
+      }
+    },
+    {
+      id: "CT-INC-031",
+      code: "CT-INC-031",
+      title: "CT-INC-031",
+      incidentName: "Streetlight outage",
+      category: "Electrical",
+      detailedCategory: "Public Lighting / Electrical",
+      location: "Aliganj • Ward 8",
+      fullLocation: "Sector B, Aliganj, Lucknow",
+      ward: "Ward 8",
+      roadSegment: "Pole P-42",
+      priority: "MEDIUM",
+      priorityBadge: "MEDIUM",
+      status: "Assigned",
+      slaRemaining: "06h 48m",
+      slaTotal: "Medium • 12 hours",
+      reportedBy: "Citizen • 14 Sep 2026, 07:15",
+      assignedAuthority: "LMC Electrical Division"
+    },
+    {
+      id: "CT-INC-041",
+      code: "CT-INC-041",
+      title: "CT-INC-041",
+      incidentName: "Overflowing bin",
+      category: "Sanitation",
+      detailedCategory: "Solid Waste Management",
+      location: "Gomti Nagar • Ward 4",
+      fullLocation: "Vipul Khand, Gomti Nagar, Lucknow",
+      ward: "Ward 4",
+      roadSegment: "Bin Cluster #7",
+      priority: "LOW",
+      priorityBadge: "LOW",
+      status: "Assigned",
+      slaRemaining: "1d 04h",
+      slaTotal: "Low • 24 hours",
+      reportedBy: "Citizen • 13 Sep 2026, 18:30",
+      assignedAuthority: "LMC Solid Waste Management"
+    }
+  ]
+};
+
+
 

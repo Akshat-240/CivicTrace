@@ -1,0 +1,195 @@
+/* Field Worker Incident Details Page */
+.ct-fw-incident-grid-top {
+  display: grid;
+  grid-template-columns: 2fr 1.3fr;
+  gap: 20px;
+  margin-bottom: 20px;
+}
+
+.ct-fw-card-header-label {
+  display: block;
+  font-size: 14px;
+  font-weight: 700;
+  color: #0F172A;
+  margin-bottom: 12px;
+}
+
+/* Incident Summary Card */
+.ct-fw-incident-summary-card {
+  padding: 24px 28px;
+}
+
+.ct-fw-incident-main-heading {
+  font-size: 24px;
+  font-weight: 700;
+  color: #0F172A;
+  margin: 0 0 6px 0;
+  letter-spacing: -0.3px;
+}
+
+.ct-fw-incident-category-sub {
+  font-size: 14px;
+  color: #64748B;
+  margin-bottom: 24px;
+}
+
+.ct-fw-incident-meta-list {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  border-top: 1px solid #F1F5F9;
+  padding-top: 18px;
+}
+
+.ct-fw-meta-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 14px;
+}
+
+.ct-fw-meta-key {
+  color: #64748B;
+}
+
+.ct-fw-meta-val {
+  font-weight: 600;
+  color: #0F172A;
+}
+
+.ct-fw-meta-sla-urgent {
+  color: #DC2626;
+  font-weight: 700;
+}
+
+/* Citizen Evidence Card */
+.ct-fw-citizen-evidence-card {
+  padding: 24px 28px;
+  display: flex;
+  flex-direction: column;
+}
+
+.ct-fw-evidence-photo-box {
+  flex: 1;
+  min-height: 150px;
+  background-color: #F1F5F9;
+  border-radius: 8px;
+  border: 1px dashed #CBD5E1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 12px;
+}
+
+.ct-fw-photo-placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  color: #94A3B8;
+}
+
+.ct-fw-photo-text {
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 1px;
+}
+
+.ct-fw-evidence-footer-note {
+  font-size: 12px;
+  color: #64748B;
+  text-align: center;
+}
+
+/* Work Objective Card */
+.ct-fw-work-objective-card {
+  padding: 24px 28px;
+}
+
+.ct-fw-objective-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 20px;
+}
+
+.ct-fw-objective-header .ct-fw-card-header-label {
+  margin-bottom: 0;
+}
+
+.ct-fw-objective-badge {
+  background-color: #DBEAFE;
+  color: #2563EB;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  padding: 4px 12px;
+  border-radius: 9999px;
+  text-transform: uppercase;
+}
+
+.ct-fw-objective-sections {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.ct-fw-objective-block {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.ct-fw-obj-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: #64748B;
+  text-transform: capitalize;
+}
+
+.ct-fw-obj-text {
+  font-size: 14px;
+  color: #1E293B;
+  line-height: 1.5;
+  margin: 0;
+}
+
+.ct-fw-objective-footer {
+  display: flex;
+  justify-content: flex-end;
+  padding-top: 16px;
+  border-top: 1px solid #F1F5F9;
+}
+
+.ct-fw-continue-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background-color: #2563EB;
+  color: #FFFFFF;
+  border: none;
+  border-radius: 8px;
+  padding: 12px 24px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  box-shadow: 0 1px 3px rgba(37, 99, 235, 0.3);
+}
+
+.ct-fw-continue-btn:hover {
+  background-color: #1D4ED8;
+}
+
+/* Responsive */
+@media (max-width: 900px) {
+  .ct-fw-incident-grid-top {
+    grid-template-columns: 1fr;
+  }
+
+  .ct-fw-continue-btn {
+    width: 100%;
+    justify-content: center;
+  }
+}

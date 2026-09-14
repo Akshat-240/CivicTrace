@@ -1,0 +1,189 @@
+/* Field Worker Location & Map Page */
+.ct-fw-location-grid {
+  display: grid;
+  grid-template-columns: 2.2fr 1fr;
+  gap: 20px;
+  align-items: start;
+}
+
+/* Work Location Card */
+.ct-fw-work-location-card {
+  padding: 24px 28px;
+}
+
+.ct-fw-location-header {
+  margin-bottom: 20px;
+}
+
+.ct-fw-location-title {
+  font-size: 24px;
+  font-weight: 700;
+  color: #0F172A;
+  margin: 0 0 6px 0;
+  letter-spacing: -0.3px;
+}
+
+.ct-fw-location-sub {
+  font-size: 14px;
+  color: #64748B;
+}
+
+/* Map Canvas Container */
+.ct-fw-map-canvas-container {
+  width: 100%;
+  border-radius: 8px;
+  overflow: hidden;
+  border: 1px solid #E2E8F0;
+  background-color: #F8FAFC;
+  margin-bottom: 20px;
+}
+
+.ct-fw-map-svg {
+  width: 100%;
+  height: 360px;
+  display: block;
+}
+
+@keyframes pulseRadar {
+  0% { transform: scale(0.9); opacity: 0.8; }
+  50% { transform: scale(1.1); opacity: 0.3; }
+  100% { transform: scale(0.9); opacity: 0.8; }
+}
+
+.ct-fw-radar-ring {
+  transform-origin: 340px 190px;
+  animation: pulseRadar 2.5s infinite ease-in-out;
+}
+
+/* GPS Metrics Row */
+.ct-fw-gps-metrics-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-top: 16px;
+  border-top: 1px solid #F1F5F9;
+  gap: 20px;
+}
+
+.ct-fw-metric-col {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.ct-fw-metric-label {
+  font-size: 12px;
+  color: #64748B;
+  font-weight: 500;
+}
+
+.ct-fw-metric-val {
+  font-size: 15px;
+  font-weight: 700;
+  color: #0F172A;
+}
+
+.ct-fw-val-success {
+  color: #16A34A;
+}
+
+.ct-fw-sim-tag {
+  font-size: 10px;
+  color: #94A3B8;
+  font-weight: 400;
+}
+
+/* Location Checks Card */
+.ct-fw-location-checks-card {
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+}
+
+.ct-fw-checks-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 24px;
+}
+
+.ct-fw-checks-header .ct-fw-card-header-label {
+  margin-bottom: 0;
+}
+
+.ct-fw-gps-locked-badge {
+  background-color: #DCFCE7;
+  color: #16A34A;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  padding: 4px 10px;
+  border-radius: 9999px;
+  text-transform: uppercase;
+}
+
+.ct-fw-checks-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-bottom: 28px;
+}
+
+.ct-fw-check-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 14px;
+}
+
+.ct-fw-check-label {
+  color: #64748B;
+}
+
+.ct-fw-check-val {
+  font-weight: 700;
+  color: #0F172A;
+}
+
+.ct-fw-checks-footer {
+  margin-top: auto;
+}
+
+.ct-fw-confirm-location-btn {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background-color: #2563EB;
+  color: #FFFFFF;
+  border: none;
+  border-radius: 8px;
+  padding: 12px 16px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  box-shadow: 0 1px 3px rgba(37, 99, 235, 0.3);
+}
+
+.ct-fw-confirm-location-btn:hover {
+  background-color: #1D4ED8;
+}
+
+.ct-fw-confirm-location-btn.confirmed {
+  background-color: #16A34A;
+}
+
+/* Responsive */
+@media (max-width: 900px) {
+  .ct-fw-location-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .ct-fw-gps-metrics-row {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+}

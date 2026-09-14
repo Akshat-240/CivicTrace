@@ -1,0 +1,270 @@
+/* Assigned Work / Dashboard Page */
+.ct-fw-task-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-bottom: 28px;
+}
+
+.ct-fw-task-card {
+  background: #FFFFFF;
+  border: 1px solid #E2E8F0;
+  border-radius: 12px;
+  padding: 24px 28px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  transition: all 0.2s ease;
+  cursor: pointer;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
+}
+
+.ct-fw-task-card:hover {
+  border-color: #CBD5E1;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  transform: translateY(-1px);
+}
+
+.ct-fw-task-card.priority-high {
+  border-color: #E2E8F0;
+}
+
+.ct-fw-task-left {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  flex: 1;
+}
+
+.ct-fw-task-badge-row {
+  display: flex;
+  align-items: center;
+}
+
+.ct-fw-priority-pill {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.6px;
+  padding: 4px 10px;
+  border-radius: 9999px;
+  display: inline-block;
+  text-transform: uppercase;
+}
+
+.ct-fw-priority-pill.priority-high {
+  background-color: #FEE2E2;
+  color: #EF4444;
+}
+
+.ct-fw-priority-pill.priority-medium {
+  background-color: #FEF3C7;
+  color: #D97706;
+}
+
+.ct-fw-priority-pill.priority-low {
+  background-color: #DCFCE7;
+  color: #16A34A;
+}
+
+.ct-fw-task-title-group {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.ct-fw-task-title-main {
+  font-size: 18px;
+  font-weight: 700;
+  color: #0F172A;
+  margin: 0;
+  letter-spacing: -0.3px;
+}
+
+.ct-fw-task-title-stacked {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+}
+
+.ct-fw-task-code {
+  font-size: 13px;
+  font-weight: 700;
+  color: #0F172A;
+}
+
+.ct-fw-task-name {
+  font-size: 16px;
+  font-weight: 700;
+  color: #0F172A;
+  margin: 0;
+}
+
+.ct-fw-task-location {
+  font-size: 13px;
+  color: #64748B;
+  font-weight: 400;
+}
+
+/* Right Section of Task Card */
+.ct-fw-task-right {
+  display: flex;
+  align-items: center;
+  gap: 32px;
+}
+
+.ct-fw-task-sla-block {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  min-width: 100px;
+}
+
+.ct-fw-sla-label {
+  font-size: 12px;
+  color: #64748B;
+  font-weight: 500;
+  margin-bottom: 2px;
+}
+
+.ct-fw-sla-value {
+  font-size: 16px;
+  font-weight: 700;
+  color: #0F172A;
+}
+
+.ct-fw-sla-value.sla-urgent {
+  font-size: 22px;
+  font-weight: 800;
+  color: #DC2626;
+  letter-spacing: -0.5px;
+}
+
+/* Buttons */
+.ct-fw-open-btn {
+  padding: 10px 22px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  white-space: nowrap;
+}
+
+.ct-fw-open-btn.btn-primary {
+  background-color: #2563EB;
+  color: #FFFFFF;
+  border: 1px solid #2563EB;
+  box-shadow: 0 1px 3px rgba(37, 99, 235, 0.3);
+}
+
+.ct-fw-open-btn.btn-primary:hover {
+  background-color: #1D4ED8;
+  border-color: #1D4ED8;
+}
+
+.ct-fw-open-btn.btn-outline {
+  background: transparent;
+  color: #2563EB;
+  border: 1px solid #CBD5E1;
+}
+
+.ct-fw-open-btn.btn-outline:hover {
+  background-color: #F8FAFC;
+  border-color: #94A3B8;
+}
+
+/* Checklist Card */
+.ct-fw-checklist-card {
+  background: #FFFFFF;
+  border: 1px solid #E2E8F0;
+  border-radius: 12px;
+  padding: 24px 28px;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 20px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
+}
+
+.ct-fw-checklist-title {
+  font-size: 15px;
+  font-weight: 700;
+  color: #0F172A;
+  margin: 0 0 12px 0;
+}
+
+.ct-fw-checklist-items {
+  margin: 0;
+  padding-left: 0;
+  list-style-position: inside;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 13px;
+  color: #64748B;
+  line-height: 1.5;
+}
+
+.ct-fw-checklist-badges {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.ct-fw-count-pill {
+  font-size: 12px;
+  font-weight: 600;
+  padding: 6px 14px;
+  border-radius: 9999px;
+  display: inline-block;
+}
+
+.ct-fw-count-pill.jobs-pill {
+  background-color: #EFF6FF;
+  color: #2563EB;
+}
+
+.ct-fw-count-pill.risk-pill {
+  background-color: #FEF2F2;
+  color: #EF4444;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .ct-fw-task-card {
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 18px 16px;
+    gap: 16px;
+  }
+
+  .ct-fw-task-right {
+    width: 100%;
+    justify-content: space-between;
+    padding-top: 12px;
+    border-top: 1px solid #F1F5F9;
+  }
+
+  .ct-fw-task-sla-block {
+    align-items: flex-start;
+  }
+
+  .ct-fw-open-btn {
+    width: 100%;
+    text-align: center;
+    padding: 12px;
+  }
+
+  .ct-fw-task-right {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+  }
+
+  .ct-fw-checklist-card {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}
