@@ -82,15 +82,15 @@ class IncidentService:
         2. Priority Computation
         3. SLA Clock Start
         """
-        from app.services.priority_service import PriorityService
+        # from app.services.priority_service import PriorityService
         from app.services.sla_service import AccountabilityService
 
         # 1. GIS assignment
         incident = await self.assign_jurisdiction(incident_id)
 
         # 2. Priority computation
-        p_service = PriorityService(self.session)
-        await p_service.compute_priority(incident.id)
+        # p_service = PriorityService(self.session)
+        # await p_service.compute_priority(incident.id)
 
         # refresh incident to get priority
         incident = await self.get_incident(incident.id)
@@ -225,3 +225,4 @@ class IncidentService:
         await self.session.flush()
 
         return await self.get_incident(incident.id)
+

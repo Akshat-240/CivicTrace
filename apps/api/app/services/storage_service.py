@@ -58,9 +58,9 @@ class StorageService:
     ):
         self.settings = settings or get_settings()
         self._client = client
-        self.bucket = self.settings.supabase_storage_bucket or "evidence"
-        self.base_url = (self.settings.supabase_url or "").rstrip("/")
-        self.secret_key = self.settings.supabase_secret_key
+        self.bucket = getattr(self.settings, 'supabase_storage_bucket', 'evidence') or "evidence"
+        self.base_url = (getattr(self.settings, 'supabase_url', '') or "").rstrip("/")
+        self.secret_key = getattr(self.settings, 'supabase_secret_key', '')
 
     def _get_headers(self, mime_type: Optional[str] = None) -> dict[str, str]:
         headers = {
@@ -313,3 +313,5 @@ class StorageService:
             raise ServiceUnavailableError("Storage authentication failure or access denied.")
         else:
             raise ServiceUnavailableError(f"Storage service returned error (HTTP {status_code}).")
+
+

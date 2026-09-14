@@ -12,6 +12,7 @@ from app.models.enums import UserRole
 
 if TYPE_CHECKING:
     from app.models.authority import Authority
+    from app.models.worker_profile import WorkerProfile
 
 class User(Base):
     '''Application user model.'''
@@ -36,12 +37,13 @@ class User(Base):
     )
 
     authority: Mapped[Optional['Authority']] = relationship('Authority', back_populates='users')
+    worker_profile: Mapped[Optional['WorkerProfile']] = relationship('WorkerProfile', back_populates='user', uselist=False)
 
     __table_args__ = (
         CheckConstraint(
             """
-            (role IN ('CITIZEN', 'ADMIN') AND authority_id IS NULL)
-            OR (role = 'AUTHORITY' AND authority_id IS NOT NULL)
+            (UPPER(role) IN ('CITIZEN', 'ADMIN') AND authority_id IS NULL)
+            OR (UPPER(role) IN ('AUTHORITY', 'FIELD_WORKER') AND authority_id IS NOT NULL)
             """,
             name='users_role_authority_check'
         ),
@@ -49,3 +51,5 @@ class User(Base):
 
     def __repr__(self) -> str:
         return f'<User id={self.id} email={self.email!r} role={self.role}>'
+
+
