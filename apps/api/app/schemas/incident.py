@@ -93,3 +93,15 @@ class IncidentSubmit(CivicBaseModel):
     description: Optional[str] = None
     issue_type: Optional[IssueType] = None
     location: Optional[LocationCreate] = None
+
+
+class ResolutionSubmit(CivicBaseModel):
+    """
+    Payload for an authority submitting resolution evidence.
+    No binary upload -- text description only (MVP limitation: no binary storage).
+    evidence_type defaults to TEXT.
+    """
+    description: str = Field(..., min_length=10, max_length=5000,
+                             description="Description of the resolution work performed.")
+    evidence_type: Optional[str] = Field(default="text",
+                                         description="Evidence type (text only in MVP -- no binary storage).")
