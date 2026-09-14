@@ -35,7 +35,12 @@ class FusionService:
         self.session = session
         self.config = FusionConfig()
 
-    async def fuse_evidence(self, evidence_id: uuid.UUID) -> Incident:
+    async def fuse_evidence(
+        self,
+        evidence_id: uuid.UUID,
+        title: Optional[str] = None,
+        description: Optional[str] = None,
+    ) -> Incident:
         """
         Determines if the evidence belongs to an existing incident.
         Returns the (merged or new) Incident.
@@ -59,14 +64,18 @@ class FusionService:
             return await self._create_new_incident(
                 evidence, 
                 status=IncidentStatus.UNDER_REVIEW,
-                reason="Evidence was flagged as ambiguous by AI."
+                reason="Evidence was flagged as ambiguous by AI.",
+                title=title,
+                description=description,
             )
             
         if not evidence.location:
             return await self._create_new_incident(
                 evidence,
                 status=IncidentStatus.DRAFT,
-                reason="No location provided for spatial fusion."
+                reason="No location provided for spatial fusion.",
+                title=title,
+                description=description,
             )
 
         candidate = await self._find_best_match(evidence)
@@ -77,7 +86,9 @@ class FusionService:
             return await self._create_new_incident(
                 evidence,
                 status=IncidentStatus.DRAFT,
-                reason="No matching candidate met fusion threshold."
+                reason="No matching candidate met fusion threshold.",
+                title=title,
+                description=description,
             )
 
     async def _find_best_match(self, evidence: Evidence) -> Optional[tuple[Incident, float]]:
@@ -122,6 +133,15 @@ class FusionService:
         best_score = 0.0
         best_candidate = None
 
+        def _norm_cat(val):
+            if val is None:
+                return ""
+            if hasattr(val, "value"):
+                return str(val.value).lower().strip()
+            return str(val).lower().strip()
+
+        ev_cat_norm = _norm_cat(evidence.ai_category)
+
         for inc, dist in candidates:
             # Time difference in days
             inc_time = inc.created_at
@@ -132,7 +152,8 @@ class FusionService:
 
             # Calculate deterministic scores
             loc_score = max(0.0, 1.0 - (dist / self.config.MAX_RADIUS_METERS))
-            cat_score = 1.0 if (inc.issue_type == evidence.ai_category) else 0.0
+            inc_cat_norm = _norm_cat(inc.issue_type)
+            cat_score = 1.0 if (inc_cat_norm and inc_cat_norm == ev_cat_norm) else 0.0
             time_score = max(0.0, 1.0 - (days_diff / self.config.MAX_TIME_DAYS))
 
             total_score = (
@@ -170,30 +191,27 @@ class FusionService:
             payload={"fusion_score": score}
         )
         self.session.add(event)
-        await self.session.commit()
+        await self.session.flush()
         return inc
 
-    async def _create_new_incident(self, evidence: Evidence, status: IncidentStatus, reason: str) -> Incident:
-        # Create a new Location mapping to identical coords
-        new_loc = None
-        if evidence.location:
-            new_loc = Location(
-                latitude=evidence.location.latitude,
-                longitude=evidence.location.longitude,
-                accuracy_meters=evidence.location.accuracy_meters,
-                geom=evidence.location.geom
-            )
-            self.session.add(new_loc)
-            await self.session.flush()
-
+    async def _create_new_incident(
+        self,
+        evidence: Evidence,
+        status: IncidentStatus,
+        reason: str,
+        title: Optional[str] = None,
+        description: Optional[str] = None,
+    ) -> Incident:
         new_inc = Incident(
             reference_number=f"INC-{uuid.uuid4().hex[:8].upper()}",
             status=status,
-            issue_type=evidence.ai_category or "UNKNOWN",
-            title=f"Report of {evidence.ai_category or 'Issue'}",
-            description=evidence.description,
-            location_id=new_loc.id if new_loc else None,
+            issue_type=evidence.ai_category if evidence.ai_category else None,
+            title=title or (f"Report of {evidence.ai_category}" if evidence.ai_category else "Civic Incident Report"),
+            description=description or evidence.description,
+            location_id=evidence.location_id,
             evidence_count=1,
+            primary_evidence_id=evidence.id,
+            ai_ambiguity_flag=evidence.ai_ambiguity_flag,
         )
         self.session.add(new_inc)
         await self.session.flush()
@@ -208,5 +226,5 @@ class FusionService:
         )
         self.session.add(event)
         
-        await self.session.commit()
+        await self.session.flush()
         return new_inc

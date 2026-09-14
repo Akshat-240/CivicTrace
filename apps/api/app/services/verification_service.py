@@ -157,7 +157,6 @@ class VerificationService:
             .options(
                 selectinload(Incident.evidence_items),
                 selectinload(Incident.verification),
-                selectinload(Incident.priority),
                 selectinload(Incident.sla),
             )
             .where(Incident.id == incident_id)
@@ -188,18 +187,15 @@ class VerificationService:
 
         # 2. Determine Original Severity
         orig_sev_val = 0
-        if incident.priority and incident.priority.severity:
-            orig_sev_val = self.config.SEVERITY_VALUES.get(incident.priority.severity, 0)
-        else:
-            for ev in before_ev:
-                if ev.ai_severity_raw:
-                    try:
-                        sev_enum = SeverityLevel(ev.ai_severity_raw.lower())
-                        val = self.config.SEVERITY_VALUES.get(sev_enum, 0)
-                        if val > orig_sev_val:
-                            orig_sev_val = val
-                    except ValueError:
-                        pass
+        for ev in before_ev:
+            if ev.ai_severity_raw:
+                try:
+                    sev_enum = SeverityLevel(ev.ai_severity_raw.lower())
+                    val = self.config.SEVERITY_VALUES.get(sev_enum, 0)
+                    if val > orig_sev_val:
+                        orig_sev_val = val
+                except ValueError:
+                    pass
 
         if orig_sev_val == 0:
             orig_sev_val = 1
@@ -210,49 +206,51 @@ class VerificationService:
         explanation = ""
 
         if not after_ev:
-            outcome = VerificationResult.INSUFFICIENT_EVIDENCE
+            outcome = VerificationResult.NO_EVIDENCE
             explanation = "No verification evidence submitted."
         else:
-            related_count = 0
-            for ev in after_ev:
-                if ev.ai_ambiguity_flag:
-                    continue
+            has_ambiguity = any(ev.ai_ambiguity_flag for ev in after_ev)
+            valid_items = [ev for ev in after_ev if not ev.ai_ambiguity_flag]
 
-                has_valid_after = True
-
-                if ev.ai_category != incident.issue_type:
-                    pass
-                else:
-                    related_count += 1
-                    if ev.ai_severity_raw and ev.ai_severity_raw.lower() == "none":
-                        ev_sev_val = 0
-                    else:
-                        ev_sev_val = 1
-                        if ev.ai_severity_raw:
-                            try:
-                                sev_enum = SeverityLevel(ev.ai_severity_raw.lower())
-                                ev_sev_val = self.config.SEVERITY_VALUES.get(sev_enum, 1)
-                            except ValueError:
-                                pass
-
-                    if ev_sev_val >= orig_sev_val:
-                        outcome = VerificationResult.UNRESOLVED
-                    elif ev_sev_val > 0 and ev_sev_val < orig_sev_val and outcome != VerificationResult.UNRESOLVED:
-                        outcome = VerificationResult.PARTIALLY_RESOLVED
-
-            if not has_valid_after:
-                outcome = VerificationResult.INSUFFICIENT_EVIDENCE
-                explanation = "All submitted verification evidence was flagged as ambiguous or unusable."
-            elif related_count == 0:
-                outcome = VerificationResult.INSUFFICIENT_EVIDENCE
-                explanation = "Verification evidence category does not match the incident. Cannot confirm resolution."
+            if has_ambiguity and not valid_items:
+                outcome = VerificationResult.HUMAN_REVIEW
+                explanation = "All submitted verification evidence is flagged as ambiguous and requires human review."
+            elif not valid_items:
+                outcome = VerificationResult.NO_EVIDENCE
+                explanation = "No usable verification evidence found."
             else:
-                if outcome == VerificationResult.FULLY_RESOLVED:
-                    explanation = "Evidence supports complete resolution of the issue."
-                elif outcome == VerificationResult.PARTIALLY_RESOLVED:
-                    explanation = "Evidence shows improvement, but the issue remains partially present."
+                has_valid_after = True
+                related_items = [ev for ev in valid_items if ev.ai_category == incident.issue_type]
+
+                if not related_items:
+                    outcome = VerificationResult.NO_EVIDENCE
+                    explanation = "Verification evidence category does not match the incident. Cannot confirm resolution."
                 else:
-                    explanation = "Evidence shows the issue is unresolved and severity has not improved."
+                    has_unresolved = False
+                    for ev in related_items:
+                        if ev.ai_severity_raw and ev.ai_severity_raw.lower() == "none":
+                            ev_sev_val = 0
+                        else:
+                            ev_sev_val = 1
+                            if ev.ai_severity_raw:
+                                try:
+                                    sev_enum = SeverityLevel(ev.ai_severity_raw.lower())
+                                    ev_sev_val = self.config.SEVERITY_VALUES.get(sev_enum, 1)
+                                except ValueError:
+                                    pass
+
+                        if ev_sev_val > 0:
+                            has_unresolved = True
+
+                    if has_ambiguity:
+                        outcome = VerificationResult.HUMAN_REVIEW
+                        explanation = "Verification evidence contains ambiguity and requires human review."
+                    elif has_unresolved:
+                        outcome = VerificationResult.NOT_RESOLVED
+                        explanation = "Evidence demonstrates the civic issue remains present."
+                    else:
+                        outcome = VerificationResult.FULLY_RESOLVED
+                        explanation = "Evidence supports complete resolution of the issue."
 
         # 4. Upsert VerificationRecord
         record = incident.verification
@@ -306,10 +304,10 @@ class VerificationService:
           This prevents approving FULLY_RESOLVED without actual evidence (Test N).
 
         Status transitions (only FULLY_RESOLVED unlocks RESOLVED):
-        - FULLY_RESOLVED         -> RESOLVED  (+ SLA resolved)
-        - INSUFFICIENT_EVIDENCE  -> ACTIVE    (returns to open workflow)
-        - UNRESOLVED             -> ACTIVE    (issue still exists)
-        - PARTIALLY_RESOLVED     -> stays UNDER_REVIEW (more evidence needed)
+        - FULLY_RESOLVED -> RESOLVED  (+ SLA resolved)
+        - NOT_RESOLVED   -> ACTIVE    (issue persists)
+        - NO_EVIDENCE    -> ACTIVE    (returns to open workflow)
+        - HUMAN_REVIEW   -> stays UNDER_REVIEW (requires administrative review)
 
         Uses flush() only -- get_db() commits at request end.
         verified_by defaults to "demo-authority-reviewer" (no real auth in MVP).
@@ -385,9 +383,10 @@ class VerificationService:
             if incident.sla and incident.sla.state != AccountabilityState.RESOLVED:
                 incident.sla.state = AccountabilityState.RESOLVED
                 incident.sla.resolved_at = now
-        elif result in (VerificationResult.INSUFFICIENT_EVIDENCE, VerificationResult.UNRESOLVED):
+        elif result in (VerificationResult.NOT_RESOLVED, VerificationResult.NO_EVIDENCE):
             incident.status = IncidentStatus.ACTIVE
-        # PARTIALLY_RESOLVED -> stays UNDER_REVIEW. Does NOT unlock RESOLVED/CLOSED.
+        elif result == VerificationResult.HUMAN_REVIEW:
+            incident.status = IncidentStatus.UNDER_REVIEW
 
         # Timeline event -- actor is the human reviewer, not "system".
         self.session.add(IncidentEvent(

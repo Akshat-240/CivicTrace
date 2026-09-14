@@ -92,7 +92,7 @@ class Settings(BaseSettings):
         validation_alias=AliasChoices("ai_fallback_provider"),
     )
 
-    # Azure Computer Vision (Primary)
+    # Azure Computer Vision (Primary Visual)
     azure_ai_vision_endpoint: str = Field(
         default="",
         validation_alias=AliasChoices("azure_ai_vision_endpoint", "azure_vision_endpoint"),
@@ -102,6 +102,26 @@ class Settings(BaseSettings):
         validation_alias=AliasChoices("azure_ai_vision_key", "azure_vision_key"),
     )
 
+    # Azure AI Language (Citizen Problem Briefing Perception)
+    azure_ai_language_endpoint: str = Field(
+        default="",
+        validation_alias=AliasChoices("azure_ai_language_endpoint", "azure_language_endpoint"),
+    )
+    azure_ai_language_key: str = Field(
+        default="",
+        validation_alias=AliasChoices("azure_ai_language_key", "azure_language_key"),
+    )
+
+    # Azure AI Speech (Speech-to-Text for Citizen Voice Briefing)
+    azure_ai_speech_key: str = Field(
+        default="",
+        validation_alias=AliasChoices("azure_ai_speech_key", "azure_speech_key"),
+    )
+    azure_ai_speech_region: str = Field(
+        default="eastus",
+        validation_alias=AliasChoices("azure_ai_speech_region", "azure_speech_region"),
+    )
+
     # Gemini (Fallback)
     gemini_api_key: str = Field(default="")
     gemini_model: str = Field(default="gemini-1.5-flash")
@@ -109,6 +129,14 @@ class Settings(BaseSettings):
     @property
     def azure_vision_configured(self) -> bool:
         return bool(self.azure_ai_vision_endpoint and self.azure_ai_vision_key)
+
+    @property
+    def azure_language_configured(self) -> bool:
+        return bool(self.azure_ai_language_endpoint and self.azure_ai_language_key)
+
+    @property
+    def azure_speech_configured(self) -> bool:
+        return bool(self.azure_ai_speech_key and self.azure_ai_speech_region)
 
     # ------------------------------------------------------------------
     # Storage (Supabase)
