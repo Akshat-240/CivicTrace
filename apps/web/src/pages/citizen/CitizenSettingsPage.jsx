@@ -1,12 +1,6 @@
-import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState } from 'react';
+import { useNavigate, useOutletContext } from 'react-router-dom';
 import { 
-  User, 
-  Bell, 
-  MapPin, 
-  ShieldCheck, 
-  KeyRound, 
-  LogOut, 
   ChevronRight,
   CheckCircle 
 } from 'lucide-react';
@@ -14,7 +8,7 @@ import './CitizenSettingsPage.css';
 
 export default function CitizenSettingsPage() {
   const navigate = useNavigate();
-  const citizenId = localStorage.getItem('ct_user_id') || 'Citizen';
+  const { profile } = useOutletContext();
 
   const [settings, setSettings] = useState({
     notifications: {
@@ -55,8 +49,10 @@ export default function CitizenSettingsPage() {
       <section className="settings-section-card profile-card">
         <div className="profile-info-left">
           <span className="profile-section-label">Profile</span>
-          <h2 className="profile-user-name">{citizenId}</h2>
-          <span className="profile-user-area">Resident</span>
+          <h2 className="profile-user-name">{profile?.full_name || 'Citizen'}</h2>
+          <span className="profile-user-area">{profile?.email}</span>
+          <span className="profile-user-area">{profile?.city || 'Registered Citizen'}</span>
+          <span className="profile-user-area" style={{textTransform: 'capitalize'}}>{profile?.role || 'Citizen'}</span>
         </div>
       </section>
 

@@ -218,7 +218,7 @@ const LoginPage = () => {
           </form>
 
           <div className="ct-login-footer-hint">
-            New here? <a href="#support">Contact your administrator</a>
+            New here? <a href="#" onClick={(e) => { e.preventDefault(); navigate('/register'); }}>Create a citizen account</a>
           </div>
         </div>
       </div>
