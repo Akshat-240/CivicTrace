@@ -82,6 +82,10 @@ export async function getCurrentUser() {
   return fetchAPI('/auth/me');
 }
 
+export async function getJurisdiction(lat, lng) {
+  return fetchAPI(`/gis/jurisdiction?latitude=${lat}&longitude=${lng}`);
+}
+
 // ------------------------------------------------------------------
 // Incidents
 // ------------------------------------------------------------------

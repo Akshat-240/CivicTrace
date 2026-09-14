@@ -45,7 +45,7 @@ export default function CitizenHistoryPage() {
           const locationString = 
             item.location?.address_raw || 
             [item.location?.street, item.location?.suburb, item.location?.city].filter(Boolean).join(', ') ||
-            'Location unrecorded';
+            'Location not provided';
 
           return {
             id: item.reference_number || (item.id ? item.id.substring(0, 8).toUpperCase() : 'INC-UNKNOWN'),
