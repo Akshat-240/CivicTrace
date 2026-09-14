@@ -324,14 +324,14 @@ export const mockIncidentDetailCT1842 = {
 };
 
 export const mockAdminMapPins = [
-  { id: "#CT-1842", issue: "Pothole", location: "Faizabad Road • Ward 12", priority: "Critical", status: "ACTIVE", tag: "HIGH • SLA AT RISK • RESOLUTION CHECK PENDING", x: 62, y: 44 },
-  { id: "#CT-1839", issue: "Garbage Overflow", location: "Aliganj • Ward 8", priority: "Critical", status: "BREACHED", tag: "CRITICAL • SLA OVERDUE", x: 28, y: 35 },
-  { id: "#CT-1831", issue: "Streetlight Dark", location: "Indira Nagar • Ward 6", priority: "Medium", status: "ASSIGNED", tag: "MEDIUM • ON TRACK", x: 74, y: 32 },
-  { id: "#CT-1827", issue: "Water Leakage", location: "Gomti Nagar • Ward 14", priority: "High", status: "IN PROGRESS", tag: "HIGH • 11h REMAINING", x: 50, y: 72 },
-  { id: "#CT-1819", issue: "Fallen Tree", location: "Hazratganj • Ward 3", priority: "Resolved", status: "RESOLVED", tag: "RESOLVED • EVIDENCE VERIFIED", x: 40, y: 55 },
-  { id: "#CT-1812", issue: "Drainage Blockage", location: "Mahanagar • Ward 10", priority: "High", status: "IN PROGRESS", tag: "HIGH • 18h REMAINING", x: 80, y: 60 },
-  { id: "#CT-1805", issue: "Solid Waste", location: "Jankipuram • Ward 15", priority: "Low", status: "OPEN", tag: "LOW • 32h REMAINING", x: 22, y: 65 },
-  { id: "#CT-1798", issue: "Public Safety", location: "Alambagh • Ward 18", priority: "Medium", status: "ASSIGNED", tag: "MEDIUM • 28h REMAINING", x: 88, y: 42 }
+  { id: "#CT-1842", rawId: "CT-1842", issue: "Pothole", category: "Road Damage", department: "Roads Department", location: "Faizabad Road • Ward 12", status: "ACTIVE", slaState: "At Risk", tag: "SLA AT RISK • RESOLUTION CHECK PENDING", x: 62, y: 44 },
+  { id: "#CT-1839", rawId: "CT-1839", issue: "Garbage Overflow", category: "Sanitation", department: "Sanitation Department", location: "Aliganj • Ward 8", status: "BREACHED", slaState: "Breached", tag: "SLA OVERDUE", x: 28, y: 35 },
+  { id: "#CT-1831", rawId: "CT-1831", issue: "Streetlight Dark", category: "Streetlight", department: "Electricity Board", location: "Indira Nagar • Ward 6", status: "ASSIGNED", slaState: "On Track", tag: "ON TRACK", x: 74, y: 32 },
+  { id: "#CT-1827", rawId: "CT-1827", issue: "Water Leakage", category: "Water Supply", department: "Water Supply Department", location: "Gomti Nagar • Ward 14", status: "IN PROGRESS", slaState: "On Track", tag: "11h REMAINING", x: 50, y: 72 },
+  { id: "#CT-1819", rawId: "CT-1819", issue: "Fallen Tree", category: "Road Damage", department: "Roads Department", location: "Hazratganj • Ward 3", status: "RESOLVED", slaState: "Resolved", tag: "RESOLVED • EVIDENCE VERIFIED", x: 40, y: 55 },
+  { id: "#CT-1812", rawId: "CT-1812", issue: "Drainage Blockage", category: "Sanitation", department: "Sanitation Department", location: "Mahanagar • Ward 10", status: "IN PROGRESS", slaState: "At Risk", tag: "18h REMAINING", x: 80, y: 60 },
+  { id: "#CT-1805", rawId: "CT-1805", issue: "Solid Waste", category: "Sanitation", department: "Sanitation Department", location: "Jankipuram • Ward 15", status: "OPEN", slaState: "On Track", tag: "32h REMAINING", x: 22, y: 65 },
+  { id: "#CT-1798", rawId: "CT-1798", issue: "Public Safety", category: "Electrical", department: "Electricity Board", location: "Alambagh • Ward 18", status: "ASSIGNED", slaState: "On Track", tag: "28h REMAINING", x: 88, y: 42 }
 ];
 
 export const mockAdminAnalytics = {
@@ -623,123 +623,4 @@ export const mockCitizenSettings = {
   }
 };
 
-<<<<<<< HEAD
-export const mockFieldWorkerData = {
-  worker: {
-    name: "Ravi Kumar",
-    role: "Field Worker",
-    team: "Zone 3 • Team B",
-    zone: "Zone 3",
-    avatar: "R"
-  },
-  summary: {
-    title: "Assigned Work",
-    subtitle: "Today • 3 active jobs • sorted by SLA risk",
-    activeJobsCount: 3,
-    highRiskCount: 1
-  },
-  checklist: [
-    "Confirm incident location",
-    "Capture before / after evidence",
-    "Record work status and notes",
-    "Submit for authority verification"
-  ],
-  tasks: [
-    {
-      id: "CT-INC-024",
-      code: "CT-INC-024",
-      title: "CT-INC-024 • Pothole on MG Road",
-      incidentName: "Pothole on MG Road",
-      category: "Road Damage",
-      detailedCategory: "Road Safety / Infrastructure",
-      location: "MG Road • Hazratganj • Ward 12",
-      fullLocation: "MG Road, Hazratganj, Lucknow",
-      ward: "Ward 12",
-      roadSegment: "Road segment B-14",
-      priority: "HIGH",
-      priorityBadge: "HIGH PRIORITY",
-      status: "In Progress",
-      slaRemaining: "03h 12m",
-      slaTotal: "High • 6 hours",
-      reportedBy: "Citizen • 14 Sep 2026, 09:42",
-      assignedAuthority: "Municipal Roads Department",
-      objective: {
-        badge: "REPAIR REQUIRED",
-        fieldAction: "Inspect, repair the pothole, and capture clear resolution evidence.",
-        beforeWork: "Confirm the exact damage location and severity before starting.",
-        completionRequirement: "After-work evidence must show the repaired surface and match the incident location."
-      },
-      locationChecks: {
-        gpsStatus: "GPS LOCKED",
-        accuracy: "± 8 m",
-        distance: "6 m",
-        coordinates: "26.8467° N, 80.9462° E",
-        wardMatch: "Confirmed",
-        incidentPin: "Within 10 m",
-        fieldBoundary: "Zone 3"
-      },
-      evidence: {
-        actionCompleted: "Pothole repaired and surface levelled",
-        workNotes: "Used cold asphalt mix. Final surface level checked. No loose debris remains in the lane.",
-        evidenceNotes: "After image shows repaired surface, matching the same road segment and no visible pothole remains.",
-        status: "IN PROGRESS",
-        readiness: "READY FOR REVIEW",
-        beforeLabel: "BEFORE",
-        afterLabel: "AFTER"
-      },
-      submission: {
-        workStatus: "Completed",
-        checks: [
-          { name: "Incident linked", status: "PASS" },
-          { name: "Location verified", status: "PASS" },
-          { name: "Evidence attached", status: "PASS" },
-          { name: "Work note added", status: "PASS" }
-        ],
-        nextStep: "Authority reviews resolution evidence and records verification."
-      }
-    },
-    {
-      id: "CT-INC-031",
-      code: "CT-INC-031",
-      title: "CT-INC-031",
-      incidentName: "Streetlight outage",
-      category: "Electrical",
-      detailedCategory: "Public Lighting / Electrical",
-      location: "Aliganj • Ward 8",
-      fullLocation: "Sector B, Aliganj, Lucknow",
-      ward: "Ward 8",
-      roadSegment: "Pole P-42",
-      priority: "MEDIUM",
-      priorityBadge: "MEDIUM",
-      status: "Assigned",
-      slaRemaining: "06h 48m",
-      slaTotal: "Medium • 12 hours",
-      reportedBy: "Citizen • 14 Sep 2026, 07:15",
-      assignedAuthority: "LMC Electrical Division"
-    },
-    {
-      id: "CT-INC-041",
-      code: "CT-INC-041",
-      title: "CT-INC-041",
-      incidentName: "Overflowing bin",
-      category: "Sanitation",
-      detailedCategory: "Solid Waste Management",
-      location: "Gomti Nagar • Ward 4",
-      fullLocation: "Vipul Khand, Gomti Nagar, Lucknow",
-      ward: "Ward 4",
-      roadSegment: "Bin Cluster #7",
-      priority: "LOW",
-      priorityBadge: "LOW",
-      status: "Assigned",
-      slaRemaining: "1d 04h",
-      slaTotal: "Low • 24 hours",
-      reportedBy: "Citizen • 13 Sep 2026, 18:30",
-      assignedAuthority: "LMC Solid Waste Management"
-    }
-  ]
-};
-
-
-=======
->>>>>>> main
 

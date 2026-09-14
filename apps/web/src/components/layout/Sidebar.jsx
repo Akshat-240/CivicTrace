@@ -6,7 +6,8 @@ import {
   ArrowLeftRight, 
   Target, 
   CheckCircle2, 
-  Settings 
+  Settings,
+  LogOut
 } from 'lucide-react';
 import './Sidebar.css';
 
@@ -22,6 +23,13 @@ const Sidebar = () => {
     { name: 'Incident Verification', path: '/authority/verification', icon: <CheckCircle2 size={18} strokeWidth={2} /> },
   ];
 
+  const handleSignOut = (e) => {
+    e.stopPropagation();
+    localStorage.removeItem('ct_auth_token');
+    localStorage.removeItem('ct_user_role');
+    navigate('/login');
+  };
+
   const isSettingsActive = location.pathname.includes('/authority/settings');
 
   return (
@@ -29,43 +37,6 @@ const Sidebar = () => {
       <div className="ct-sidebar-brand">
         <div className="ct-brand-title">CivicTrace</div>
         <div className="ct-brand-badge">AUTHORITY</div>
-      </div>
-
-      {/* Portal Switcher */}
-      <div className="ct-portal-switcher" style={{ padding: '0 16px 12px 16px' }}>
-        <div style={{ display: 'flex', background: 'rgba(255,255,255,0.04)', borderRadius: '6px', padding: '3px', gap: '2px', border: '1px solid rgba(255,255,255,0.06)' }}>
-          <button 
-            type="button" 
-            style={{ flex: 1, background: 'transparent', border: 'none', color: '#94A3B8', fontSize: '11px', fontWeight: 600, padding: '5px 0', borderRadius: '4px', cursor: 'pointer' }}
-            onClick={() => navigate('/admin/dashboard')}
-          >
-            Admin
-          </button>
-          <button 
-            type="button" 
-            style={{ flex: 1, background: '#2563EB', border: 'none', color: '#FFFFFF', fontSize: '11px', fontWeight: 600, padding: '5px 0', borderRadius: '4px', cursor: 'pointer', boxShadow: '0 1px 4px rgba(37, 99, 235, 0.4)' }}
-            onClick={() => navigate('/authority/dashboard')}
-          >
-            Authority
-          </button>
-          <button 
-            type="button" 
-            style={{ flex: 1, background: 'transparent', border: 'none', color: '#94A3B8', fontSize: '11px', fontWeight: 600, padding: '5px 0', borderRadius: '4px', cursor: 'pointer' }}
-            onClick={() => navigate('/citizen/dashboard')}
-          >
-            Citizen
-          </button>
-<<<<<<< HEAD
-          <button 
-            type="button" 
-            style={{ flex: 1, background: 'transparent', border: 'none', color: '#94A3B8', fontSize: '11px', fontWeight: 600, padding: '5px 0', borderRadius: '4px', cursor: 'pointer' }}
-            onClick={() => navigate('/field-worker/dashboard')}
-          >
-            Worker
-          </button>
-=======
->>>>>>> main
-        </div>
       </div>
 
       <nav className="ct-sidebar-nav">
@@ -82,26 +53,31 @@ const Sidebar = () => {
       </nav>
 
       <div className="ct-sidebar-footer">
-        <div 
-          className={`ct-profile-card ${isSettingsActive ? 'settings-active' : ''}`}
-          onClick={() => navigate('/authority/settings')}
-          title="Open Authority Settings"
-        >
+        <div className="ct-profile-card">
           <div className="ct-avatar">A</div>
           <div className="ct-user-meta">
             <span className="ct-user-name">LMC Authority</span>
             <span className="ct-user-dept">Civic Operations</span>
           </div>
+        </div>
+        <div className="ct-admin-footer-actions" style={{ display: 'flex', flexDirection: 'column', gap: '4px', marginTop: '8px', paddingTop: '8px', borderTop: '1px solid rgba(255, 255, 255, 0.06)' }}>
           <button 
             type="button" 
-            className="ct-settings-btn"
-            aria-label="Settings"
-            onClick={(e) => {
-              e.stopPropagation();
-              navigate('/authority/settings');
-            }}
+            className="ct-admin-footer-btn" 
+            style={{ display: 'flex', alignItems: 'center', gap: '10px', background: 'transparent', border: 'none', color: '#94A3B8', padding: '8px 12px', borderRadius: '6px', fontSize: '13px', fontWeight: 500, cursor: 'pointer', textAlign: 'left', width: '100%' }}
+            onClick={(e) => { e.stopPropagation(); navigate('/authority/settings'); }}
           >
-            <Settings size={17} />
+            <Settings size={16} />
+            <span>Settings</span>
+          </button>
+          <button 
+            type="button" 
+            className="ct-admin-footer-btn" 
+            style={{ display: 'flex', alignItems: 'center', gap: '10px', background: 'transparent', border: 'none', color: '#94A3B8', padding: '8px 12px', borderRadius: '6px', fontSize: '13px', fontWeight: 500, cursor: 'pointer', textAlign: 'left', width: '100%' }}
+            onClick={handleSignOut}
+          >
+            <LogOut size={16} />
+            <span>Sign Out</span>
           </button>
         </div>
       </div>

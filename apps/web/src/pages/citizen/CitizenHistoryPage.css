@@ -100,6 +100,16 @@
   color: #B91C1C;
 }
 
+.history-status-badge.in-progress {
+  background-color: #FEF3C7;
+  color: #92400E;
+}
+
+.history-status-badge.submitted {
+  background-color: #EFF6FF;
+  color: #1E40AF;
+}
+
 .history-action-col {
   display: flex;
   flex-direction: column;

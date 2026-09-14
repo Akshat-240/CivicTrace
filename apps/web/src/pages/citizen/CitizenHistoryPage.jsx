@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowRight, FileText, CheckCircle2, AlertTriangle, Loader2 } from 'lucide-react';
+import { ArrowRight, FileText, AlertTriangle, Loader2 } from 'lucide-react';
 import { getIncidents } from '../../services/api';
 import './CitizenHistoryPage.css';
 
@@ -15,35 +15,46 @@ export default function CitizenHistoryPage() {
     async function loadIncidents() {
       try {
         setLoading(true);
-        const data = await getIncidents(0, 100);
-        // map backend data to frontend expectations
-        const mapped = data.data.map(item => {
-          let uiStatus = 'Pending';
-          if (item.status === 'resolved' || item.status === 'closed') {
-            uiStatus = 'Resolved';
-          } else if (item.status === 'active' || item.status === 'under_review') {
-            uiStatus = 'In Progress';
-          } else {
-            uiStatus = item.status;
-          }
+        // Load real backend incidents for authenticated citizen
+        const response = await getIncidents(0, 100, 'citizen_default');
+        const items = response?.data || [];
+        
+        // Map backend data to frontend expectations
+        const mapped = items.map(item => {
+          const rawStatus = (item.status || '').toLowerCase();
+          const rawAccountability = (item.accountability_state || '').toLowerCase();
           
-          if (item.accountability_state === 'escalation_eligible') {
+          let uiStatus = 'Submitted';
+          if (rawStatus === 'resolved' || rawStatus === 'closed') {
+            uiStatus = 'Resolved';
+          } else if (rawAccountability === 'escalation_eligible') {
             uiStatus = 'Escalated';
+          } else if (rawStatus === 'active' || rawStatus === 'under_review') {
+            uiStatus = 'In Progress';
+          } else if (rawStatus === 'draft') {
+            uiStatus = 'Submitted';
+          } else {
+            uiStatus = item.status || 'Submitted';
           }
 
+          const locationString = 
+            item.location?.address_raw || 
+            [item.location?.street, item.location?.suburb, item.location?.city].filter(Boolean).join(', ') ||
+            'Hazratganj, Lucknow';
+
           return {
-            id: item.reference_number || item.id.substring(0, 8).toUpperCase(),
+            id: item.reference_number || (item.id ? item.id.substring(0, 8).toUpperCase() : 'INC-UNKNOWN'),
             realId: item.id,
-            title: item.title || item.issue_type?.replace('_', ' ')?.toUpperCase() || 'Unknown Issue',
-            location: item.location?.address || 'Location Unknown',
+            title: item.title || (item.issue_type ? item.issue_type.replace(/_/g, ' ').toUpperCase() : 'Citizen Report'),
+            location: locationString,
             status: uiStatus,
-            date: new Date(item.created_at).toLocaleDateString(),
+            date: item.created_at ? new Date(item.created_at).toLocaleDateString() : 'Recent',
           };
         });
         setIncidents(mapped);
       } catch (err) {
-        console.error(err);
-        setError('Failed to load incidents. Please try again later.');
+        console.error('Failed to load citizen incidents:', err);
+        setError('Failed to load incidents. Please check your connection and try again.');
       } finally {
         setLoading(false);
       }
@@ -76,9 +87,9 @@ export default function CitizenHistoryPage() {
       </div>
 
       {loading && (
-        <div style={{ display: 'flex', justifyContent: 'center', padding: '2rem' }}>
+        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', padding: '3rem', color: '#64748B' }}>
           <Loader2 className="animate-spin" size={24} />
-          <span style={{ marginLeft: '8px' }}>Loading your reports...</span>
+          <span style={{ marginLeft: '10px', fontSize: '0.95rem' }}>Loading your reports from server...</span>
         </div>
       )}
 
@@ -90,42 +101,50 @@ export default function CitizenHistoryPage() {
       )}
 
       {!loading && !error && filteredIncidents.length === 0 && (
-        <div style={{ textAlign: 'center', padding: '3rem', color: '#6b7280' }}>
-          <FileText size={32} style={{ margin: '0 auto 12px', opacity: 0.5 }} />
-          <p>No reports found matching this filter.</p>
+        <div style={{ textAlign: 'center', padding: '3rem', color: '#64748B' }}>
+          <FileText size={36} style={{ margin: '0 auto 12px', opacity: 0.4 }} />
+          <p style={{ fontWeight: 500 }}>No reports found for "{activeFilter}".</p>
         </div>
       )}
 
       {/* Incidents Cards List */}
-      {!loading && !error && (
+      {!loading && !error && filteredIncidents.length > 0 && (
         <div className="history-incidents-list">
-          {filteredIncidents.map((incident) => (
-            <div key={incident.id} className="history-incident-card">
-              <div className="history-incident-left">
-                <h3 className="history-incident-title">{incident.title}</h3>
-                <span className="history-incident-meta">
-                  {incident.location} · {incident.status} · {incident.date}
-                </span>
-              </div>
+          {filteredIncidents.map((incident) => {
+            const badgeClass = 
+              incident.status === 'Resolved' ? 'resolved' :
+              incident.status === 'Escalated' ? 'escalated' :
+              incident.status === 'In Progress' ? 'in-progress' :
+              'submitted';
 
-              <div className="history-incident-right">
-                <span className={`history-status-badge ${incident.status === 'Resolved' ? 'resolved' : incident.status === 'Escalated' ? 'escalated' : 'in-progress'}`}>
-                  {incident.status}
-                </span>
+            return (
+              <div key={incident.id} className="history-incident-card">
+                <div className="history-incident-left">
+                  <h3 className="history-incident-title">{incident.title}</h3>
+                  <span className="history-incident-meta">
+                    {incident.location} · {incident.status} · {incident.date}
+                  </span>
+                </div>
 
-                <div 
-                  className="history-action-col"
-                  onClick={() => navigate(`/citizen/track?id=${incident.realId}`)}
-                >
-                  <span className="history-report-id">{incident.id}</span>
-                  <button type="button" className="history-view-link">
-                    <span>View Report</span>
-                    <ArrowRight size={14} />
-                  </button>
+                <div className="history-incident-right">
+                  <span className={`history-status-badge ${badgeClass}`}>
+                    {incident.status}
+                  </span>
+
+                  <div 
+                    className="history-action-col"
+                    onClick={() => navigate(`/citizen/track?id=${encodeURIComponent(incident.id)}`)}
+                  >
+                    <span className="history-report-id">{incident.id}</span>
+                    <button type="button" className="history-view-link">
+                      <span>View Report</span>
+                      <ArrowRight size={14} />
+                    </button>
+                  </div>
                 </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       )}
     </div>

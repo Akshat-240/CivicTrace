@@ -1,0 +1,55 @@
+services:
+  # ---------------------------------------------------------------------------
+  # PostgreSQL + PostGIS
+  # ---------------------------------------------------------------------------
+  db:
+    image: postgis/postgis:16-3.4-alpine
+    container_name: civictrace-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-civictrace}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-civictrace}
+      POSTGRES_DB: ${POSTGRES_DB:-civictrace}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-civictrace} -d ${POSTGRES_DB:-civictrace}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  # ---------------------------------------------------------------------------
+  # FastAPI backend
+  # ---------------------------------------------------------------------------
+  api:
+    build:
+      context: ./apps/api
+      dockerfile: ../../infra/docker/api.Dockerfile
+    container_name: civictrace-api
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      # Override DB host to use Docker service name.
+      DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-civictrace}:${POSTGRES_PASSWORD:-civictrace}@db:5432/${POSTGRES_DB:-civictrace}
+      DATABASE_URL_SYNC: postgresql+psycopg://${POSTGRES_USER:-civictrace}:${POSTGRES_PASSWORD:-civictrace}@db:5432/${POSTGRES_DB:-civictrace}
+    ports:
+      - "8000:8000"
+    depends_on:
+      db:
+        condition: service_healthy
+    volumes:
+      # Mount source for hot reload in development.
+      - ./apps/api:/app
+    command: >
+      uvicorn app.main:app
+        --host 0.0.0.0
+        --port 8000
+        --reload
+        --log-level info
+
+volumes:
+  postgres_data:
+    driver: local
