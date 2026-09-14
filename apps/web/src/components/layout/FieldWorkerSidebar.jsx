@@ -6,7 +6,6 @@ import {
   MapPin, 
   Camera, 
   CheckCircle2,
-  Layers,
   LogOut
 } from 'lucide-react';
 import './FieldWorkerSidebar.css';
@@ -23,11 +22,11 @@ const FieldWorkerSidebar = () => {
   }
 
   const navItems = [
-    { name: 'Assigned Work', path: '/field-worker/dashboard', icon: <ClipboardList size={18} />, requiresId: false },
-    { name: 'Incident Details', path: currentId ? `/field-worker/tasks/${currentId}` : '#', icon: <FileText size={18} />, requiresId: true },
-    { name: 'Location & Map', path: currentId ? `/field-worker/location?id=${currentId}` : '#', icon: <MapPin size={18} />, requiresId: true },
-    { name: 'Evidence & Work Status', path: currentId ? `/field-worker/evidence?id=${currentId}` : '#', icon: <Camera size={18} />, requiresId: true },
-    { name: 'Review & Submit', path: currentId ? `/field-worker/review?id=${currentId}` : '#', icon: <CheckCircle2 size={18} />, requiresId: true },
+    { name: 'Assigned Work', path: '/field-worker/dashboard', icon: <ClipboardList size={18} /> },
+    { name: 'Incident Details', path: currentId ? `/field-worker/tasks/${currentId}` : '/field-worker/tasks/none', icon: <FileText size={18} /> },
+    { name: 'Location & Map', path: currentId ? `/field-worker/location?id=${currentId}` : '/field-worker/location', icon: <MapPin size={18} /> },
+    { name: 'Evidence & Work Status', path: currentId ? `/field-worker/evidence?id=${currentId}` : '/field-worker/evidence', icon: <Camera size={18} /> },
+    { name: 'Review & Submit', path: currentId ? `/field-worker/review?id=${currentId}` : '/field-worker/review', icon: <CheckCircle2 size={18} /> },
   ];
 
   const handleSignOut = () => {
@@ -46,68 +45,16 @@ const FieldWorkerSidebar = () => {
         <div className="ct-fw-brand-subtitle">FIELD OPERATIONS</div>
       </div>
 
-      {/* 4-Way Portal Switcher */}
-      <div className="ct-fw-portal-switcher">
-        <div className="ct-fw-portal-label">
-          <Layers size={13} />
-          <span>PORTAL</span>
-        </div>
-        <div className="ct-fw-portal-pills">
-          <button 
-            type="button" 
-            className="ct-fw-portal-pill" 
-            onClick={() => navigate('/admin/dashboard')}
-            title="Admin Portal"
-          >
-            Admin
-          </button>
-          <button 
-            type="button" 
-            className="ct-fw-portal-pill" 
-            onClick={() => navigate('/authority/dashboard')}
-            title="Authority Portal"
-          >
-            Authority
-          </button>
-          <button 
-            type="button" 
-            className="ct-fw-portal-pill" 
-            onClick={() => navigate('/citizen/dashboard')}
-            title="Citizen Portal"
-          >
-            Citizen
-          </button>
-          <button 
-            type="button" 
-            className="ct-fw-portal-pill active" 
-            onClick={() => navigate('/field-worker/dashboard')}
-            title="Field Worker Portal"
-          >
-            Worker
-          </button>
-        </div>
-      </div>
-
       {/* Navigation Links */}
-      <nav className="ct-fw-nav">
+      <nav className="ct-fw-nav" style={{ marginTop: '2rem' }}>
         <ul className="ct-fw-nav-list">
           {navItems.map((item) => {
-            if (item.requiresId && !currentId) {
-              return (
-                <li key={item.name} className="ct-fw-nav-item">
-                  <div className="ct-fw-nav-link" style={{ opacity: 0.5, cursor: 'not-allowed' }}>
-                    <span className="ct-fw-nav-icon">{item.icon}</span>
-                    <span className="ct-fw-nav-text">{item.name}</span>
-                  </div>
-                </li>
-              );
-            }
             return (
               <li key={item.name} className="ct-fw-nav-item">
                 <NavLink
                   to={item.path}
                   className={({ isActive }) => 
-                    `ct-fw-nav-link ${isActive && item.path !== '#' ? 'active' : ''}`
+                    `ct-fw-nav-link ${isActive ? 'active' : ''}`
                   }
                   end={item.name === 'Assigned Work'}
                 >
