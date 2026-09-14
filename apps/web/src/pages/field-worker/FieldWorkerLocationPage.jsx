@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { getIncident } from '../../services/api';
+import { getWorkerTaskDetail, updateWorkerTaskStatus } from '../../services/api';
 import { MapPin, Navigation, Compass, CheckCircle } from 'lucide-react';
 import './FieldWorkerLocationPage.css';
 
@@ -21,7 +21,7 @@ const FieldWorkerLocationPage = () => {
     async function loadIncident() {
       try {
         setLoading(true);
-        const res = await getIncident(id);
+        const res = await getWorkerTaskDetail(id);
         setTask(res);
       } catch (err) {
         console.error(err);
@@ -53,7 +53,21 @@ const FieldWorkerLocationPage = () => {
     }
   }, []);
 
-  const handleConfirmLocation = () => {
+  const handleConfirmLocation = async () => {
+    try {
+      let currentStatus = task.worker_status;
+      if (currentStatus === 'ON_THE_WAY') {
+        await updateWorkerTaskStatus(task.id, 'AT_LOCATION');
+        currentStatus = 'AT_LOCATION';
+      }
+      if (currentStatus === 'AT_LOCATION') {
+        await updateWorkerTaskStatus(task.id, 'IN_PROGRESS');
+      }
+    } catch (e) {
+      console.error(e);
+      alert('Failed to update status. Please try again.');
+      return;
+    }
     setIsConfirmed(true);
     setTimeout(() => {
       navigate(`/field-worker/evidence?id=${task.id}`);
@@ -160,4 +174,7 @@ const FieldWorkerLocationPage = () => {
 };
 
 export default FieldWorkerLocationPage;
+
+
+
 

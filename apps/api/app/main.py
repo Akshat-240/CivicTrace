@@ -125,11 +125,12 @@ def create_app() -> FastAPI:
     app.include_router(health.router, tags=["system"])
 
     # Domain routers will be added here as features are built out.
-    from app.api.routes import incidents, system, auth, ai
+    from app.api.routes import incidents, system, auth, ai, worker
     app.include_router(incidents.router, prefix=settings.api_v1_prefix)
     app.include_router(system.router, prefix=settings.api_v1_prefix)
     app.include_router(auth.router, prefix=settings.api_v1_prefix)
     app.include_router(ai.router, prefix=settings.api_v1_prefix)
+    app.include_router(worker.router, prefix=settings.api_v1_prefix + "/worker", tags=["worker"])
     # app.include_router(evidence.router,  prefix=settings.api_v1_prefix)
 
     return app
@@ -137,3 +138,4 @@ def create_app() -> FastAPI:
 
 # The ASGI application instance used by uvicorn / gunicorn.
 app = create_app()
+

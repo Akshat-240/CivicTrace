@@ -1,12 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
-import { getIncident, submitResolutionEvidence } from '../../services/api';
+import { useNavigate, useSearchParams, useLocation } from 'react-router-dom';
+import { getWorkerTaskDetail, submitWorkerResolution } from '../../services/api';
 import { ShieldCheck, MapPin, CheckCircle, ArrowRight, Loader2 } from 'lucide-react';
 import './FieldWorkerReviewPage.css';
 
 const FieldWorkerReviewPage = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
+  const location = useLocation();
   const id = searchParams.get('id');
 
   const [task, setTask] = useState(null);
@@ -18,7 +19,7 @@ const FieldWorkerReviewPage = () => {
     async function loadIncident() {
       try {
         setLoading(true);
-        const res = await getIncident(id);
+        const res = await getWorkerTaskDetail(id);
         setTask(res);
       } catch (err) {
         console.error(err);
@@ -32,33 +33,49 @@ const FieldWorkerReviewPage = () => {
   const handleSubmit = async () => {
     try {
       setSubmitting(true);
-      const notes = localStorage.getItem('fw_temp_notes') || "Repaired and verified.";
-      const payload = {
-        evidence_type: 'resolution',
-        content_url: 'https://example.com/demo-resolution.jpg',
-        location: task.location ? {
-          latitude: task.location.latitude,
-          longitude: task.location.longitude,
-          address_raw: task.location.address_raw
-        } : {
-          latitude: 26.8528,
-          longitude: 80.9435,
-          address_raw: "GPS Lock"
-        },
-        metadata: {
-          field_notes: notes,
-          submitted_by: 'Field Worker Demo',
-          verification_stage: 'pending'
+    
+    if (!navigator.geolocation) {
+      alert("Geolocation is not supported by your browser.");
+      setSubmitting(false);
+      return;
+    }
+    
+    navigator.geolocation.getCurrentPosition(
+      async (position) => {
+        try {
+          const notes = location.state?.notes || localStorage.getItem('fw_temp_notes') || 'Repaired and verified.';
+          const file = location.state?.file;
+          
+          if (!file) {
+            alert("No photo provided. You must upload evidence.");
+            setSubmitting(false);
+            return;
+          }
+          
+          const formData = new FormData();
+          formData.append('file', file);
+          formData.append('notes', notes);
+          formData.append('latitude', position.coords.latitude);
+          formData.append('longitude', position.coords.longitude);
+          formData.append('capture_timestamp', new Date().toISOString());
+          
+          await submitWorkerResolution(task.id, formData);
+          setSuccess(true);
+          localStorage.removeItem('fw_temp_notes');
+        } catch (err) {
+          console.error(err);
+          alert("Failed to submit resolution. See console.");
+        } finally {
+          setSubmitting(false);
         }
-      };
-
-      await submitResolutionEvidence(task.id, payload);
-      setSuccess(true);
-      localStorage.removeItem('fw_temp_notes');
+      },
+      (error) => {
+        alert("Failed to get location. Worker coordinates are required.");
+        setSubmitting(false);
+      }
+    );
     } catch (err) {
       console.error(err);
-      alert("Failed to submit resolution. See console.");
-    } finally {
       setSubmitting(false);
     }
   };
@@ -91,7 +108,7 @@ const FieldWorkerReviewPage = () => {
   }
 
   const displayId = task.reference_number || task.id.substring(0,8).toUpperCase();
-  const notes = localStorage.getItem('fw_temp_notes') || "Repaired and verified.";
+  const notes = location.state?.notes || localStorage.getItem('fw_temp_notes') || 'Repaired and verified.';
 
   return (
     <div className="ct-fw-page-container">
@@ -112,7 +129,7 @@ const FieldWorkerReviewPage = () => {
               <span className="ct-fw-sum-key">Location lock</span>
               <span className="ct-fw-sum-val">
                 <MapPin size={12} />
-                {task.location?.address_raw || 'Verified GPS'}
+                {task.address || 'Verified GPS'}
               </span>
             </div>
             <div className="ct-fw-summary-row">
@@ -158,4 +175,7 @@ const FieldWorkerReviewPage = () => {
 };
 
 export default FieldWorkerReviewPage;
+
+
+
 

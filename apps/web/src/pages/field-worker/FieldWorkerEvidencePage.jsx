@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { getIncident } from '../../services/api';
+import { getWorkerTaskDetail } from '../../services/api';
 import { Camera, Upload, ArrowRight, CheckCircle2 } from 'lucide-react';
 import './FieldWorkerEvidencePage.css';
 
@@ -13,6 +13,7 @@ const FieldWorkerEvidencePage = () => {
   const [loading, setLoading] = useState(true);
 
   const [capturedImage, setCapturedImage] = useState(null);
+  const [capturedFile, setCapturedFile] = useState(null);
   const [notes, setNotes] = useState("");
   const fileInputRef = useRef(null);
 
@@ -20,7 +21,7 @@ const FieldWorkerEvidencePage = () => {
     async function loadIncident() {
       try {
         setLoading(true);
-        const res = await getIncident(id);
+        const res = await getWorkerTaskDetail(id);
         setTask(res);
       } catch (err) {
         console.error(err);
@@ -40,6 +41,7 @@ const FieldWorkerEvidencePage = () => {
   const handleFileChange = (e) => {
     const file = e.target.files[0];
     if (file) {
+      setCapturedFile(file);
       const url = URL.createObjectURL(file);
       setCapturedImage(url);
     }
@@ -51,9 +53,7 @@ const FieldWorkerEvidencePage = () => {
   };
 
   const handleContinue = () => {
-    // Pass notes via local storage or state. Let's just use local storage for demo to avoid complex context setup.
-    if (notes) localStorage.setItem('fw_temp_notes', notes);
-    navigate(`/field-worker/review?id=${id}`);
+    navigate('/field-worker/review?id=' + id, { state: { file: capturedFile, notes } });
   };
 
   if (!id) return <div style={{padding: '2rem'}}>No task selected. Please select a task from the dashboard.</div>;
@@ -152,4 +152,6 @@ const FieldWorkerEvidencePage = () => {
 };
 
 export default FieldWorkerEvidencePage;
+
+
 

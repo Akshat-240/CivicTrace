@@ -24,6 +24,7 @@ if TYPE_CHECKING:
     from app.models.jurisdiction import Jurisdiction
     from app.models.incident import Incident
     from app.models.user import User
+    from app.models.worker_profile import WorkerProfile
     from app.models.sla_rule import SLARule
 
 
@@ -75,12 +76,14 @@ class Authority(Base):
     incidents: Mapped[list["Incident"]] = relationship(
         "Incident", back_populates="authority"
     )
-    users: Mapped[list["User"]] = relationship(
-        "User", back_populates="authority"
-    )
+    users: Mapped[list["User"]] = relationship("User", back_populates="authority")
+    workers: Mapped[list["WorkerProfile"]] = relationship("WorkerProfile", back_populates="authority")
     sla_rules: Mapped[list["SLARule"]] = relationship(
         "SLARule", back_populates="authority", cascade="all, delete-orphan"
     )
 
     def __repr__(self) -> str:
         return f"<Authority id={self.id} code={self.short_code!r}>"
+
+
+
