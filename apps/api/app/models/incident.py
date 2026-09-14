@@ -45,7 +45,6 @@ if TYPE_CHECKING:
     from app.models.jurisdiction import Jurisdiction
     from app.models.authority import Authority
     from app.models.asset import Asset
-    from app.models.priority import Priority
     from app.models.sla import SLA
     from app.models.verification import VerificationRecord
     from app.models.event import IncidentEvent
@@ -150,12 +149,6 @@ class Incident(Base):
     )
     assets: Mapped[list["Asset"]] = relationship(
         "Asset", back_populates="incident", cascade="all, delete-orphan"
-    )
-    priority: Mapped[Optional["Priority"]] = relationship(
-        "Priority",
-        back_populates="incident",
-        uselist=False,
-        cascade="all, delete-orphan",
     )
     sla: Mapped[Optional["SLA"]] = relationship(
         "SLA",

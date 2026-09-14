@@ -135,3 +135,62 @@ export async function addIncidentEvidence(id, data) {
     body: JSON.stringify(data),
   });
 }
+
+export async function uploadIncidentEvidence(incidentId, formData) {
+  const url = `${API_BASE_URL}/api/v1/incidents/${incidentId}/evidence/upload`;
+  const response = await fetch(url, {
+    method: 'POST',
+    body: formData,
+  });
+  if (!response.ok) {
+    let errorMessage = response.statusText;
+    try {
+      const errorData = await response.json();
+      if (errorData.detail) {
+        errorMessage = typeof errorData.detail === 'string' ? errorData.detail : JSON.stringify(errorData.detail);
+      }
+    } catch (e) {
+      // ignore
+    }
+    throw new Error(`Upload Error ${response.status}: ${errorMessage}`);
+  }
+  return await response.json();
+}
+
+export async function analyzeEvidence(incidentId, evidenceId) {
+  return fetchAPI(`/incidents/${incidentId}/evidence/${evidenceId}/analyze`, {
+    method: 'POST',
+  });
+}
+
+export async function transcribeSpeech(audioBlob, language = 'en-US') {
+  const formData = new FormData();
+  let filename = 'voice_recording.wav';
+  if (audioBlob.type && audioBlob.type.includes('ogg')) {
+    filename = 'voice_recording.ogg';
+  } else if (audioBlob.type && audioBlob.type.includes('webm')) {
+    filename = 'voice_recording.webm';
+  }
+  formData.append('file', audioBlob, filename);
+  formData.append('language', language);
+
+  const url = `${API_BASE_URL}/api/v1/ai/transcribe`;
+  const response = await fetch(url, {
+    method: 'POST',
+    body: formData,
+  });
+
+  if (!response.ok) {
+    let errorMessage = response.statusText;
+    try {
+      const errorData = await response.json();
+      if (errorData.detail) {
+        errorMessage = typeof errorData.detail === 'string' ? errorData.detail : JSON.stringify(errorData.detail);
+      }
+    } catch (e) {
+      // ignore
+    }
+    throw new Error(`Transcription Error ${response.status}: ${errorMessage}`);
+  }
+  return await response.json();
+}

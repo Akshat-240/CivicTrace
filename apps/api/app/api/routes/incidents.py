@@ -189,7 +189,10 @@ async def analyze_evidence(
     evidence_id: uuid.UUID,
     db: DbSession,
 ) -> Any:
-    # Ensure evidence belongs to incident
+    # Ensure incident exists
+    incident_service = IncidentService(db)
+    await incident_service.get_incident(incident_id)
+
     ai_service = AIService(db)
     return await ai_service.process_evidence(evidence_id)
 
@@ -206,30 +209,9 @@ async def assign_jurisdiction(
     return await service.assign_jurisdiction(incident_id)
 
 @router.post(
-    "/{incident_id}/prioritize",
-    response_model=Any,
-    summary="Compute final incident priority using evidence aggregation",
-)
-async def compute_priority(
-    incident_id: uuid.UUID,
-    db: DbSession,
-) -> Any:
-    from app.services.priority_service import PriorityService
-    service = PriorityService(db)
-    # Returning the dictionary representing Priority model for simplicity
-    p = await service.compute_priority(incident_id)
-    return {
-        "final_priority": p.final_priority,
-        "explanation": p.explanation,
-        "safety_risk": p.safety_risk,
-        "severity": p.severity,
-        "persistence_score": p.persistence_score
-    }
-
-@router.post(
     "/{incident_id}/start-sla",
     response_model=Any,
-    summary="Start SLA clock for a prioritized incident",
+    summary="Start SLA clock for an assigned incident",
 )
 async def start_sla(
     incident_id: uuid.UUID,
