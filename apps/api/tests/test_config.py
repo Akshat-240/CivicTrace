@@ -63,3 +63,36 @@ def test_get_settings_returns_cached_instance():
     s1 = get_settings()
     s2 = get_settings()
     assert s1 is s2
+
+
+def test_settings_supabase_storage_config():
+    """Supabase storage variables and aliases must be parsed cleanly."""
+    settings = Settings(
+        supabase_url="https://test.supabase.co",
+        supabase_secret_key="dummy_secret_key",
+        supabase_storage_bucket="evidence",
+        database_url="postgresql+asyncpg://u:p@localhost:5432/testdb",
+        database_url_sync="postgresql+psycopg2://u:p@localhost:5432/testdb",
+    )
+    assert settings.supabase_url == "https://test.supabase.co"
+    assert settings.supabase_secret_key == "dummy_secret_key"
+    assert settings.supabase_key == "dummy_secret_key"
+    assert settings.supabase_storage_bucket == "evidence"
+    assert settings.storage_bucket == "evidence"
+
+
+def test_settings_azure_ai_vision_config():
+    """Azure AI Vision provider and credentials must be parsed cleanly."""
+    settings = Settings(
+        ai_primary_provider="azure",
+        ai_fallback_provider="gemini",
+        azure_ai_vision_endpoint="https://test.cognitiveservices.azure.com/",
+        azure_ai_vision_key="dummy_azure_key",
+        database_url="postgresql+asyncpg://u:p@localhost:5432/testdb",
+        database_url_sync="postgresql+psycopg2://u:p@localhost:5432/testdb",
+    )
+    assert settings.ai_primary_provider == "azure"
+    assert settings.ai_fallback_provider == "gemini"
+    assert settings.azure_ai_vision_endpoint == "https://test.cognitiveservices.azure.com/"
+    assert settings.azure_ai_vision_key == "dummy_azure_key"
+    assert settings.azure_vision_configured is True

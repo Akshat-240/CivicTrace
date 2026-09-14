@@ -68,6 +68,22 @@ class TestAccountabilityService:
         with pytest.raises(ValueError, match="No responsible Authority assigned"):
             await svc.start_sla(inc.id, current_time=base_time)
 
+    async def test_missing_priority(self, db_session, base_time):
+        # 8. missing priority
+        auth = Authority(id=uuid.uuid4(), name="Test Authority", short_code="TA", sla_hours_low=168)
+        db_session.add(auth)
+        inc = Incident(
+            reference_number="INC-SLA-PRIO", status=IncidentStatus.ACTIVE, issue_type="POTHOLE",
+            created_at=base_time, authority_id=auth.id
+        )
+        db_session.add(inc)
+        await db_session.flush()
+        # Do not add priority
+
+        svc = AccountabilityService(db_session)
+        with pytest.raises(ValueError, match="Cannot start SLA: Final Priority has not been computed."):
+            await svc.start_sla(inc.id, current_time=base_time)
+
     async def test_pending_incident(self, db_session, base_time):
         # 1. pending incident
         auth = Authority(id=uuid.uuid4(), name="Test", short_code="T", sla_hours_low=100)
