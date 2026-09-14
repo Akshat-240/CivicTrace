@@ -23,6 +23,7 @@ from app.core.database import Base
 if TYPE_CHECKING:
     from app.models.jurisdiction import Jurisdiction
     from app.models.incident import Incident
+    from app.models.user import User
 
 
 class Authority(Base):
@@ -72,6 +73,9 @@ class Authority(Base):
     )
     incidents: Mapped[list["Incident"]] = relationship(
         "Incident", back_populates="authority"
+    )
+    users: Mapped[list["User"]] = relationship(
+        "User", back_populates="authority"
     )
 
     def __repr__(self) -> str:
