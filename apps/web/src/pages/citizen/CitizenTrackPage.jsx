@@ -244,50 +244,50 @@ export default function CitizenTrackPage() {
             </section>
 
             {/* Card 2: Resolution Verification */}
-            {incident.verification && incident.verification.result && (
-              <section className="track-info-card">
-                <div className="verification-header-row">
-                  <h3 className="track-info-card-title">Resolution Verification</h3>
-                  <span className="verification-subtag">{incident.verification.result?.replace('_', ' ').toUpperCase()}</span>
-                </div>
-
-                <div className="verification-photos-grid">
-                  <div className="photo-comparison-box before">
-                    <span className="photo-stage-tag">BEFORE</span>
-                    <div className="photo-mock-fill">
-                      <span className="photo-caption">Reported issue</span>
-                    </div>
-                  </div>
-
-                  <div className="photo-comparison-box after">
-                    <span className="photo-stage-tag">AFTER</span>
-                    <div className="photo-mock-fill">
-                      <span className="photo-caption">Resolution evidence</span>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="verification-footer-row">
-                  <div className="ai-verified-pill">
-                    <Sparkles size={13} />
-                    <span>AI VERIFIED</span>
-                  </div>
-                  <span className="ai-feedback-subtext">{incident.verification.explanation || 'Verified automatically.'}</span>
-                  <div className="ai-confidence-col">
-                    <span className="confidence-label">Confidence</span>
-                    <span className="confidence-value">{Math.round((incident.verification.confidence || 0) * 100)}%</span>
-                  </div>
-                </div>
-              </section>
-            )}
-            
-            {/* If resolved but no verification obj (fallback) */}
-            {incident.status === 'resolved' && !incident.verification && (
-              <section className="track-info-card">
+            <section className="track-info-card">
+              <div className="verification-header-row">
                 <h3 className="track-info-card-title">Resolution Verification</h3>
+                {incident.verification && incident.verification.result && (
+                  <span className="verification-subtag">{incident.verification.result?.replace('_', ' ').toUpperCase()}</span>
+                )}
+              </div>
+
+              {incident.verification && incident.verification.result ? (
+                <>
+                  <div className="verification-photos-grid">
+                    <div className="photo-comparison-box before">
+                      <span className="photo-stage-tag">BEFORE</span>
+                      <div className="photo-mock-fill">
+                        <span className="photo-caption">Reported issue</span>
+                      </div>
+                    </div>
+
+                    <div className="photo-comparison-box after">
+                      <span className="photo-stage-tag">AFTER</span>
+                      <div className="photo-mock-fill">
+                        <span className="photo-caption">Resolution evidence</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="verification-footer-row">
+                    <div className="ai-verified-pill">
+                      <Sparkles size={13} />
+                      <span>AI VERIFIED</span>
+                    </div>
+                    <span className="ai-feedback-subtext">{incident.verification.explanation || 'Verified automatically.'}</span>
+                    <div className="ai-confidence-col">
+                      <span className="confidence-label">Confidence</span>
+                      <span className="confidence-value">{Math.round((incident.verification.confidence || 0) * 100)}%</span>
+                    </div>
+                  </div>
+                </>
+              ) : incident.status === 'resolved' || incident.status === 'closed' ? (
                 <p style={{ color: '#6b7280', fontSize: '0.9rem', marginTop: '1rem' }}>Issue has been marked as resolved.</p>
-              </section>
-            )}
+              ) : (
+                <p style={{ color: '#6b7280', fontSize: '0.9rem', marginTop: '1rem' }}>No resolution evidence submitted yet.</p>
+              )}
+            </section>
           </div>
         </div>
       )}

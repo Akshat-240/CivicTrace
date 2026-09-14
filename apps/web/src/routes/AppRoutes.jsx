@@ -1,5 +1,6 @@
 import React from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
+import ProtectedRoute from '../components/ProtectedRoute';
 
 // Public Pages
 import LandingPage from '../pages/public/LandingPage';
@@ -43,7 +44,11 @@ const AppRoutes = () => {
       <Route path="/login" element={<LoginPage />} />
 
       {/* Authority Portal Routes */}
-      <Route path="/authority" element={<AuthorityLayout />}>
+      <Route path="/authority" element={
+        <ProtectedRoute allowedRole="authority">
+          <AuthorityLayout />
+        </ProtectedRoute>
+      }>
         <Route index element={<Navigate to="dashboard" replace />} />
         <Route path="dashboard" element={<DashboardPage />} />
         <Route path="incidents" element={<IncidentsPage />} />
@@ -54,7 +59,11 @@ const AppRoutes = () => {
       </Route>
 
       {/* Admin Portal Routes */}
-      <Route path="/admin" element={<AdminLayout />}>
+      <Route path="/admin" element={
+        <ProtectedRoute allowedRole="admin">
+          <AdminLayout />
+        </ProtectedRoute>
+      }>
         <Route index element={<Navigate to="dashboard" replace />} />
         <Route path="dashboard" element={<AdminDashboardPage />} />
         <Route path="incidents" element={<AdminIncidentsPage />} />
@@ -68,7 +77,11 @@ const AppRoutes = () => {
       </Route>
 
       {/* Citizen Portal Routes */}
-      <Route path="/citizen" element={<CitizenLayout />}>
+      <Route path="/citizen" element={
+        <ProtectedRoute allowedRole="citizen">
+          <CitizenLayout />
+        </ProtectedRoute>
+      }>
         <Route index element={<Navigate to="dashboard" replace />} />
         <Route path="dashboard" element={<CitizenDashboardPage />} />
         <Route path="report" element={<CitizenReportPage />} />
