@@ -100,6 +100,18 @@ class Settings(BaseSettings):
     supabase_storage_bucket: str = Field(default="evidence")
 
     # ------------------------------------------------------------------
+    # AI (Azure)
+    # ------------------------------------------------------------------
+    azure_ai_vision_endpoint: str = Field(default="")
+    azure_ai_vision_key: str = Field(default="")
+    azure_ai_language_endpoint: str = Field(default="")
+    azure_ai_language_key: str = Field(default="")
+    azure_ai_speech_key: str = Field(default="")
+    azure_ai_speech_region: str = Field(default="eastus")
+    ai_primary_provider: str = Field(default="azure")
+    ai_fallback_provider: str = Field(default="gemini")
+
+    # ------------------------------------------------------------------
     # Derived helpers
     # ------------------------------------------------------------------
     @property

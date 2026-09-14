@@ -106,3 +106,58 @@ class ResolutionSubmit(CivicBaseModel):
                              description="Description of the resolution work performed.")
     evidence_type: Optional[str] = Field(default="text",
                                          description="Evidence type (text only in MVP -- no binary storage).")
+class IntelligenceReport(CivicBaseModel):
+    # A. INCIDENT
+    incident_id: uuid.UUID
+    reference_number: str
+    current_status: str
+    issue_category: Optional[str] = None
+    citizen_description: Optional[str] = None
+
+    # B. AI EVIDENCE ASSESSMENT
+    visual_finding: Optional[str] = None
+    normalized_issue_category: Optional[str] = None
+    severity: Optional[str] = None
+    confidence: Optional[float] = None
+    ambiguity_flag: bool = False
+    ambiguity_reason: Optional[str] = None
+    safety_risk: bool = False
+    evidence_quality: Optional[str] = None
+    ai_provider: Optional[str] = None
+    evidence_count: int = 0
+
+    # C. LOCATION INTELLIGENCE
+    latitude: Optional[float] = None
+    longitude: Optional[float] = None
+    address_raw: Optional[str] = None
+    ward: Optional[str] = None
+    jurisdiction: Optional[str] = None
+    gis_resolution_status: str = "Pending"
+
+    # D. RESPONSIBILITY
+    responsible_authority: Optional[str] = None
+    responsible_department: Optional[str] = None
+    responsibility_basis: str = "GIS jurisdiction + configured responsibility mapping"
+    authority_id: Optional[uuid.UUID] = None
+
+    # E. SLA
+    sla_applicable: bool = False
+    resolution_target: Optional[str] = None
+    due_at: Optional[datetime] = None
+    escalation_state: Optional[str] = None
+
+    # F. FUSION
+    fusion_status: str = "Pending"
+    matched_incident_count: int = 0
+    canonical_incident_id: Optional[uuid.UUID] = None
+    fusion_explanation: Optional[str] = None
+
+    # G. EVIDENCE
+    primary_evidence_id: Optional[uuid.UUID] = None
+    evidence_type: Optional[str] = None
+    image_available: bool = False
+    ai_analysis_available: bool = False
+    evidence_assessment_status: str = "Pending"
+
+    # H. CIVICTRACE SUMMARY
+    civictrace_summary: str = ""
