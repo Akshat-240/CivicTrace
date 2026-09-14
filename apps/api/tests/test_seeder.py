@@ -216,10 +216,11 @@ class TestEvidenceTypeMapping:
 class TestVerificationResultMapping:
     @pytest.mark.parametrize("label, expected", [
         ("FULLY_RESOLVED", VerificationResult.FULLY_RESOLVED),
-        ("PARTIALLY_RESOLVED", VerificationResult.PARTIALLY_RESOLVED),
-        ("UNRESOLVED", VerificationResult.UNRESOLVED),
-        ("NOT_RESOLVED", VerificationResult.UNRESOLVED),
-        ("INSUFFICIENT_EVIDENCE", VerificationResult.INSUFFICIENT_EVIDENCE),
+        ("NOT_RESOLVED", VerificationResult.NOT_RESOLVED),
+        ("UNRESOLVED", VerificationResult.NOT_RESOLVED),
+        ("NO_EVIDENCE", VerificationResult.NO_EVIDENCE),
+        ("INSUFFICIENT_EVIDENCE", VerificationResult.NO_EVIDENCE),
+        ("HUMAN_REVIEW", VerificationResult.HUMAN_REVIEW),
     ])
     def test_resolution_labels(self, label, expected):
         assert seeder.VERIFICATION_RESULT_MAP.get(label) == expected
@@ -235,10 +236,11 @@ class TestVerificationResultMapping:
 class TestIncidentStatusFromResolution:
     @pytest.mark.parametrize("label, expected_status", [
         ("FULLY_RESOLVED", IncidentStatus.RESOLVED),
-        ("PARTIALLY_RESOLVED", IncidentStatus.UNDER_REVIEW),
-        ("UNRESOLVED", IncidentStatus.ACTIVE),
         ("NOT_RESOLVED", IncidentStatus.ACTIVE),
+        ("UNRESOLVED", IncidentStatus.ACTIVE),
+        ("NO_EVIDENCE", IncidentStatus.DRAFT),
         ("INSUFFICIENT_EVIDENCE", IncidentStatus.DRAFT),
+        ("HUMAN_REVIEW", IncidentStatus.UNDER_REVIEW),
     ])
     def test_status_mapping(self, label, expected_status):
         assert seeder.INCIDENT_STATUS_FROM_RESOLUTION.get(label) == expected_status

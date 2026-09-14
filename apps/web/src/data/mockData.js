@@ -386,8 +386,9 @@ export const mockAdminSLAPage = {
   ],
   evidenceDecisions: [
     { state: "FULLY_RESOLVED", label: "Closes incident & meets SLA", color: "#10B981" },
-    { state: "PARTIALLY_RESOLVED", label: "Requires follow-up verification", color: "#F59E0B" },
-    { state: "INSUFFICIENT_EVIDENCE", label: "Triggers escalation & re-inspection", color: "#EF4444" }
+    { state: "NOT_RESOLVED", label: "Issue remains present", color: "#EF4444" },
+    { state: "NO_EVIDENCE", label: "No evidence submitted / unusable", color: "#6B7280" },
+    { state: "HUMAN_REVIEW", label: "Requires human review", color: "#F59E0B" }
   ]
 };
 
@@ -404,8 +405,8 @@ export const mockAdminDepartments = [
 export const mockAdminGovernance = {
   assessmentStates: [
     { code: "FULLY_RESOLVED", label: "Confirmed resolution with photographic evidence", color: "#10B981" },
-    { code: "PARTIALLY_RESOLVED", label: "Temporary fix applied, permanent repair pending", color: "#06B6D4" },
     { code: "NOT_RESOLVED", label: "False completion claim or zero field progress", color: "#EF4444" },
+    { code: "NO_EVIDENCE", label: "No usable resolution evidence submitted", color: "#6B7280" },
     { code: "HUMAN_REVIEW", label: "Flagged for manual governance audit", color: "#8B5CF6" }
   ],
   queue: [

@@ -12,9 +12,12 @@ from app.schemas.base import (  # noqa: F401
 from app.schemas.location import LocationCreate, LocationResponse  # noqa: F401
 from app.schemas.evidence import EvidenceSubmit, EvidenceResponse  # noqa: F401
 from app.schemas.jurisdiction import AuthorityResponse, JurisdictionResponse  # noqa: F401
-from app.schemas.priority import (  # noqa: F401
-    PriorityResponse,
+from app.schemas.sla import (  # noqa: F401
     SLAResponse,
+    SLARuleCreate,
+    SLARuleResponse,
+)
+from app.schemas.verification import (  # noqa: F401
     VerificationResponse,
     VerificationSubmit,
 )

@@ -5,7 +5,7 @@ from sqlalchemy.orm import selectinload
 from sqlalchemy import select
 from app.models.incident import Incident
 from app.models.authority import Authority
-from app.models.enums import IncidentStatus, PriorityLevel
+from app.models.enums import IncidentStatus
 from app.schemas.incident import IncidentSubmit
 from app.schemas.location import LocationCreate
 from app.services.incident_service import IncidentService
@@ -49,12 +49,11 @@ class TestGate4Hardening:
         
         # process workflow
         await service.process_incident_workflow(incident.id)
-        await db_session.refresh(incident, ["jurisdiction", "authority", "priority", "sla"])
+        await db_session.refresh(incident, ["jurisdiction", "authority", "sla"])
         
         assert incident.jurisdiction is not None
         assert incident.authority is not None
         assert incident.authority.name == "Lucknow Municipal Corporation"
-        assert incident.priority is not None
         assert incident.sla is not None
 
     async def test_b_negative_gis_path(self, db_session):
@@ -66,7 +65,7 @@ class TestGate4Hardening:
         )
         incident = await service.create_incident(data)
         await service.process_incident_workflow(incident.id)
-        await db_session.refresh(incident, ["jurisdiction", "authority", "priority", "sla"])
+        await db_session.refresh(incident, ["jurisdiction", "authority", "sla"])
         assert incident.jurisdiction is None
         assert incident.authority is None
         assert incident.sla is None
@@ -101,7 +100,7 @@ class TestGate4Hardening:
         )
         incident = await service.create_incident(data)
         await service.process_incident_workflow(incident.id)
-        await db_session.refresh(incident, ["jurisdiction", "authority", "priority", "sla"])
+        await db_session.refresh(incident, ["jurisdiction", "authority", "sla"])
         
         gis_service = GISService(db_session)
         result = await gis_service.resolve_jurisdiction(
@@ -140,7 +139,7 @@ class TestGate4Hardening:
         )
         incident = await service.create_incident(data)
         await service.process_incident_workflow(incident.id)
-        await db_session.refresh(incident, ["jurisdiction", "authority", "priority", "sla"])
+        await db_session.refresh(incident, ["jurisdiction", "authority", "sla"])
         
         serialized = IncidentDetail.model_validate(incident)
         assert serialized.authority is not None
@@ -153,7 +152,7 @@ class TestGate4Hardening:
         )
         incident2 = await service.create_incident(data2)
         await service.process_incident_workflow(incident2.id)
-        await db_session.refresh(incident2, ["jurisdiction", "authority", "priority", "sla"])
+        await db_session.refresh(incident2, ["jurisdiction", "authority", "sla"])
         
         serialized2 = IncidentDetail.model_validate(incident2)
         assert serialized2.authority is None

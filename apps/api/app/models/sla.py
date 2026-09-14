@@ -15,7 +15,7 @@ This model simply stores the current state and timestamps.
 Design notes:
 - `started_at` is when the SLA clock started (normally when the incident
   transitions from DRAFT → ACTIVE, or when ambiguity is cleared).
-- `due_at` is computed from Authority.sla_hours_<priority> + started_at.
+- `due_at` is computed from the SLARule (Authority + Issue Type) + started_at.
 - `escalated_at` records when the incident became escalation-eligible.
 """
 

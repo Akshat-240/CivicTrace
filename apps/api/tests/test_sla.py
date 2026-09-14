@@ -1,5 +1,5 @@
 """
-Tests for SLA and Accountability Engine.
+Tests for SLA and Accountability Engine with SLARule lookup.
 """
 
 import uuid
@@ -7,10 +7,11 @@ import pytest
 from datetime import datetime, timedelta, timezone
 
 from app.models.authority import Authority
-from app.models.enums import AccountabilityState, IncidentStatus, PriorityLevel
+from app.models.enums import AccountabilityState, IncidentStatus
 from app.models.incident import Incident
-from app.models.priority import Priority
+from app.models.jurisdiction import Jurisdiction
 from app.models.sla import SLA
+from app.models.sla_rule import SLARule
 from app.services.sla_service import AccountabilityService
 
 
@@ -22,86 +23,84 @@ def base_time():
 @pytest.mark.asyncio
 class TestAccountabilityService:
 
-    async def test_authority_mapping_and_deadline_calculation(self, db_session, base_time):
-        # 5. deadline calculation
-        # 7. authority mapping
-        
+    async def test_authority_mapping_and_deadline_calculation_with_sla_rule(self, db_session, base_time):
         auth = Authority(
             id=uuid.uuid4(), name="Test Authority", short_code="TA",
-            sla_hours_low=168, sla_hours_medium=72, sla_hours_high=24, sla_hours_critical=4
         )
         db_session.add(auth)
-        from app.models.jurisdiction import Jurisdiction
-        jur = Jurisdiction(id=__import__('uuid').uuid4(), name='J', code='J'+str(__import__('uuid').uuid4())[:8], authority_id=auth.id)
+        jur = Jurisdiction(id=uuid.uuid4(), name='J', code='J'+str(uuid.uuid4())[:8], authority_id=auth.id)
         db_session.add(jur)
         
+        # Add explicit SLA rule for pothole -> 48 hours
+        rule = SLARule(
+            id=uuid.uuid4(),
+            authority_id=auth.id,
+            issue_type="pothole",
+            resolution_hours=48,
+            escalation_grace_hours=72,
+            is_active=True
+        )
+        db_session.add(rule)
+
         inc = Incident(
-            reference_number="INC-SLA-1", status=IncidentStatus.ACTIVE, issue_type="POTHOLE",
+            reference_number="INC-SLA-1", status=IncidentStatus.ACTIVE, issue_type="pothole",
             created_at=base_time, authority_id=auth.id, jurisdiction_id=jur.id
         )
         db_session.add(inc)
         await db_session.flush()
-        
-        priority = Priority(incident_id=inc.id, final_priority=PriorityLevel.CRITICAL)
-        db_session.add(priority)
-        await db_session.flush()
 
         svc = AccountabilityService(db_session)
         sla = await svc.start_sla(inc.id, current_time=base_time)
-        
+
         assert sla.state == AccountabilityState.PENDING
         assert sla.started_at == base_time
-        # Critical = 4 hours
-        expected_due = base_time + timedelta(hours=4)
+        # Rule specifies 48 hours
+        expected_due = base_time + timedelta(hours=48)
         assert sla.due_at == expected_due
 
     async def test_missing_authority(self, db_session, base_time):
-        # 8. missing authority
         inc = Incident(
-            reference_number="INC-SLA-2", status=IncidentStatus.ACTIVE, issue_type="POTHOLE",
+            reference_number="INC-SLA-2", status=IncidentStatus.ACTIVE, issue_type="pothole",
             created_at=base_time, authority_id=None
         )
         db_session.add(inc)
-        await db_session.flush()
-        priority = Priority(incident_id=inc.id, final_priority=PriorityLevel.CRITICAL)
-        db_session.add(priority)
         await db_session.flush()
 
         svc = AccountabilityService(db_session)
         with pytest.raises(ValueError, match="No responsible Authority assigned"):
             await svc.start_sla(inc.id, current_time=base_time)
 
-    async def test_missing_priority(self, db_session, base_time):
-        # 8. missing priority
-        auth = Authority(id=uuid.uuid4(), name="Test Authority", short_code="TA", sla_hours_low=168)
+    async def test_missing_sla_rule_handled_safely_with_fallback(self, db_session, base_time):
+        # When no explicit SLA rule exists, system should fallback safely to default (72 hours)
+        auth = Authority(id=uuid.uuid4(), name="Test Authority", short_code="TA_FALLBACK")
         db_session.add(auth)
-        from app.models.jurisdiction import Jurisdiction
-        jur = Jurisdiction(id=uuid.uuid4(), name="Test Jur", code="TJ_PRIO", authority_id=auth.id)
+        jur = Jurisdiction(id=uuid.uuid4(), name="Test Jur", code="TJ_FALLBACK", authority_id=auth.id)
         db_session.add(jur)
         inc = Incident(
-            reference_number="INC-SLA-PRIO", status=IncidentStatus.ACTIVE, issue_type="POTHOLE",
+            reference_number="INC-SLA-FALLBACK", status=IncidentStatus.ACTIVE, issue_type="other_unconfigured",
             created_at=base_time, authority_id=auth.id, jurisdiction_id=jur.id
         )
         db_session.add(inc)
         await db_session.flush()
-        # Do not add priority
 
         svc = AccountabilityService(db_session)
-        with pytest.raises(ValueError, match="Cannot start SLA: Final Priority has not been computed."):
-            await svc.start_sla(inc.id, current_time=base_time)
+        sla = await svc.start_sla(inc.id, current_time=base_time)
+
+        assert sla.state == AccountabilityState.PENDING
+        assert sla.started_at == base_time
+        # Default fallback is 72 hours
+        assert sla.due_at == base_time + timedelta(hours=72)
 
     async def test_pending_incident(self, db_session, base_time):
         # 1. pending incident
-        auth = Authority(id=uuid.uuid4(), name="Test", short_code="T", sla_hours_low=100)
+        auth = Authority(id=uuid.uuid4(), name="Test", short_code="T")
         db_session.add(auth)
-        from app.models.jurisdiction import Jurisdiction
-        jur = Jurisdiction(id=__import__('uuid').uuid4(), name='J', code='J'+str(__import__('uuid').uuid4())[:8], authority_id=auth.id)
+        jur = Jurisdiction(id=uuid.uuid4(), name='J', code='J'+str(uuid.uuid4())[:8], authority_id=auth.id)
         db_session.add(jur)
-        inc = Incident(reference_number="INC-SLA-3", status=IncidentStatus.ACTIVE, authority_id=auth.id, jurisdiction_id=jur.id)
+        rule = SLARule(authority_id=auth.id, issue_type="pothole", resolution_hours=100)
+        db_session.add(rule)
+        inc = Incident(reference_number="INC-SLA-3", status=IncidentStatus.ACTIVE, issue_type="pothole", authority_id=auth.id, jurisdiction_id=jur.id)
         db_session.add(inc)
-        await db_session.flush()
-        priority = Priority(incident_id=inc.id, final_priority=PriorityLevel.LOW)
-        db_session.add(priority)
         await db_session.flush()
 
         svc = AccountabilityService(db_session)
@@ -115,16 +114,14 @@ class TestAccountabilityService:
 
     async def test_due_incident(self, db_session, base_time):
         # 2. due incident (within 24 hours of deadline)
-        auth = Authority(id=uuid.uuid4(), name="Test", short_code="T2", sla_hours_low=100)
+        auth = Authority(id=uuid.uuid4(), name="Test", short_code="T2")
         db_session.add(auth)
-        from app.models.jurisdiction import Jurisdiction
-        jur = Jurisdiction(id=__import__('uuid').uuid4(), name='J', code='J'+str(__import__('uuid').uuid4())[:8], authority_id=auth.id)
+        jur = Jurisdiction(id=uuid.uuid4(), name='J', code='J'+str(uuid.uuid4())[:8], authority_id=auth.id)
         db_session.add(jur)
-        inc = Incident(reference_number="INC-SLA-4", status=IncidentStatus.ACTIVE, authority_id=auth.id, jurisdiction_id=jur.id)
+        rule = SLARule(authority_id=auth.id, issue_type="pothole", resolution_hours=100)
+        db_session.add(rule)
+        inc = Incident(reference_number="INC-SLA-4", status=IncidentStatus.ACTIVE, issue_type="pothole", authority_id=auth.id, jurisdiction_id=jur.id)
         db_session.add(inc)
-        await db_session.flush()
-        priority = Priority(incident_id=inc.id, final_priority=PriorityLevel.LOW)
-        db_session.add(priority)
         await db_session.flush()
 
         svc = AccountabilityService(db_session)
@@ -138,16 +135,14 @@ class TestAccountabilityService:
 
     async def test_overdue_incident(self, db_session, base_time):
         # 3. overdue incident
-        auth = Authority(id=uuid.uuid4(), name="Test", short_code="T3", sla_hours_low=100)
+        auth = Authority(id=uuid.uuid4(), name="Test", short_code="T3")
         db_session.add(auth)
-        from app.models.jurisdiction import Jurisdiction
-        jur = Jurisdiction(id=__import__('uuid').uuid4(), name='J', code='J'+str(__import__('uuid').uuid4())[:8], authority_id=auth.id)
+        jur = Jurisdiction(id=uuid.uuid4(), name='J', code='J'+str(uuid.uuid4())[:8], authority_id=auth.id)
         db_session.add(jur)
-        inc = Incident(reference_number="INC-SLA-5", status=IncidentStatus.ACTIVE, authority_id=auth.id, jurisdiction_id=jur.id)
+        rule = SLARule(authority_id=auth.id, issue_type="pothole", resolution_hours=100)
+        db_session.add(rule)
+        inc = Incident(reference_number="INC-SLA-5", status=IncidentStatus.ACTIVE, issue_type="pothole", authority_id=auth.id, jurisdiction_id=jur.id)
         db_session.add(inc)
-        await db_session.flush()
-        priority = Priority(incident_id=inc.id, final_priority=PriorityLevel.LOW)
-        db_session.add(priority)
         await db_session.flush()
 
         svc = AccountabilityService(db_session)
@@ -163,16 +158,14 @@ class TestAccountabilityService:
 
     async def test_escalation_eligible(self, db_session, base_time):
         # 4. escalation eligible (default > 72 hours overdue)
-        auth = Authority(id=uuid.uuid4(), name="Test", short_code="T4", sla_hours_low=100)
+        auth = Authority(id=uuid.uuid4(), name="Test", short_code="T4")
         db_session.add(auth)
-        from app.models.jurisdiction import Jurisdiction
-        jur = Jurisdiction(id=__import__('uuid').uuid4(), name='J', code='J'+str(__import__('uuid').uuid4())[:8], authority_id=auth.id)
+        jur = Jurisdiction(id=uuid.uuid4(), name='J', code='J'+str(uuid.uuid4())[:8], authority_id=auth.id)
         db_session.add(jur)
-        inc = Incident(reference_number="INC-SLA-6", status=IncidentStatus.ACTIVE, authority_id=auth.id, jurisdiction_id=jur.id)
+        rule = SLARule(authority_id=auth.id, issue_type="pothole", resolution_hours=100)
+        db_session.add(rule)
+        inc = Incident(reference_number="INC-SLA-6", status=IncidentStatus.ACTIVE, issue_type="pothole", authority_id=auth.id, jurisdiction_id=jur.id)
         db_session.add(inc)
-        await db_session.flush()
-        priority = Priority(incident_id=inc.id, final_priority=PriorityLevel.LOW)
-        db_session.add(priority)
         await db_session.flush()
 
         svc = AccountabilityService(db_session)
@@ -192,16 +185,14 @@ class TestAccountabilityService:
 
     async def test_repeated_evaluation_determinism(self, db_session, base_time):
         # 9. repeated evaluation determinism
-        auth = Authority(id=uuid.uuid4(), name="Test", short_code="T5", sla_hours_low=100)
+        auth = Authority(id=uuid.uuid4(), name="Test", short_code="T5")
         db_session.add(auth)
-        from app.models.jurisdiction import Jurisdiction
-        jur = Jurisdiction(id=__import__('uuid').uuid4(), name='J', code='J'+str(__import__('uuid').uuid4())[:8], authority_id=auth.id)
+        jur = Jurisdiction(id=uuid.uuid4(), name='J', code='J'+str(uuid.uuid4())[:8], authority_id=auth.id)
         db_session.add(jur)
-        inc = Incident(reference_number="INC-SLA-7", status=IncidentStatus.ACTIVE, authority_id=auth.id, jurisdiction_id=jur.id)
+        rule = SLARule(authority_id=auth.id, issue_type="pothole", resolution_hours=100)
+        db_session.add(rule)
+        inc = Incident(reference_number="INC-SLA-7", status=IncidentStatus.ACTIVE, issue_type="pothole", authority_id=auth.id, jurisdiction_id=jur.id)
         db_session.add(inc)
-        await db_session.flush()
-        priority = Priority(incident_id=inc.id, final_priority=PriorityLevel.LOW)
-        db_session.add(priority)
         await db_session.flush()
 
         svc = AccountabilityService(db_session)
@@ -219,19 +210,16 @@ class TestAccountabilityService:
 
     async def test_timezone_handling(self, db_session):
         # 6. timezone handling
-        # Verify aware UTC datetimes are preserved
         base_utc = datetime(2026, 1, 1, 12, 0, 0, tzinfo=timezone.utc)
         
-        auth = Authority(id=uuid.uuid4(), name="Test", short_code="T6", sla_hours_low=10)
+        auth = Authority(id=uuid.uuid4(), name="Test", short_code="T6")
         db_session.add(auth)
-        from app.models.jurisdiction import Jurisdiction
-        jur = Jurisdiction(id=__import__('uuid').uuid4(), name='J', code='J'+str(__import__('uuid').uuid4())[:8], authority_id=auth.id)
+        jur = Jurisdiction(id=uuid.uuid4(), name='J', code='J'+str(uuid.uuid4())[:8], authority_id=auth.id)
         db_session.add(jur)
-        inc = Incident(reference_number="INC-SLA-8", status=IncidentStatus.ACTIVE, authority_id=auth.id, jurisdiction_id=jur.id)
+        rule = SLARule(authority_id=auth.id, issue_type="pothole", resolution_hours=10)
+        db_session.add(rule)
+        inc = Incident(reference_number="INC-SLA-8", status=IncidentStatus.ACTIVE, issue_type="pothole", authority_id=auth.id, jurisdiction_id=jur.id)
         db_session.add(inc)
-        await db_session.flush()
-        priority = Priority(incident_id=inc.id, final_priority=PriorityLevel.LOW)
-        db_session.add(priority)
         await db_session.flush()
 
         svc = AccountabilityService(db_session)

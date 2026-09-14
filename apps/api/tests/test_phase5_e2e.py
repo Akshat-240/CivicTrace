@@ -19,7 +19,6 @@ from app.models.incident import Incident
 from app.models.location import Location
 from app.models.authority import Authority
 from app.models.jurisdiction import Jurisdiction
-from app.models.priority import Priority
 from app.models.sla import SLA
 from app.services.incident_service import IncidentService
 from app.services.verification_service import VerificationService
@@ -45,9 +44,6 @@ async def _make_incident(db_session, status=IncidentStatus.ACTIVE, issue_type="P
     )
     db_session.add(inc)
     await db_session.flush()
-
-    pri = Priority(incident_id=inc.id, severity=SeverityLevel.HIGH)
-    db_session.add(pri)
 
     now = datetime.now(timezone.utc)
     sla = SLA(
@@ -172,20 +168,20 @@ class TestPhase5E2E:
         assert closed.status == IncidentStatus.CLOSED
 
     # -----------------------------------------------------------------------
-    # TEST E: Insufficient evidence -> UNDER_REVIEW -> ACTIVE (not closed)
+    # TEST E: No evidence -> UNDER_REVIEW -> ACTIVE (not closed)
     # -----------------------------------------------------------------------
-    async def test_e_insufficient_evidence_returns_to_active(self, db_session):
+    async def test_e_no_evidence_returns_to_active(self, db_session):
         inc = await _make_incident(db_session, status=IncidentStatus.UNDER_REVIEW)
         await _add_resolution_evidence(db_session, inc.id)
 
         svc = VerificationService(db_session)
         rec = await svc.human_verify(
             incident_id=inc.id,
-            result=VerificationResult.INSUFFICIENT_EVIDENCE,
+            result=VerificationResult.NO_EVIDENCE,
             explanation="Evidence submitted was inadequate.",
         )
 
-        assert rec.result == VerificationResult.INSUFFICIENT_EVIDENCE
+        assert rec.result == VerificationResult.NO_EVIDENCE
         await db_session.refresh(inc)
         assert inc.status == IncidentStatus.ACTIVE
         assert inc.status != IncidentStatus.CLOSED
@@ -365,12 +361,11 @@ class TestPhase5E2E:
         )
         incident = await service.create_incident(data)
         await service.process_incident_workflow(incident.id)
-        await db_session.refresh(incident, ["jurisdiction", "authority", "priority", "sla"])
+        await db_session.refresh(incident, ["jurisdiction", "authority", "sla"])
 
         assert incident.jurisdiction is not None
         assert incident.authority is not None
         assert incident.authority.name == "Lucknow Municipal Corporation"
-        assert incident.priority is not None
         assert incident.sla is not None
 
     # -----------------------------------------------------------------------
@@ -421,41 +416,41 @@ class TestPhase5E2E:
         assert inc.status != IncidentStatus.RESOLVED
 
     # -----------------------------------------------------------------------
-    # TEST N2: PARTIALLY_RESOLVED does NOT unlock RESOLVED
+    # TEST N2: HUMAN_REVIEW keeps incident in UNDER_REVIEW
     # -----------------------------------------------------------------------
-    async def test_n2_partially_resolved_stays_under_review(self, db_session):
+    async def test_n2_human_review_stays_under_review(self, db_session):
         inc = await _make_incident(db_session, status=IncidentStatus.UNDER_REVIEW)
         await _add_resolution_evidence(db_session, inc.id)
 
         svc = VerificationService(db_session)
         rec = await svc.human_verify(
             inc.id,
-            result=VerificationResult.PARTIALLY_RESOLVED,
-            explanation="Some work done but issue remains.",
+            result=VerificationResult.HUMAN_REVIEW,
+            explanation="Requires further inspection.",
         )
 
-        assert rec.result == VerificationResult.PARTIALLY_RESOLVED
+        assert rec.result == VerificationResult.HUMAN_REVIEW
         await db_session.refresh(inc)
-        # PARTIALLY_RESOLVED must NOT set RESOLVED or CLOSED
+        # HUMAN_REVIEW must NOT set RESOLVED or CLOSED
         assert inc.status == IncidentStatus.UNDER_REVIEW
         assert inc.status != IncidentStatus.RESOLVED
         assert inc.status != IncidentStatus.CLOSED
 
     # -----------------------------------------------------------------------
-    # TEST: UNRESOLVED returns to ACTIVE (not UNDER_REVIEW or RESOLVED)
+    # TEST: NOT_RESOLVED returns to ACTIVE (not UNDER_REVIEW or RESOLVED)
     # -----------------------------------------------------------------------
-    async def test_unresolved_returns_to_active(self, db_session):
+    async def test_not_resolved_returns_to_active(self, db_session):
         inc = await _make_incident(db_session, status=IncidentStatus.UNDER_REVIEW)
         await _add_resolution_evidence(db_session, inc.id)
 
         svc = VerificationService(db_session)
         rec = await svc.human_verify(
             inc.id,
-            result=VerificationResult.UNRESOLVED,
+            result=VerificationResult.NOT_RESOLVED,
             explanation="Evidence shows issue persists.",
         )
 
-        assert rec.result == VerificationResult.UNRESOLVED
+        assert rec.result == VerificationResult.NOT_RESOLVED
         await db_session.refresh(inc)
         assert inc.status == IncidentStatus.ACTIVE
 
