@@ -27,6 +27,7 @@ const Sidebar = () => {
     e.stopPropagation();
     localStorage.removeItem('ct_auth_token');
     localStorage.removeItem('ct_user_role');
+    localStorage.removeItem('ct_user_id');
     navigate('/login');
   };
 

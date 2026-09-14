@@ -10,7 +10,7 @@ import {
 } from 'lucide-react';
 import './CitizenSidebar.css';
 
-const CitizenSidebar = () => {
+const CitizenSidebar = ({ profile }) => {
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -23,6 +23,10 @@ const CitizenSidebar = () => {
   ];
 
   const isSettingsActive = location.pathname.includes('/citizen/settings');
+  
+  const displayName = profile?.full_name ? profile.full_name.split(' ')[0] : 'Citizen';
+  const initial = displayName.charAt(0).toUpperCase();
+  const displayLocation = profile?.city ? `${profile.city} resident` : 'Resident';
 
   return (
     <aside className="ct-citizen-sidebar">
@@ -60,10 +64,10 @@ const CitizenSidebar = () => {
           onClick={() => navigate('/citizen/settings')}
           title="Account Settings"
         >
-          <div className="ct-citizen-avatar">C</div>
+          <div className="ct-citizen-avatar">{initial}</div>
           <div className="ct-citizen-user-info">
-            <span className="ct-citizen-user-name">Citizen</span>
-            <span className="ct-citizen-user-role">Lucknow resident</span>
+            <span className="ct-citizen-user-name">{displayName}</span>
+            <span className="ct-citizen-user-role">{displayLocation}</span>
           </div>
           <button 
             type="button" 

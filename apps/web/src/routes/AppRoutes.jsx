@@ -1,9 +1,11 @@
 import React from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
+import ProtectedRoute from '../components/ProtectedRoute';
 
 // Public Pages
 import LandingPage from '../pages/public/LandingPage';
 import LoginPage from '../pages/public/LoginPage';
+import RegisterPage from '../pages/public/RegisterPage';
 
 // Authority Portal
 import AuthorityLayout from '../components/layout/AuthorityLayout';
@@ -49,9 +51,14 @@ const AppRoutes = () => {
       {/* Public Routes */}
       <Route path="/" element={<LandingPage />} />
       <Route path="/login" element={<LoginPage />} />
+      <Route path="/register" element={<RegisterPage />} />
 
       {/* Authority Portal Routes */}
-      <Route path="/authority" element={<AuthorityLayout />}>
+      <Route path="/authority" element={
+        <ProtectedRoute allowedRole="authority">
+          <AuthorityLayout />
+        </ProtectedRoute>
+      }>
         <Route index element={<Navigate to="dashboard" replace />} />
         <Route path="dashboard" element={<DashboardPage />} />
         <Route path="incidents" element={<IncidentsPage />} />
@@ -62,7 +69,11 @@ const AppRoutes = () => {
       </Route>
 
       {/* Admin Portal Routes */}
-      <Route path="/admin" element={<AdminLayout />}>
+      <Route path="/admin" element={
+        <ProtectedRoute allowedRole="admin">
+          <AdminLayout />
+        </ProtectedRoute>
+      }>
         <Route index element={<Navigate to="dashboard" replace />} />
         <Route path="dashboard" element={<AdminDashboardPage />} />
         <Route path="incidents" element={<AdminIncidentsPage />} />
@@ -76,7 +87,11 @@ const AppRoutes = () => {
       </Route>
 
       {/* Citizen Portal Routes */}
-      <Route path="/citizen" element={<CitizenLayout />}>
+      <Route path="/citizen" element={
+        <ProtectedRoute allowedRole="citizen">
+          <CitizenLayout />
+        </ProtectedRoute>
+      }>
         <Route index element={<Navigate to="dashboard" replace />} />
         <Route path="dashboard" element={<CitizenDashboardPage />} />
         <Route path="report" element={<CitizenReportPage />} />

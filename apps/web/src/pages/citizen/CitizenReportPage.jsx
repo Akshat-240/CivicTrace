@@ -1,26 +1,56 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { 
-  Road, 
-  Trash2, 
-  Droplet, 
-  Waves, 
-  Lightbulb, 
-  Zap, 
-  Mic, 
-  ArrowRight, 
-  Check, 
-  UploadCloud, 
-  MapPin, 
+import {
+  Road,
+  Trash2,
+  Droplet,
+  Waves,
+  Lightbulb,
+  Zap,
+  Mic,
+  ArrowRight,
+  Check,
+  UploadCloud,
+  MapPin,
   CheckCircle2,
   Loader2,
   AlertTriangle
 } from 'lucide-react';
-import { createIncident } from '../../services/api';
+import { createIncident, getJurisdiction, uploadEvidence, analyzeEvidence } from '../../services/api';
+import { MapContainer, TileLayer, Marker, useMapEvents } from 'react-leaflet';
+import L from 'leaflet';
 import './CitizenReportPage.css';
+
+// Fix Leaflet's default icon path issues with Vite
+delete L.Icon.Default.prototype._getIconUrl;
+L.Icon.Default.mergeOptions({
+  iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png',
+  iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png',
+  shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
+});
+
+function LocationMarker({ position, setPosition }) {
+  useMapEvents({
+    click(e) {
+      setPosition(e.latlng);
+    },
+  });
+
+  return position === null ? null : (
+    <Marker position={position}></Marker>
+  );
+}
 
 export default function CitizenReportPage() {
   const navigate = useNavigate();
+  const citizenId = localStorage.getItem('ct_user_id');
+
+  useEffect(() => {
+    if (!citizenId) {
+      navigate('/login');
+    }
+  }, [citizenId, navigate]);
+
   const [currentStep, setCurrentStep] = useState(1);
   const [selectedCategory, setSelectedCategory] = useState('Road');
   const [description, setDescription] = useState('');
@@ -29,31 +59,73 @@ export default function CitizenReportPage() {
   const [realId, setRealId] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState(null);
+  const [evidenceFile, setEvidenceFile] = useState(null);
+  const [evidencePreview, setEvidencePreview] = useState(null);
+  const [evidenceId, setEvidenceId] = useState(null);
+  const [aiResult, setAiResult] = useState(null);
   const [coords, setCoords] = useState({
-    latitude: 26.8528,
-    longitude: 80.9435,
-    address_raw: "Hazratganj, Ward 34, Lucknow",
+    latitude: null,
+    longitude: null,
+    address_raw: "",
     isLiveGps: false,
   });
+  const [locError, setLocError] = useState(null);
+  const [mapPosition, setMapPosition] = useState(null);
+  const [resolvingGis, setResolvingGis] = useState(false);
 
-  useEffect(() => {
+  const resolveAndSetLocation = async (lat, lng, isLive) => {
+    setResolvingGis(true);
+    setLocError(null);
+    try {
+      const res = await getJurisdiction(lat, lng);
+      setCoords({
+        latitude: lat,
+        longitude: lng,
+        address_raw: res.status === 'JURISDICTION_FOUND' ? res.explanation : 'Jurisdiction unresolved',
+        isLiveGps: isLive,
+      });
+    } catch (error) {
+      console.warn("GIS resolve failed", error);
+      setCoords({
+        latitude: lat,
+        longitude: lng,
+        address_raw: `Location coordinates captured (Lat: ${lat.toFixed(4)}, Long: ${lng.toFixed(4)})`,
+        isLiveGps: isLive,
+      });
+    } finally {
+      setResolvingGis(false);
+    }
+  };
+
+  const requestGps = () => {
+    setLocError(null);
     if (typeof navigator !== 'undefined' && navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
         (pos) => {
-          setCoords({
-            latitude: pos.coords.latitude,
-            longitude: pos.coords.longitude,
-            address_raw: `GPS Location (${pos.coords.latitude.toFixed(4)}, ${pos.coords.longitude.toFixed(4)})`,
-            isLiveGps: true,
-          });
+          resolveAndSetLocation(pos.coords.latitude, pos.coords.longitude, true);
         },
         (err) => {
-          console.warn('Geolocation unavailable or denied, falling back to Lucknow demo coordinates:', err);
+          console.warn('Geolocation unavailable or denied:', err);
+          setLocError('Location access denied or unavailable. Please choose a location on the map.');
         },
-        { timeout: 5000, enableHighAccuracy: true }
+        { timeout: 10000, enableHighAccuracy: true }
       );
+    } else {
+      setLocError('Geolocation is not supported by your browser.');
     }
+  };
+
+  useEffect(() => {
+    requestGps();
   }, []);
+
+  const handleManualLocationSubmit = () => {
+    if (!mapPosition) {
+      setLocError('Please place a marker on the map.');
+      return;
+    }
+    resolveAndSetLocation(mapPosition.lat, mapPosition.lng, false);
+  };
 
   const categories = [
     { name: 'Road', icon: <Road size={20} />, label: 'Pothole, broken asphalt, road caving' },
@@ -68,9 +140,21 @@ export default function CitizenReportPage() {
     setIsRecording(!isRecording);
     if (!isRecording) {
       setTimeout(() => {
-        setDescription(prev => prev ? prev + ' (Deep pothole causing vehicle jam)' : 'Large pothole on road causing dangerous vehicle congestion.');
+        setDescription(prev => prev ? prev + ' (Voice input)' : 'Voice input');
         setIsRecording(false);
       }, 1500);
+    }
+  };
+
+  const handleFileChange = (e) => {
+    if (e.target.files && e.target.files[0]) {
+      const file = e.target.files[0];
+      setEvidenceFile(file);
+      const reader = new FileReader();
+      reader.onload = (ev) => {
+        setEvidencePreview(ev.target.result);
+      };
+      reader.readAsDataURL(file);
     }
   };
 
@@ -82,7 +166,7 @@ export default function CitizenReportPage() {
       // Step 4: Complete submission
       setIsSubmitting(true);
       setSubmitError(null);
-      
+
       const issueTypeMap = {
         'Road': 'road_damage',
         'Garbage': 'illegal_dumping',
@@ -91,10 +175,10 @@ export default function CitizenReportPage() {
         'Streetlight': 'broken_streetlight',
         'Electrical': 'other'
       };
-      
+
       const payload = {
         title: selectedCategory + ' Issue',
-        description: description || 'Large pothole on road causing dangerous vehicle congestion.',
+        description: description || 'No description provided.',
         issue_type: issueTypeMap[selectedCategory] || 'other',
         location: {
           latitude: coords.latitude,
@@ -103,19 +187,43 @@ export default function CitizenReportPage() {
           address_raw: coords.address_raw,
         },
         fusion_metadata: {
-          citizen_id: "citizen_default"
+          citizen_id: citizenId || "unknown_citizen"
         }
       };
 
       try {
-        const response = await createIncident(payload);
-        setSubmittedId(response.reference_number || response.id);
-        setRealId(response.id);
+        let currentIncidentId = realId;
+        if (!currentIncidentId) {
+          const response = await createIncident(payload);
+          setSubmittedId(response.reference_number || response.id);
+          currentIncidentId = response.id;
+          setRealId(response.id);
+        }
+
+        if (evidenceFile && !aiResult) {
+          let currentEvId = evidenceId;
+          if (!currentEvId) {
+            const evResponse = await uploadEvidence(currentIncidentId, evidenceFile);
+            currentEvId = evResponse.id;
+            setEvidenceId(currentEvId);
+          }
+          try {
+            const aiData = await analyzeEvidence(currentIncidentId, currentEvId);
+            setAiResult(aiData);
+          } catch (aiErr) {
+            console.error('AI Analysis Failed:', aiErr);
+            throw new Error("AI analysis failed. Please retry.");
+          }
+        }
       } catch (err) {
         console.error('Failed to submit incident:', err);
         setSubmitError(err.message || 'Failed to submit incident. Please check your connection and try again.');
-      } finally {
         setIsSubmitting(false);
+        return; // Stop and allow retry
+      } finally {
+        if (!submitError) {
+          setIsSubmitting(false);
+        }
       }
     }
   };
@@ -133,14 +241,72 @@ export default function CitizenReportPage() {
           <p className="success-subtitle">
             Your complaint has been assigned incident ID <strong className="id-highlight">{submittedId}</strong> and routed to the municipal triage engine.
           </p>
+          
+          {isSubmitting && !aiResult && evidenceFile && (
+            <div style={{margin: '20px 0', padding: '15px', background: '#f8f9fa', borderRadius: '8px', textAlign: 'center'}}>
+              <Loader2 className="spinning" size={24} style={{marginBottom: '10px', color: '#0d6efd'}} />
+              <p>Analyzing evidence using AI...</p>
+            </div>
+          )}
+
+          {submitError && (
+             <div style={{margin: '20px 0', padding: '15px', background: '#fff3cd', color: '#856404', borderRadius: '8px', textAlign: 'center'}}>
+                <AlertTriangle size={24} style={{marginBottom: '10px'}} />
+                <p>{submitError}</p>
+                <button onClick={handleNextStep} style={{marginTop: '10px', padding: '5px 15px'}}>Retry Analysis</button>
+             </div>
+          )}
+
+          {aiResult && (
+            <div style={{margin: '20px 0', padding: '20px', background: '#f8f9fa', borderRadius: '8px', textAlign: 'left', border: '1px solid #e9ecef'}}>
+              <h4 style={{marginTop: 0, color: '#495057', fontSize: '1.1rem', marginBottom: '15px'}}>AI Perception</h4>
+              {evidencePreview && (
+                 <div style={{marginBottom: '15px'}}>
+                   <img src={evidencePreview} alt="Evidence" style={{width: '100%', maxHeight: '200px', objectFit: 'cover', borderRadius: '4px'}} />
+                 </div>
+              )}
+              <div style={{display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', marginBottom: '15px'}}>
+                <div>
+                  <span style={{color: '#6c757d', fontSize: '0.9rem'}}>Category</span>
+                  <div style={{fontWeight: '500'}}>{aiResult.category || aiResult.ai_category || 'Unknown'}</div>
+                </div>
+                <div>
+                  <span style={{color: '#6c757d', fontSize: '0.9rem'}}>Confidence</span>
+                  <div style={{fontWeight: '500'}}>{aiResult.confidence || aiResult.ai_confidence ? `${((aiResult.confidence || aiResult.ai_confidence) * 100).toFixed(0)}%` : 'N/A'}</div>
+                </div>
+                {aiResult.severity && (
+                  <div>
+                    <span style={{color: '#6c757d', fontSize: '0.9rem'}}>Severity</span>
+                    <div style={{fontWeight: '500'}}>{aiResult.severity}</div>
+                  </div>
+                )}
+              </div>
+              {(aiResult.explanation || aiResult.visual_explanation || aiResult.ai_perception_payload?.visual_explanation) && (
+                <div style={{marginBottom: '15px'}}>
+                  <span style={{color: '#6c757d', fontSize: '0.9rem'}}>Visual Explanation</span>
+                  <p style={{margin: '5px 0 0 0', fontSize: '0.95rem'}}>{aiResult.explanation || aiResult.visual_explanation || aiResult.ai_perception_payload?.visual_explanation}</p>
+                </div>
+              )}
+              {aiResult.ambiguity_flag || aiResult.ai_ambiguity_flag ? (
+                <div style={{background: '#fff3cd', color: '#856404', padding: '10px', borderRadius: '4px', fontSize: '0.9rem', display: 'flex', alignItems: 'center', gap: '8px'}}>
+                  <AlertTriangle size={16} />
+                  <span><strong>Needs review:</strong> Image does not provide sufficient visual evidence.</span>
+                </div>
+              ) : null}
+              <div style={{marginTop: '15px', fontSize: '0.85rem', color: '#6c757d', fontStyle: 'italic', textAlign: 'center'}}>
+                Note: This is an AI perception/assessment, NOT a final authority determination.
+              </div>
+            </div>
+          )}
+
           <div className="success-actions">
-            <button 
+            <button
               className="btn-track-submitted"
               onClick={() => navigate(`/citizen/track?id=${realId || submittedId}`)}
             >
               Track Report ({submittedId})
             </button>
-            <button 
+            <button
               className="btn-back-dashboard"
               onClick={() => navigate('/citizen/dashboard')}
             >
@@ -159,7 +325,7 @@ export default function CitizenReportPage() {
                 <span style={{ fontSize: '0.9rem' }}>{submitError}</span>
               </div>
             )}
-            
+
             {currentStep === 1 && (
               <>
                 <div className="report-step-header">
@@ -170,7 +336,7 @@ export default function CitizenReportPage() {
                 {/* Categories 3x2 Grid */}
                 <div className="categories-grid">
                   {categories.map((cat) => (
-                    <div 
+                    <div
                       key={cat.name}
                       className={`category-select-card ${selectedCategory === cat.name ? 'selected' : ''}`}
                       onClick={() => setSelectedCategory(cat.name)}
@@ -190,15 +356,15 @@ export default function CitizenReportPage() {
                 <div className="report-desc-box">
                   <label className="desc-label">Describe the issue</label>
                   <div className="desc-textarea-wrapper">
-                    <textarea 
+                    <textarea
                       className="desc-textarea"
                       placeholder="Tell us what happened..."
                       value={description}
                       onChange={(e) => setDescription(e.target.value)}
                       rows={3}
                     />
-                    <button 
-                      type="button" 
+                    <button
+                      type="button"
                       className={`mic-btn ${isRecording ? 'recording' : ''}`}
                       onClick={handleSpeechToggle}
                       title="Voice input"
@@ -210,8 +376,8 @@ export default function CitizenReportPage() {
                 </div>
 
                 <div className="report-actions-row">
-                  <button 
-                    type="button" 
+                  <button
+                    type="button"
                     className="btn-continue-step"
                     onClick={handleNextStep}
                   >
@@ -229,29 +395,37 @@ export default function CitizenReportPage() {
                   <p className="report-step-subtitle">Photographs allow automated AI verification and rapid authority dispatch.</p>
                 </div>
 
-                <div className="evidence-upload-zone">
+                <div className="evidence-upload-zone" style={{position: 'relative'}}>
+                  <input 
+                    type="file" 
+                    accept="image/jpeg, image/png, image/webp" 
+                    onChange={handleFileChange}
+                    style={{position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', opacity: 0, cursor: 'pointer'}}
+                  />
                   <UploadCloud size={36} className="upload-cloud-icon" />
                   <p className="upload-zone-prompt">Drag & drop photo here or <span>Browse Files</span></p>
-                  <span className="upload-zone-hint">Supports JPEG, PNG, HEIC up to 15MB. Geotagged photos automatically fill coordinates.</span>
+                  <span className="upload-zone-hint">Supports JPEG, PNG, WEBP up to 20MB.</span>
                 </div>
 
-                <div className="sample-photo-preview">
-                  <span className="preview-badge">Sample Attached</span>
-                  <div className="photo-placeholder-box">
-                    <span>Pothole photo attached with GPS metadata</span>
+                {evidencePreview && (
+                  <div className="sample-photo-preview" style={{marginTop: '1rem'}}>
+                    <span className="preview-badge">Image Attached</span>
+                    <div style={{marginTop: '10px'}}>
+                      <img src={evidencePreview} alt="Evidence Preview" style={{maxHeight: '150px', borderRadius: '8px'}} />
+                    </div>
                   </div>
-                </div>
+                )}
 
                 <div className="report-actions-row">
-                  <button 
-                    type="button" 
+                  <button
+                    type="button"
                     className="btn-step-back"
                     onClick={() => setCurrentStep(1)}
                   >
                     Back
                   </button>
-                  <button 
-                    type="button" 
+                  <button
+                    type="button"
                     className="btn-continue-step"
                     onClick={handleNextStep}
                   >
@@ -269,38 +443,81 @@ export default function CitizenReportPage() {
                   <p className="report-step-subtitle">Exact location ensures your complaint reaches the correct ward nodal officer.</p>
                 </div>
 
-                <div className="location-confirm-box">
-                  <div className="location-pin-header">
-                    <MapPin size={20} className="loc-marker-icon" />
-                    <div>
-                      <h4 className="loc-addr-title">{coords.address_raw}</h4>
-                      <p className="loc-addr-meta">
-                        {coords.isLiveGps ? 'Live GPS Location · Lucknow' : 'Hazratganj · Ward 34 · Lucknow'}{' '}
-                        (Lat: {coords.latitude.toFixed(4)}, Long: {coords.longitude.toFixed(4)})
-                      </p>
+                  <div className="location-confirm-box">
+                    <div className="location-pin-header">
+                      <MapPin size={20} className="loc-marker-icon" style={{ color: locError ? '#EF4444' : undefined }} />
+                      <div>
+                        {locError ? (
+                          <>
+                            <h4 className="loc-addr-title" style={{ color: '#EF4444' }}>Location Required</h4>
+                            <p className="loc-addr-meta">{locError}</p>
+                          </>
+                        ) : (
+                          <>
+                            <h4 className="loc-addr-title">{coords.address_raw}</h4>
+                            <p className="loc-addr-meta">
+                              {coords.isLiveGps ? 'Live GPS Location' : 'Manual Location'}
+                              {' '}(Lat: {coords.latitude?.toFixed(4)}, Long: {coords.longitude?.toFixed(4)})
+                            </p>
+                          </>
+                        )}
+                      </div>
                     </div>
-                  </div>
 
-                  <div className="simulated-map-box">
-                    <div className="map-circle-ping"></div>
-                    <span className="map-ping-label">
-                      {coords.isLiveGps ? 'Live GPS Lock Acquired' : 'Demo Civic Boundary Lock Acquired'}
-                    </span>
+                    <div className="simulated-map-box">
+                      {!locError && <div className="map-circle-ping"></div>}
+                      <span className="map-ping-label">
+                        {resolvingGis ? 'Resolving Jurisdiction...' : (locError ? 'No GPS Lock' : (coords.isLiveGps ? 'Live GPS Lock Acquired' : 'Location Set'))}
+                      </span>
+                    </div>
+
+                    {locError && (
+                      <div style={{ marginTop: '1rem', padding: '1rem', background: '#F8FAFC', borderRadius: '8px', border: '1px solid #E2E8F0' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem' }}>
+                          <h5 style={{ fontSize: '0.9rem', fontWeight: 600, color: '#334155', margin: 0 }}>Select Location on Map</h5>
+                          <button
+                            type="button"
+                            onClick={requestGps}
+                            style={{ padding: '0.35rem 0.75rem', backgroundColor: '#F1F5F9', color: '#475569', border: '1px solid #CBD5E1', borderRadius: '4px', fontSize: '0.75rem', cursor: 'pointer' }}
+                          >
+                            Retry GPS
+                          </button>
+                        </div>
+                        <div style={{ height: '300px', width: '100%', marginBottom: '1rem', borderRadius: '6px', overflow: 'hidden', border: '1px solid #CBD5E1' }}>
+                          <MapContainer center={[26.8467, 80.9462]} zoom={12} style={{ height: '100%', width: '100%' }}>
+                            <TileLayer
+                              url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                              attribution='&copy; OpenStreetMap contributors'
+                            />
+                            <LocationMarker position={mapPosition} setPosition={setMapPosition} />
+                          </MapContainer>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={handleManualLocationSubmit}
+                          disabled={resolvingGis || !mapPosition}
+                          style={{ width: '100%', padding: '0.65rem', backgroundColor: '#3B82F6', color: 'white', border: 'none', borderRadius: '6px', fontSize: '0.9rem', fontWeight: 500, cursor: (resolvingGis || !mapPosition) ? 'not-allowed' : 'pointer', opacity: (resolvingGis || !mapPosition) ? 0.6 : 1 }}
+                        >
+                          {resolvingGis ? 'Resolving Jurisdiction...' : 'Confirm Location'}
+                        </button>
+                      </div>
+                    )}
                   </div>
-                </div>
 
                 <div className="report-actions-row">
-                  <button 
-                    type="button" 
+                  <button
+                    type="button"
                     className="btn-step-back"
                     onClick={() => setCurrentStep(2)}
                   >
                     Back
                   </button>
-                  <button 
-                    type="button" 
+                  <button
+                    type="button"
                     className="btn-continue-step"
                     onClick={handleNextStep}
+                    disabled={!!locError}
+                    style={locError ? { opacity: 0.5, cursor: 'not-allowed' } : {}}
                   >
                     <span>Review & Submit</span>
                     <ArrowRight size={16} />
@@ -323,32 +540,38 @@ export default function CitizenReportPage() {
                   </div>
                   <div className="review-row">
                     <span className="review-key">Description</span>
-                    <span className="review-val">{description || 'Large pothole on road causing dangerous vehicle congestion.'}</span>
+                    <span className="review-val">{description || 'No description provided.'}</span>
                   </div>
                   <div className="review-row">
                     <span className="review-key">Location</span>
                     <span className="review-val">{coords.address_raw}</span>
                   </div>
+                  {evidenceFile && (
+                    <div className="review-row">
+                      <span className="review-key">Evidence</span>
+                      <span className="review-val">1 image attached (AI perception available)</span>
+                    </div>
+                  )}
                   <div className="review-row">
                     <span className="review-key">Responsible Department</span>
-                    <span className="review-val">Lucknow Municipal Corporation · Roads Division</span>
+                    <span className="review-val" style={{ fontStyle: 'italic', color: '#6b7280' }}>Pending Triage Assignment</span>
                   </div>
                   <div className="review-row">
                     <span className="review-key">Estimated SLA Target</span>
-                    <span className="review-val highlight">Within 24 Hours</span>
+                    <span className="review-val" style={{ fontStyle: 'italic', color: '#6b7280' }}>Pending SLA Evaluation</span>
                   </div>
                 </div>
 
                 <div className="report-actions-row">
-                  <button 
-                    type="button" 
+                  <button
+                    type="button"
                     className="btn-step-back"
                     onClick={() => setCurrentStep(3)}
                   >
                     Back
                   </button>
-                  <button 
-                    type="button" 
+                  <button
+                    type="button"
                     className="btn-submit-final"
                     onClick={handleNextStep}
                     disabled={isSubmitting}

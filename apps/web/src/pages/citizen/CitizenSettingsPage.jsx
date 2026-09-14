@@ -1,23 +1,23 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useOutletContext } from 'react-router-dom';
 import { 
-  User, 
-  Bell, 
-  MapPin, 
-  ShieldCheck, 
-  KeyRound, 
-  LogOut, 
   ChevronRight,
   CheckCircle 
 } from 'lucide-react';
-import { mockCitizenSettings } from '../../data/mockData';
 import './CitizenSettingsPage.css';
 
 export default function CitizenSettingsPage() {
   const navigate = useNavigate();
-  const [settings, setSettings] = useState(mockCitizenSettings);
-  const [isEditProfileOpen, setIsEditProfileOpen] = useState(false);
-  const [profileName, setProfileName] = useState(settings.profile.name);
+  const { profile } = useOutletContext();
+
+  const [settings, setSettings] = useState({
+    notifications: {
+      reportUpdates: true,
+      authorityResponses: true,
+      resolutionAlerts: false
+    }
+  });
+
   const [savedFeedback, setSavedFeedback] = useState(false);
 
   const toggleNotification = (key) => {
@@ -36,19 +36,6 @@ export default function CitizenSettingsPage() {
     setTimeout(() => setSavedFeedback(false), 2500);
   };
 
-  const handleSaveProfile = (e) => {
-    e.preventDefault();
-    setSettings(prev => ({
-      ...prev,
-      profile: {
-        ...prev.profile,
-        name: profileName
-      }
-    }));
-    setIsEditProfileOpen(false);
-    triggerFeedback();
-  };
-
   return (
     <div className="citizen-settings-container">
       {savedFeedback && (
@@ -62,17 +49,11 @@ export default function CitizenSettingsPage() {
       <section className="settings-section-card profile-card">
         <div className="profile-info-left">
           <span className="profile-section-label">Profile</span>
-          <h2 className="profile-user-name">{settings.profile.name}</h2>
-          <span className="profile-user-area">{settings.profile.area}</span>
+          <h2 className="profile-user-name">{profile?.full_name || 'Citizen'}</h2>
+          <span className="profile-user-area">{profile?.email}</span>
+          <span className="profile-user-area">{profile?.city || 'Registered Citizen'}</span>
+          <span className="profile-user-area" style={{textTransform: 'capitalize'}}>{profile?.role || 'Citizen'}</span>
         </div>
-
-        <button 
-          type="button" 
-          className="btn-edit-profile"
-          onClick={() => setIsEditProfileOpen(true)}
-        >
-          Edit
-        </button>
       </section>
 
       {/* 2-Column Settings Grid */}
@@ -172,11 +153,6 @@ export default function CitizenSettingsPage() {
                 <span className="info-row-label">Location permissions</span>
                 <span className="permission-badge active">Active</span>
               </div>
-
-              <div className="setting-info-row vertical">
-                <span className="info-row-label">Default reporting area</span>
-                <span className="info-row-val">{settings.location.defaultArea}</span>
-              </div>
             </div>
           </section>
 
@@ -207,7 +183,12 @@ export default function CitizenSettingsPage() {
                 <button 
                   type="button" 
                   className="btn-security-action red"
-                  onClick={() => navigate('/login')}
+                  onClick={() => {
+                    localStorage.removeItem('ct_user_id');
+                    localStorage.removeItem('ct_auth_token');
+                    localStorage.removeItem('ct_user_role');
+                    navigate('/login');
+                  }}
                 >
                   Sign out
                 </button>
@@ -216,37 +197,6 @@ export default function CitizenSettingsPage() {
           </section>
         </div>
       </div>
-
-      {/* Edit Profile Modal */}
-      {isEditProfileOpen && (
-        <div className="profile-modal-backdrop" onClick={() => setIsEditProfileOpen(false)}>
-          <div className="profile-modal" onClick={(e) => e.stopPropagation()}>
-            <form onSubmit={handleSaveProfile}>
-              <h3>Edit Profile</h3>
-              <p>Update your resident display name.</p>
-              <div className="modal-input-wrap">
-                <label>Citizen Name</label>
-                <input 
-                  type="text" 
-                  value={profileName} 
-                  onChange={(e) => setProfileName(e.target.value)}
-                  required 
-                />
-              </div>
-              <div className="modal-actions-wrap">
-                <button 
-                  type="button" 
-                  className="modal-cancel-btn"
-                  onClick={() => setIsEditProfileOpen(false)}
-                >
-                  Cancel
-                </button>
-                <button type="submit" className="modal-save-btn">Save Changes</button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
     </div>
   );
 }
