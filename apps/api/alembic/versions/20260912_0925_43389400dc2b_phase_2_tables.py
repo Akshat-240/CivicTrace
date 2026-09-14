@@ -46,7 +46,7 @@ def upgrade() -> None:
     op.create_index(op.f('ix_priorities_incident_id'), 'priorities', ['incident_id'], unique=True)
     op.alter_column('slas', 'state',
                existing_type=sa.VARCHAR(length=30),
-               type_=sa.Enum('PENDING', 'DUE', 'OVERDUE', 'ESCALATION_ELIGIBLE', 'RESOLVED', name='accountabilitystate'),
+               type_=sa.Enum('PENDING', 'DUE', 'OVERDUE', 'ESCALATION_ELIGIBLE', 'RESOLVED', name='accountabilitystate', native_enum=False),
                existing_nullable=False,
                existing_server_default=sa.text("'pending'::character varying"))
     op.drop_constraint(op.f('slas_incident_id_key'), 'slas', type_='unique')
@@ -69,7 +69,7 @@ def downgrade() -> None:
     op.create_index(op.f('ix_slas_incident_id'), 'slas', ['incident_id'], unique=False)
     op.create_unique_constraint(op.f('slas_incident_id_key'), 'slas', ['incident_id'], postgresql_nulls_not_distinct=False)
     op.alter_column('slas', 'state',
-               existing_type=sa.Enum('PENDING', 'DUE', 'OVERDUE', 'ESCALATION_ELIGIBLE', 'RESOLVED', name='accountabilitystate'),
+               existing_type=sa.Enum('PENDING', 'DUE', 'OVERDUE', 'ESCALATION_ELIGIBLE', 'RESOLVED', name='accountabilitystate', native_enum=False),
                type_=sa.VARCHAR(length=30),
                existing_nullable=False,
                existing_server_default=sa.text("'pending'::character varying"))

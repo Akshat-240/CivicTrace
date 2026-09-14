@@ -20,7 +20,8 @@ from app.models.enums import IncidentStatus, IssueType
 from app.schemas.base import AuditFields, CivicBaseModel
 from app.schemas.location import LocationCreate, LocationResponse
 from app.schemas.jurisdiction import AuthorityResponse, JurisdictionResponse
-from app.schemas.priority import PriorityResponse, SLAResponse, VerificationResponse
+from app.schemas.sla import SLAResponse
+from app.schemas.verification import VerificationResponse
 
 
 class IncidentListItem(AuditFields):
@@ -38,8 +39,6 @@ class IncidentListItem(AuditFields):
     ai_ambiguity_flag: bool
     location: Optional[LocationResponse] = None
     authority: Optional[AuthorityResponse] = None
-    # Priority level only (not full priority record)
-    priority_level: Optional[str] = None
     # Accountability state only (not full SLA record)
     accountability_state: Optional[str] = None
 
@@ -57,13 +56,14 @@ class IncidentDetail(AuditFields):
     title: Optional[str] = None
     description: Optional[str] = None
     evidence_count: int
+    primary_evidence_id: Optional[uuid.UUID] = None
     ai_category: Optional[str] = None
     ai_confidence: Optional[float] = None
+    ai_perception_payload: Optional[dict[str, Any]] = None
     ai_ambiguity_flag: bool
     location: Optional[LocationResponse] = None
     jurisdiction: Optional[JurisdictionResponse] = None
     authority: Optional[AuthorityResponse] = None
-    priority: Optional[PriorityResponse] = None
     sla: Optional[SLAResponse] = None
     verification: Optional[VerificationResponse] = None
 
@@ -93,3 +93,15 @@ class IncidentSubmit(CivicBaseModel):
     description: Optional[str] = None
     issue_type: Optional[IssueType] = None
     location: Optional[LocationCreate] = None
+
+
+class ResolutionSubmit(CivicBaseModel):
+    """
+    Payload for an authority submitting resolution evidence.
+    No binary upload -- text description only (MVP limitation: no binary storage).
+    evidence_type defaults to TEXT.
+    """
+    description: str = Field(..., min_length=10, max_length=5000,
+                             description="Description of the resolution work performed.")
+    evidence_type: Optional[str] = Field(default="text",
+                                         description="Evidence type (text only in MVP -- no binary storage).")

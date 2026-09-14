@@ -14,10 +14,15 @@ from app.core.config import Settings, get_settings
 from app.core.errors import ConflictError, NotFoundError, ServiceUnavailableError
 from app.models.enums import EvidenceStatus
 from app.repositories.evidence_repo import EvidenceRepository
-from app.schemas.ai import AIAnalysisResult
+from app.schemas.ai import AIAnalysisResult, LanguagePerceptionResult, VisualPerceptionResult
 from app.services.ai.azure import AzureOperationalError, AzureVisionProvider
 from app.services.ai.base import AIProvider
 from app.services.ai.gemini import GeminiAIProvider
+from app.services.ai.language import (
+    AzureLanguageOperationalError,
+    AzureLanguageProvider,
+)
+from app.services.ai.normalization import normalize_language_perception
 from app.services.storage_service import StorageService
 
 logger = logging.getLogger(__name__)
@@ -26,8 +31,9 @@ logger = logging.getLogger(__name__)
 class AIService:
     """
     Orchestrates the AI perception pipeline for evidence.
-    Supports primary provider (Azure Computer Vision) with automated fallback
-    (Gemini) strictly upon operational provider failures.
+    Supports primary visual provider (Azure Computer Vision) with automated fallback
+    (Gemini) strictly upon operational provider failures, and integrates Azure AI
+    Language for citizen written problem briefing perception.
     """
 
     def __init__(
@@ -35,11 +41,13 @@ class AIService:
         session: AsyncSession,
         provider: Optional[AIProvider] = None,
         fallback_provider: Optional[AIProvider] = None,
+        language_provider: Optional[AzureLanguageProvider] = None,
         storage_service: Optional[StorageService] = None,
     ):
         self.session = session
         self.evidence_repo = EvidenceRepository(session)
         self.storage_service = storage_service or StorageService()
+        self.language_provider = language_provider or AzureLanguageProvider()
         settings = get_settings()
 
         if provider is not None:
@@ -139,7 +147,7 @@ class AIService:
         result: Optional[AIAnalysisResult] = None
         try:
             try:
-                # Primary execution
+                # 1. Primary visual perception execution
                 result = await self.primary_provider.analyze_evidence(
                     description=evidence.description, media_urls=media_urls
                 )
@@ -159,6 +167,68 @@ class AIService:
                     )
                 else:
                     raise op_err
+
+            # 2. Textual perception via Azure AI Language on written briefing
+            if evidence.description and evidence.description.strip():
+                try:
+                    raw_lang_res = await self.language_provider.analyze_text(
+                        evidence.description
+                    )
+                    if raw_lang_res.status == "success":
+                        lang_res = normalize_language_perception(
+                            raw_lang_res, evidence.description
+                        )
+                        result.language_perception = lang_res
+
+                        # Synthesize combined interpretation & evaluate consistency
+                        vis_cat = result.civic_issue_category
+                        lang_cat = lang_res.detected_category
+
+                        if vis_cat and lang_cat and vis_cat != lang_cat:
+                            # Material conflict between visual finding and written briefing
+                            # Do NOT override Vision with Language. Preserve both and flag ambiguity.
+                            result.ambiguity_flag = True
+                            conflict_reason = (
+                                f"Perception conflict: Visual observation detected {vis_cat.value.replace('_', ' ')}, "
+                                f"while written briefing described {lang_cat.value.replace('_', ' ')}."
+                            )
+                            result.ambiguity_reason = (
+                                f"{result.ambiguity_reason} {conflict_reason}".strip()
+                                if result.ambiguity_reason
+                                else conflict_reason
+                            )
+                            result.combined_interpretation = (
+                                f"Visual observation indicates {vis_cat.value.replace('_', ' ')}, while citizen "
+                                f"briefing describes {lang_cat.value.replace('_', ' ')}. Flagged for review."
+                            )
+                        else:
+                            # Consistent or supplementary perception signals
+                            desc_clean = evidence.description.strip()
+                            result.combined_interpretation = (
+                                f"{result.explanation} Citizen briefing: \"{desc_clean}\""
+                            )
+
+                        # Incorporate safety risk from language if detected
+                        if lang_res.safety_risk_detected:
+                            result.safety_risk_detected = True
+
+                except (AzureLanguageOperationalError, ServiceUnavailableError, Exception) as lang_err:
+                    logger.warning(
+                        "azure_language_analysis_failed_continuing_with_vision_only",
+                        extra={"evidence_id": str(evidence_id), "error": str(lang_err)},
+                    )
+                    result.language_perception = LanguagePerceptionResult(
+                        status="unavailable",
+                        summary="Text analysis unavailable.",
+                        provider="azure_ai_language",
+                    )
+                    result.combined_interpretation = result.explanation
+            else:
+                result.language_perception = None
+                result.combined_interpretation = result.explanation
+
+            if not result.combined_interpretation:
+                result.combined_interpretation = result.explanation
 
             # Map the validated result back to the ORM model
             evidence.ai_category = result.civic_issue_category.value if result.civic_issue_category else None

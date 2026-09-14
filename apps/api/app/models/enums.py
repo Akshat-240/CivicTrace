@@ -73,21 +73,12 @@ class EvidenceStatus(str, enum.Enum):
 
 
 # ---------------------------------------------------------------------------
-# Priority
+# Severity
 # ---------------------------------------------------------------------------
 
 
 class SeverityLevel(str, enum.Enum):
     """How severe is the physical damage or disruption."""
-
-    LOW = "low"
-    MEDIUM = "medium"
-    HIGH = "high"
-    CRITICAL = "critical"
-
-
-class PriorityLevel(str, enum.Enum):
-    """Final computed priority of the incident."""
 
     LOW = "low"
     MEDIUM = "medium"
@@ -124,9 +115,9 @@ class VerificationResult(str, enum.Enum):
     """Outcome of resolution verification."""
 
     FULLY_RESOLVED = "fully_resolved"
-    PARTIALLY_RESOLVED = "partially_resolved"
-    UNRESOLVED = "unresolved"
-    INSUFFICIENT_EVIDENCE = "insufficient_evidence"
+    NOT_RESOLVED = "not_resolved"
+    NO_EVIDENCE = "no_evidence"
+    HUMAN_REVIEW = "human_review"
 
 
 # ---------------------------------------------------------------------------
@@ -154,10 +145,6 @@ class EventType(str, enum.Enum):
     JURISDICTION_ASSIGNED = "jurisdiction_assigned"
     AUTHORITY_ASSIGNED = "authority_assigned"
 
-    # Priority
-    PRIORITY_COMPUTED = "priority_computed"
-    PRIORITY_UPDATED = "priority_updated"
-
     # SLA / Accountability
     SLA_STARTED = "sla_started"
     SLA_STATE_CHANGED = "sla_state_changed"
@@ -176,6 +163,13 @@ class EventType(str, enum.Enum):
 # Asset
 # ---------------------------------------------------------------------------
 
+
+class UserRole(str, enum.Enum):
+    """User roles for authorization."""
+
+    CITIZEN = "citizen"
+    AUTHORITY = "authority"
+    ADMIN = "admin"
 
 class AssetType(str, enum.Enum):
     """Infrastructure asset associated with an incident."""

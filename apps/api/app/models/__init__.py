@@ -17,9 +17,9 @@ from app.models.enums import (  # noqa: F401
     EventType,
     IncidentStatus,
     IssueType,
-    PriorityLevel,
     SeverityLevel,
     VerificationResult,
+    UserRole,
 )
 from app.models.location import Location  # noqa: F401
 from app.models.authority import Authority  # noqa: F401
@@ -27,10 +27,11 @@ from app.models.jurisdiction import Jurisdiction  # noqa: F401
 from app.models.incident import Incident  # noqa: F401
 from app.models.evidence import Evidence  # noqa: F401
 from app.models.asset import Asset  # noqa: F401
-from app.models.priority import Priority  # noqa: F401
 from app.models.sla import SLA  # noqa: F401
+from app.models.sla_rule import SLARule  # noqa: F401
 from app.models.verification import VerificationRecord  # noqa: F401
 from app.models.event import IncidentEvent  # noqa: F401
+from app.models.user import User  # noqa: F401
 
 __all__ = [
     # Enums
@@ -41,9 +42,9 @@ __all__ = [
     "EventType",
     "IncidentStatus",
     "IssueType",
-    "PriorityLevel",
     "SeverityLevel",
     "VerificationResult",
+    "UserRole",
     # Models
     "Location",
     "Authority",
@@ -51,8 +52,9 @@ __all__ = [
     "Incident",
     "Evidence",
     "Asset",
-    "Priority",
     "SLA",
+    "SLARule",
     "VerificationRecord",
     "IncidentEvent",
+    "User",
 ]

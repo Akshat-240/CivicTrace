@@ -45,7 +45,6 @@ if TYPE_CHECKING:
     from app.models.jurisdiction import Jurisdiction
     from app.models.authority import Authority
     from app.models.asset import Asset
-    from app.models.priority import Priority
     from app.models.sla import SLA
     from app.models.verification import VerificationRecord
     from app.models.event import IncidentEvent
@@ -151,12 +150,6 @@ class Incident(Base):
     assets: Mapped[list["Asset"]] = relationship(
         "Asset", back_populates="incident", cascade="all, delete-orphan"
     )
-    priority: Mapped[Optional["Priority"]] = relationship(
-        "Priority",
-        back_populates="incident",
-        uselist=False,
-        cascade="all, delete-orphan",
-    )
     sla: Mapped[Optional["SLA"]] = relationship(
         "SLA",
         back_populates="incident",
@@ -184,6 +177,10 @@ class Incident(Base):
         Index("ix_incidents_issue_type_status", "issue_type", "status"),
         Index("ix_incidents_jurisdiction_status", "jurisdiction_id", "status"),
         Index("ix_incidents_authority_status", "authority_id", "status"),
+        CheckConstraint(
+            "(jurisdiction_id IS NULL AND authority_id IS NULL) OR (jurisdiction_id IS NOT NULL)",
+            name="ck_incidents_jurisdiction_authority_invariant",
+        ),
         CheckConstraint(
             "ai_confidence IS NULL OR (ai_confidence >= 0.0 AND ai_confidence <= 1.0)",
             name="ck_incidents_ai_confidence_range",

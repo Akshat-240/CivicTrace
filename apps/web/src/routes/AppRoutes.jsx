@@ -43,66 +43,6 @@ import FieldWorkerLocationPage from '../pages/field-worker/FieldWorkerLocationPa
 import FieldWorkerEvidencePage from '../pages/field-worker/FieldWorkerEvidencePage';
 import FieldWorkerReviewPage from '../pages/field-worker/FieldWorkerReviewPage';
 
-const AppRoutes = () => {
-  return (
-    <Routes>
-      {/* Public Routes */}
-      <Route path="/" element={<LandingPage />} />
-      <Route path="/login" element={<LoginPage />} />
-
-      {/* Authority Portal Routes */}
-      <Route path="/authority" element={<AuthorityLayout />}>
-        <Route index element={<Navigate to="dashboard" replace />} />
-        <Route path="dashboard" element={<DashboardPage />} />
-        <Route path="incidents" element={<IncidentsPage />} />
-        <Route path="assignment" element={<AssignmentPage />} />
-        <Route path="map" element={<LiveMapPage />} />
-        <Route path="verification" element={<VerificationPage />} />
-        <Route path="settings" element={<SettingsPage />} />
-      </Route>
-
-      {/* Admin Portal Routes */}
-      <Route path="/admin" element={<AdminLayout />}>
-        <Route index element={<Navigate to="dashboard" replace />} />
-        <Route path="dashboard" element={<AdminDashboardPage />} />
-        <Route path="incidents" element={<AdminIncidentsPage />} />
-        <Route path="incidents/:id" element={<AdminIncidentDetailPage />} />
-        <Route path="map" element={<AdminMapPage />} />
-        <Route path="analysis" element={<AdminAnalysisPage />} />
-        <Route path="sla" element={<AdminSLAMonitoringPage />} />
-        <Route path="departments" element={<AdminDepartmentPage />} />
-        <Route path="governance" element={<AdminGovernancePage />} />
-        <Route path="settings" element={<AdminSettingsPage />} />
-      </Route>
-
-      {/* Citizen Portal Routes */}
-      <Route path="/citizen" element={<CitizenLayout />}>
-        <Route index element={<Navigate to="dashboard" replace />} />
-        <Route path="dashboard" element={<CitizenDashboardPage />} />
-        <Route path="report" element={<CitizenReportPage />} />
-        <Route path="track" element={<CitizenTrackPage />} />
-        <Route path="track/:id" element={<CitizenTrackPage />} />
-        <Route path="history" element={<CitizenHistoryPage />} />
-        <Route path="feedback" element={<CitizenFeedbackPage />} />
-        <Route path="feedback/:id" element={<CitizenFeedbackPage />} />
-        <Route path="settings" element={<CitizenSettingsPage />} />
-      </Route>
-
-      {/* Field Worker Portal Routes */}
-      <Route path="/field-worker" element={<FieldWorkerLayout />}>
-        <Route index element={<Navigate to="dashboard" replace />} />
-        <Route path="dashboard" element={<FieldWorkerDashboardPage />} />
-        <Route path="tasks" element={<FieldWorkerDashboardPage />} />
-        <Route path="tasks/:id" element={<FieldWorkerIncidentPage />} />
-        <Route path="incident" element={<FieldWorkerIncidentPage />} />
-        <Route path="location" element={<FieldWorkerLocationPage />} />
-        <Route path="tasks/:id/location" element={<FieldWorkerLocationPage />} />
-        <Route path="evidence" element={<FieldWorkerEvidencePage />} />
-        <Route path="tasks/:id/evidence" element={<FieldWorkerEvidencePage />} />
-        <Route path="review" element={<FieldWorkerReviewPage />} />
-        <Route path="tasks/:id/review" element={<FieldWorkerReviewPage />} />
-      </Route>
-
       {/* Fallback */}
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>

@@ -14,7 +14,7 @@ from pydantic import ValidationError
 from app.core.config import get_settings
 from app.core.errors import CivicTraceError, ServiceUnavailableError
 from app.models.enums import IssueType, SeverityLevel
-from app.schemas.ai import AIAnalysisResult
+from app.schemas.ai import AIAnalysisResult, VisualPerceptionResult
 from app.services.ai.base import AIProvider
 
 logger = logging.getLogger(__name__)
@@ -262,8 +262,17 @@ class AzureVisionProvider(AIProvider):
         elif tag_dict:
             top_tags = list(tag_dict.keys())[:5]
             explanation = f"Azure Computer Vision detected visual tags: {', '.join(top_tags)}."
-        else:
-            explanation = "Azure Computer Vision analyzed image but returned no distinct visual tags or captions."
+        # 10. Structured Visual Perception
+        visual_perception = VisualPerceptionResult(
+            issue_category=matched_category,
+            description=top_caption,
+            severity=severity_assessment,
+            confidence=final_confidence,
+            tags=list(tag_dict.keys())[:15],
+            detected_objects=detected_objects,
+            safety_risk_detected=safety_risk_detected,
+            provider="azure_computer_vision",
+        )
 
         try:
             return AIAnalysisResult(
@@ -275,6 +284,7 @@ class AzureVisionProvider(AIProvider):
                 ambiguity_reason=ambiguity_reason,
                 extracted_attributes=extracted_attributes,
                 explanation=explanation,
+                visual_perception=visual_perception,
             )
         except ValidationError as val_err:
             logger.error("azure_vision_validation_failed", exc_info=True)
