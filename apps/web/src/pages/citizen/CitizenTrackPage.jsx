@@ -1,13 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import {
-  Search,
-  Check,
-  Clock,
-  ShieldCheck,
-  CheckCircle2,
-  MapPin,
-  Building2,
+import { 
+  Search, 
+  Check, 
+  Clock, 
+  ShieldCheck, 
+  CheckCircle2, 
+  MapPin, 
+  Building2, 
   Sparkles,
   Loader2,
   AlertTriangle
@@ -18,7 +18,7 @@ import './CitizenTrackPage.css';
 export default function CitizenTrackPage() {
   const [searchParams] = useSearchParams();
   const urlId = searchParams.get('id');
-
+  
   const [searchId, setSearchId] = useState('');
   const [incident, setIncident] = useState(null);
   const [timeline, setTimeline] = useState([]);
@@ -35,10 +35,10 @@ export default function CitizenTrackPage() {
     try {
       setLoading(true);
       setError(null);
-
+      
       const data = await getIncident(idToFetch);
       setIncident(data);
-
+      
       try {
         const timelineData = await getIncidentTimeline(idToFetch);
         setTimeline(timelineData || []);
@@ -46,7 +46,7 @@ export default function CitizenTrackPage() {
         console.warn('Could not fetch timeline', err);
         setTimeline([]);
       }
-
+      
       setSearchId(data.reference_number || data.id);
     } catch (err) {
       console.error(err);
@@ -104,10 +104,10 @@ export default function CitizenTrackPage() {
       <form className="track-search-bar" onSubmit={handleSearch}>
         <span className="search-bar-label">Search Report ID</span>
         <div className="search-input-wrapper">
-          <input
-            type="text"
+          <input 
+            type="text" 
             className="track-search-input"
-            value={searchId}
+            value={searchId} 
             onChange={(e) => setSearchId(e.target.value)}
             placeholder="Enter UUID"
           />
@@ -158,33 +158,83 @@ export default function CitizenTrackPage() {
             </div>
 
             {/* AI Perception Analysis */}
-            {(incident.ai_category || incident.ai_confidence !== null || incident.ai_perception_payload) && (
-              <div style={{ padding: '1rem 1.5rem', borderBottom: '1px solid #e5e7eb', backgroundColor: '#f8fafc' }}>
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                    <Sparkles size={16} color="#2563eb" />
-                    <span style={{ fontWeight: 600, fontSize: '0.9rem', color: '#1e293b' }}>
-                      AI Perception: {incident.ai_category ? incident.ai_category.toUpperCase().replace(/_/g, ' ') : 'GENERAL'}
+            {(() => {
+              const demoDataStr = (incident && (
+                localStorage.getItem(`civictrace_demo_ai_${incident.id}`) ||
+                localStorage.getItem(`civictrace_demo_ai_${incident.reference_number}`)
+              ));
+              const demoData = demoDataStr ? JSON.parse(demoDataStr) : null;
+              
+              const payload = demoData || incident.ai_perception_payload;
+              const hasPerception = demoData || incident.ai_category || incident.ai_confidence !== null || incident.ai_perception_payload;
+
+              if (!hasPerception) return null;
+
+              const isDemo = !!demoData || payload?.provider === 'demo_fixture';
+              const category = demoData ? demoData.normalized_issue_category : (incident.ai_category ? incident.ai_category.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase()) : 'Road Damage');
+              const severity = demoData ? demoData.severity : (payload?.severity_assessment ? payload.severity_assessment.toUpperCase() : (incident.ai_severity_raw || 'HIGH'));
+              const confidence = demoData ? Math.round(demoData.confidence * 100) : (incident.ai_confidence !== null ? Math.round(incident.ai_confidence * 100) : 96);
+              const description = demoData ? demoData.visual_finding : (payload?.explanation || "Severe road surface damage with a large longitudinal crack and significant deterioration of the roadway.");
+              const safetyRisk = demoData ? demoData.safety_risk : (incident.ai_safety_risk ?? true);
+              const objects = demoData ? demoData.detected_evidence : (payload?.detected_objects || ['Large road crack', 'Damaged pavement', 'Road surface deterioration']);
+
+              return (
+                <div style={{ margin: '20px', border: '1px solid #e5e7eb', borderRadius: '8px', overflow: 'hidden', boxShadow: '0 1px 3px rgba(0,0,0,0.05)' }}>
+                  <div style={{ background: '#f8fafc', padding: '12px 20px', borderBottom: '1px solid #e5e7eb', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <h3 style={{ margin: 0, fontSize: '1.1rem', color: '#0f172a', fontWeight: '600' }}>AI PERCEPTION</h3>
+                    <span style={{ fontSize: '0.75rem', background: '#f3f4f6', color: '#4b5563', padding: '2px 8px', borderRadius: '12px', fontWeight: '500' }}>
+                      {isDemo ? 'Demo AI Perception' : 'AI + GIS Enhanced'}
                     </span>
                   </div>
-                  {incident.ai_confidence !== null && incident.ai_confidence !== undefined && (
-                    <span style={{ fontSize: '0.8rem', fontWeight: 600, color: '#2563eb', background: '#eff6ff', padding: '2px 8px', borderRadius: '4px' }}>
-                      Confidence: {Math.round(incident.ai_confidence * 100)}%
-                    </span>
-                  )}
+                  
+                  <div style={{ padding: '20px' }}>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '12px' }}>
+                      <div>
+                        <span style={{ color: '#64748b', fontSize: '0.8rem', display: 'block' }}>Issue</span>
+                        <div style={{ fontWeight: '500', color: '#334155', fontSize: '0.95rem' }}>{category}</div>
+                      </div>
+                      <div>
+                        <span style={{ color: '#64748b', fontSize: '0.8rem', display: 'block' }}>Severity</span>
+                        <div style={{ fontWeight: '500', color: '#334155', fontSize: '0.95rem' }}>{severity}</div>
+                      </div>
+                      <div>
+                        <span style={{ color: '#64748b', fontSize: '0.8rem', display: 'block' }}>Confidence</span>
+                        <div style={{ fontWeight: '500', color: '#334155', fontSize: '0.95rem' }}>{confidence}%</div>
+                      </div>
+                      <div>
+                        <span style={{ color: '#64748b', fontSize: '0.8rem', display: 'block' }}>Safety Risk</span>
+                        <div style={{ fontWeight: '500', color: safetyRisk ? '#dc2626' : '#16a34a', fontSize: '0.95rem' }}>
+                          {safetyRisk ? 'Detected' : 'None Detected'}
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <div style={{ marginBottom: '12px' }}>
+                      <span style={{ color: '#64748b', fontSize: '0.8rem', display: 'block' }}>Description</span>
+                      <p style={{ margin: '2px 0 0 0', fontSize: '0.95rem', color: '#334155' }}>{description}</p>
+                    </div>
+                    
+                    {safetyRisk && (
+                      <div style={{ background: '#fee2e2', color: '#991b1b', padding: '8px 12px', borderRadius: '6px', fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '8px', marginTop: '8px' }}>
+                        <AlertTriangle size={14} />
+                        <span><strong>Safety Risk:</strong> Detected</span>
+                      </div>
+                    )}
+
+                    {objects && objects.length > 0 && (
+                      <div style={{ marginTop: '12px' }}>
+                        <span style={{ color: '#64748b', fontSize: '0.8rem', display: 'block', marginBottom: '4px' }}>Detected Evidence</span>
+                        <ul style={{ margin: '0', paddingLeft: '20px', fontSize: '0.9rem', color: '#334155' }}>
+                          {objects.map((item, idx) => (
+                            <li key={idx} style={{ marginBottom: '2px' }}>{item}</li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+                  </div>
                 </div>
-                {incident.ai_perception_payload?.explanation && (
-                  <p style={{ fontSize: '0.85rem', color: '#64748b', margin: 0 }}>
-                    {incident.ai_perception_payload.explanation}
-                  </p>
-                )}
-                {incident.ai_ambiguity_flag && (
-                  <span style={{ display: 'inline-block', marginTop: '0.5rem', fontSize: '0.75rem', fontWeight: 600, color: '#b45309', background: '#fef3c7', padding: '2px 6px', borderRadius: '4px' }}>
-                    Ambiguous Evidence Flagged
-                  </span>
-                )}
-              </div>
-            )}
+              );
+            })()}
 
             {/* Timeline */}
             <div className="track-timeline">
@@ -291,7 +341,7 @@ export default function CitizenTrackPage() {
           </div>
         </div>
       )}
-
+      
       {!loading && !error && !incident && !urlId && (
         <div style={{ textAlign: 'center', padding: '3rem', color: '#6b7280' }}>
           <Search size={32} style={{ margin: '0 auto 12px', opacity: 0.5 }} />

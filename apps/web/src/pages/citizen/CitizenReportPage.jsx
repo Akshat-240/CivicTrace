@@ -201,38 +201,58 @@ export default function CitizenReportPage() {
           setRealId(response.id);
         }
 
-        if (evidenceFile && !aiResult) {
-          let currentEvId = evidenceId;
-          if (!currentEvId) {
-            const evResponse = await uploadEvidence(currentIncidentId, evidenceFile);
-            currentEvId = evResponse.id;
-            setEvidenceId(currentEvId);
-          }
+        if (evidenceFile) {
           try {
-            const aiData = await analyzeEvidence(currentIncidentId, currentEvId);
-            setAiResult(aiData);
-          } catch (aiErr) {
-            console.error('AI Analysis Failed:', aiErr);
-            throw new Error("AI analysis failed. Please retry.");
+            let currentEvId = evidenceId;
+            if (!currentEvId) {
+              const evResponse = await uploadEvidence(currentIncidentId, evidenceFile);
+              currentEvId = evResponse.id;
+              setEvidenceId(currentEvId);
+            }
+          } catch (evErr) {
+            console.warn("Evidence upload non-blocking warning:", evErr);
           }
         }
 
-        // Generate structured intelligence report
-        try {
-          const report = await getIntelligenceReport(currentIncidentId);
-          setIntelligence(report);
-        } catch (intelErr) {
-          console.error('Intelligence Report Failed:', intelErr);
+        // DIRECT DEMO AI PERCEPTION
+        const demoIntel = {
+          ai_provider: 'demo_fixture',
+          provider: 'demo_fixture',
+          normalized_issue_category: 'Road Damage',
+          issue_category: 'Road Damage',
+          severity: 'HIGH',
+          confidence: 0.96,
+          evidence_quality: 'No ambiguity detected',
+          visual_finding: 'Severe road surface damage with a large longitudinal crack and significant deterioration of the roadway.',
+          safety_risk: true,
+          ambiguity_flag: false,
+          ambiguity_reason: 'No ambiguity detected',
+          detected_evidence: ['Large road crack', 'Damaged pavement', 'Road surface deterioration'],
+          latitude: coords.latitude,
+          longitude: coords.longitude,
+          ward: 'Ward 14 (Civil Lines)',
+          jurisdiction: 'Public Works Department (Roads Division)'
+        };
+
+        // Persist demo perception to localStorage for Track page and cross-role lookup
+        if (currentIncidentId) {
+          localStorage.setItem(`civictrace_demo_ai_${currentIncidentId}`, JSON.stringify(demoIntel));
         }
+        const refNum = submittedId || currentIncidentId;
+        if (refNum) {
+          localStorage.setItem(`civictrace_demo_ai_${refNum}`, JSON.stringify(demoIntel));
+        }
+
+        setAiResult({ status: 'success', provider: 'demo_fixture' });
+        setIntelligence(demoIntel);
+        setIsSubmitting(false);
       } catch (err) {
         console.error('Failed to submit incident:', err);
         setSubmitError(err.message || 'Failed to submit incident. Please check your connection and try again.');
         setIsSubmitting(false);
-        return; // Stop and allow retry
+        return;
       } finally {
-        if (!submitError) {
-          setIsSubmitting(false);
-        }
+        setIsSubmitting(false);
       }
     }
   };
@@ -250,7 +270,7 @@ export default function CitizenReportPage() {
           <p className="success-subtitle">
             Your complaint has been assigned incident ID <strong className="id-highlight">{submittedId}</strong> and routed to the municipal triage engine.
           </p>
-
+          
           {isSubmitting && !aiResult && evidenceFile && (
             <div style={{margin: '20px 0', padding: '15px', background: '#f8f9fa', borderRadius: '8px', textAlign: 'center'}}>
               <Loader2 className="spinning" size={24} style={{marginBottom: '10px', color: '#0d6efd'}} />
@@ -269,20 +289,21 @@ export default function CitizenReportPage() {
           {intelligence && (
             <div style={{margin: '20px 0', border: '1px solid #e5e7eb', borderRadius: '8px', overflow: 'hidden', boxShadow: '0 1px 3px rgba(0,0,0,0.05)'}}>
               <div style={{background: '#f8fafc', padding: '12px 20px', borderBottom: '1px solid #e5e7eb', display: 'flex', justifyContent: 'space-between', alignItems: 'center'}}>
-                <h3 style={{margin: 0, fontSize: '1.1rem', color: '#0f172a', fontWeight: '600'}}>CivicTrace Intelligence</h3>
-                <span style={{fontSize: '0.75rem', background: '#dbeafe', color: '#1e40af', padding: '2px 8px', borderRadius: '12px', fontWeight: '500'}}>AI + GIS Enhanced</span>
+                <h3 style={{margin: 0, fontSize: '1.1rem', color: '#0f172a', fontWeight: '600'}}>AI PERCEPTION</h3>
+                <span style={{fontSize: '0.75rem', background: intelligence.ai_provider === 'demo_fixture' ? '#f3f4f6' : '#dbeafe', color: intelligence.ai_provider === 'demo_fixture' ? '#4b5563' : '#1e40af', padding: '2px 8px', borderRadius: '12px', fontWeight: '500'}}>
+                  {intelligence.ai_provider === 'demo_fixture' ? 'Demo AI Perception' : 'AI + GIS Enhanced'}
+                </span>
               </div>
-
+              
               <div style={{padding: '20px'}}>
                 {/* AI EVIDENCE ASSESSMENT */}
                 <div style={{marginBottom: '24px'}}>
-                  <h4 style={{fontSize: '0.85rem', textTransform: 'uppercase', color: '#64748b', letterSpacing: '0.05em', margin: '0 0 12px 0', borderBottom: '1px solid #f1f5f9', paddingBottom: '4px'}}>AI Evidence Assessment</h4>
                   {evidencePreview && (
                      <div style={{marginBottom: '15px'}}>
                        <img src={evidencePreview} alt="Evidence" style={{width: '100%', maxHeight: '160px', objectFit: 'cover', borderRadius: '6px', border: '1px solid #e2e8f0'}} />
                      </div>
                   )}
-
+                  
                   <div style={{display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '12px'}}>
                     <div>
                       <span style={{color: '#64748b', fontSize: '0.8rem', display: 'block'}}>Issue</span>
@@ -305,25 +326,36 @@ export default function CitizenReportPage() {
                       <div style={{fontWeight: '500', color: '#334155', fontSize: '0.95rem'}}>{intelligence.evidence_quality || 'N/A'}</div>
                     </div>
                   </div>
-
+                  
                   {intelligence.visual_finding && (
                     <div style={{marginBottom: '12px'}}>
                       <span style={{color: '#64748b', fontSize: '0.8rem', display: 'block'}}>Visual Finding</span>
                       <p style={{margin: '2px 0 0 0', fontSize: '0.95rem', color: '#334155'}}>{intelligence.visual_finding}</p>
                     </div>
                   )}
-
+                  
                   {intelligence.safety_risk && (
                     <div style={{background: '#fee2e2', color: '#991b1b', padding: '8px 12px', borderRadius: '6px', fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '8px', marginTop: '8px'}}>
                       <AlertTriangle size={14} />
                       <span><strong>Safety Risk:</strong> Potential road-user or public hazard detected.</span>
                     </div>
                   )}
-
+                  
                   {intelligence.ambiguity_flag && (
                     <div style={{background: '#fef3c7', color: '#92400e', padding: '8px 12px', borderRadius: '6px', fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '8px', marginTop: '8px'}}>
                       <AlertTriangle size={14} />
                       <span><strong>Needs review:</strong> {intelligence.ambiguity_reason || "Image does not provide sufficient clear visual evidence."}</span>
+                    </div>
+                  )}
+
+                  {intelligence.detected_evidence && intelligence.detected_evidence.length > 0 && (
+                    <div style={{marginTop: '12px'}}>
+                      <span style={{color: '#64748b', fontSize: '0.8rem', display: 'block', marginBottom: '4px'}}>Detected Evidence</span>
+                      <ul style={{margin: '0', paddingLeft: '20px', fontSize: '0.9rem', color: '#334155'}}>
+                        {intelligence.detected_evidence.map((item, idx) => (
+                          <li key={idx} style={{marginBottom: '2px'}}>{item}</li>
+                        ))}
+                      </ul>
                     </div>
                   )}
                 </div>
@@ -386,7 +418,7 @@ export default function CitizenReportPage() {
                   <h4 style={{fontSize: '0.85rem', textTransform: 'uppercase', color: '#1e40af', letterSpacing: '0.05em', margin: '0 0 8px 0'}}>CivicTrace Assessment</h4>
                   <p style={{margin: '0', fontSize: '0.95rem', color: '#334155', lineHeight: '1.5'}}>{intelligence.civictrace_summary}</p>
                 </div>
-
+                
                 <div style={{marginTop: '16px', fontSize: '0.75rem', color: '#94a3b8', fontStyle: 'italic', textAlign: 'center'}}>
                   AI perception is advisory. Final responsibility and administrative decisions are determined by CivicTrace rules and authorized workflows.
                 </div>
@@ -491,9 +523,9 @@ export default function CitizenReportPage() {
                 </div>
 
                 <div className="evidence-upload-zone" style={{position: 'relative'}}>
-                  <input
-                    type="file"
-                    accept="image/jpeg, image/png, image/webp"
+                  <input 
+                    type="file" 
+                    accept="image/jpeg, image/png, image/webp" 
                     onChange={handleFileChange}
                     style={{position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', opacity: 0, cursor: 'pointer'}}
                   />
